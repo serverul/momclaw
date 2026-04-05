@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="com.loa.momclaw.bridge">
+    <!-- Bridge module manifest - minimal permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+</manifest>

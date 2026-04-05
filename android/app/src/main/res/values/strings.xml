@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MOMCLAW</string>
+    <string name="app_description">Mobile Offline Model Agent</string>
+    
+    <!-- Chat Screen -->
+    <string name="chat_title">Chat</string>
+    <string name="chat_input_hint">Type a message…</string>
+    <string name="chat_send">Send</string>
+    <string name="chat_clear">Clear conversation</string>
+    <string name="chat_new">New conversation</string>
+    <string name="chat_agent_online">Agent online</string>
+    <string name="chat_agent_offline">Agent offline</string>
+    
+    <!-- Models Screen -->
+    <string name="models_title">Models</string>
+    <string name="models_download">Download</string>
+    <string name="models_load">Load</string>
+    <string name="models_delete">Delete</string>
+    <string name="models_downloading">Downloading…</string>
+    <string name="models_loading">Loading…</string>
+    <string name="models_empty">No models available</string>
+    <string name="models_empty_hint">Pull models from HuggingFace to get started</string>
+    
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_agent">Agent Configuration</string>
+    <string name="settings_app">App Settings</string>
+    <string name="settings_about">About</string>
+    <string name="settings_system_prompt">System Prompt</string>
+    <string name="settings_temperature">Temperature</string>
+    <string name="settings_max_tokens">Max Tokens</string>
+    <string name="settings_model">Primary Model</string>
+    <string name="settings_url">Agent URL</string>
+    <string name="settings_dark_theme">Dark Theme</string>
+    <string name="settings_streaming">Stream Responses</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_background_agent">Background Agent</string>
+    <string name="settings_reset">Reset to Defaults</string>
+    <string name="settings_save">Save Changes</string>
+    
+    <!-- Common -->
+    <string name="retry">Retry</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="refresh">Refresh</string>
+    <string name="back">Back</string>
+    <string name="error_unknown">Unknown error</string>
+    
+    <!-- About -->
+    <string name="about_version">Version 1.0.0</string>
+    <string name="about_powered_by">Powered by NullClaw + llama.cpp + Gemma</string>
+</resources>

@@ -1,0 +1,21 @@
+#!/bin/bash
+# NullClaw placeholder binary
+# This will be replaced with the actual ARM64 binary during build
+
+echo "NullClaw Mock Binary v0.1.0"
+echo "This is a placeholder. Replace with compiled ARM64 binary."
+
+# Simulate config loading
+if [ "$1" = "--config" ] && [ -n "$2" ]; then
+    echo "Loading config from: $2"
+fi
+
+# Keep running to simulate agent
+echo "NullClaw agent started (mock mode)"
+echo "Listening on localhost:8080"
+
+# In production, the real binary would run the agent here
+# For now, just sleep to simulate a running process
+while true; do
+    sleep 60
+done
