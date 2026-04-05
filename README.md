@@ -1,8 +1,8 @@
-# MOMCLAW 🐱
+# MOMCLAW 🐾
 
-**Mobile Offline Model — AI Agent 100% offline pe Android**
+**Mobile Offline Model Agent — AI Agent 100% offline pe Android**
 
-> Inspirat de [NullClaw](https://github.com/nullclaw/nullclaw) + llama.cpp + [Private Edge Gallery](https://git.hartagis.ro/ghostul/gallery-no-tracker)
+> Inspirat de [NullClaw](https://github.com/nullclaw/nullclaw) + llama.cpp + [PrivateAIEdgeGallery](https://github.com/serverul/PrivateAIEdgeGallery)
 > Model: **Gemma 4E4B-it** (GGUF via llama.cpp)
 
 ## Ce face?
@@ -63,4 +63,4 @@ Vezi [MOMCLAW-PLAN.md](MOMCLAW-PLAN.md) pentru planul complet.
 Apache License 2.0 — vezi [LICENSE](LICENSE)
 
 ---
-*Built with ❤️ by HartaGIS*
+*Built with ❤️ by LinuxOnAsteroids*

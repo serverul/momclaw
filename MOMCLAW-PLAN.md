@@ -142,7 +142,7 @@ momclaw/
 | Memory            | SQLite                       |
 | Build System      | Gradle + CMake + Zig build   |
 | CI/CD             | GitHub Actions               |
-| Package Name      | `ro.hartagis.momclaw`        |
+| Package Name      | `com.loa.momclaw`        |
 
 ## 💡 Decizii Tehnice
 
@@ -167,7 +167,7 @@ momclaw/
 
 ## 📋 Primii Pași
 
-1. **Create GitHub repo** → `hartagis/momclaw`
+1. **Create GitHub repo** → `serverul/momclaw`
 2. **Setup basic structure** → README + LICENSE + .gitignore
 3. **llama.cpp submodule** + Android CMake config
 4. **NullClaw fork** + `llamacpp.zig` provider
