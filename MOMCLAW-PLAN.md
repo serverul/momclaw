@@ -27,6 +27,10 @@ Un agent AI care rulează nativ pe telefonul Android — zero cloud, zero API ke
 │ • Settings & config                │ Claw │
 │ • Prompt Lab                       │ (Zig)│
 ├────────────────────────────────────┼──────┤
+│ System Access                      │      │
+│ • Contacts • Calendar • Phone      │      │
+│ • Camera • Location • Storage      │      │
+├────────────────────────────────────┼──────┤
 │ llama.cpp                          │ Null │
 │ • GGUF inference                   │ Claw │
 │ • Gemma 4E4B optimized             │ HTTP │
@@ -65,10 +69,22 @@ Un agent AI care rulează nativ pe telefonul Android — zero cloud, zero API ke
 - Settings pentru agent config
 
 ### 4. Background Agent
-- Foreground service pentru autonomie
+- Foreground service cu **icon în status bar** (semnal, wifi, etc.)
+- Persistă prin Doze mode și battery opt-out
 - Răspunde la mesaje chiar când app e închis
 - Canale: Telegram (primary), Discord (opțional)
 - Cron jobs pentru task-uri automate
+
+### 5. Phone Integration (Permission-Based)
+- **Contacte** — citire/agendă, apelare prin agent
+- **Calendar** — evenimente, reminder-uri, creare programări
+- **Telefon** — apeluri, SMS/MMS through agent commands  
+- **Locație** — context-aware responses, local queries
+- **Camera** — vision input for multimodal requests
+- **Storage** — file ops, document processing
+
+Toate accesările sunt **permission-based**: utilizatorul decide ce funcții activează.
+Icon-ul din status bar arată când agentul e activ și procesează ceva.
 
 ## 🗂️ Structura GitHub Repo
 
@@ -113,21 +129,29 @@ momclaw/
 - [ ] Memory SQLite
 - [ ] Background service
 
-### Phase 3: Android App (Săptămâna 5-6)
+### Phase 3: Phone Integration (Săptămâna 4-5)
+- [ ] Foreground service cu icon în status bar
+- [ ] Permission requests (contacts, calendar, phone, etc.)
+- [ ] Service foreground notification setup
+- [ ] Android manifest configuration
+- [ ] Runtime permission handling
+
+### Phase 4: Android App (Săptămâna 5-6)
 - [ ] UI Chat (inspirat Edge Gallery)
 - [ ] Model Manager (HF Hub download)
 - [ ] Prompt Lab
 - [ ] Settings
 
-### Phase 4: Channels & Sync (Săptămâna 7-8)
+### Phase 5: Channels & Sync (Săptămâna 7-8)
 - [ ] Telegram bot integration
 - [ ] Discord webhook
 - [ ] Sync cu OpenClaw principal
 - [ ] Cron jobs mobile
 
-### Phase 5: Polish & Release (Săptămâna 9-10)
+### Phase 6: Polish & Release (Săptămâna 8-10)
 - [ ] Testing pe dispozitive reale
 - [ ] Optimizare performanță
+o
 - [ ] APK Release
 - [ ] Documentation
 
