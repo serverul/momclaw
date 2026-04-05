@@ -1,0 +1,132 @@
+# Android
+*.iml
+.gradle
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Android Studio
+*.iws
+/out/
+/navigation/
+
+# NDK
+obj/
+libs/
+
+# Kotlin
+*.class
+*.jar
+*.kt.swp
+*.log
+
+# Gradle
+.gradle/
+build/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+
+# Local config
+local.properties
+keystore.properties
+*.keystore
+*.jks
+
+# Secrets
+secrets.properties
+api_keys.properties
+*.pem
+*.p12
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.vscode/
+
+# Build outputs
+android/app/build/
+android/bridge/build/
+android/agent/build/
+*.class
+
+# Test results
+test-results/
+test-reports/
+*.test
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# C/C++ build artifacts
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Native libs (built from source)
+*.so
+
+# Models directory (large files)
+models/
+*.gguf
+*.bin
+
+# APK work directory
+apk-work/
+
+# Documentation builds
+docs/_build/
+site/
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Package files
+*.nar
+*.ear
+*.war
+
+# Virtual environment
+venv/
+.env
+.env.local

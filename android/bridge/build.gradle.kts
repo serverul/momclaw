@@ -1,7 +1,6 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
 }
 
 android {
@@ -35,6 +34,9 @@ android {
 }
 
 dependencies {
+    // LiteRT-LM (Google AI Edge)
+    implementation("com.google.ai.edge:litert-lm:1.0.0")
+    
     // Ktor Server (Netty)
     implementation("io.ktor:ktor-server-core:2.3.8")
     implementation("io.ktor:ktor-server-netty:2.3.8")
