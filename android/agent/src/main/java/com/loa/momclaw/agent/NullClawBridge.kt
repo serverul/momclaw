@@ -1,14 +1,20 @@
 package com.loa.momclaw.agent
 
 import android.content.Context
+import com.loa.momclaw.domain.model.AgentConfig
 import java.io.File
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * Bridge to manage the NullClaw binary process
  * Handles binary extraction, process lifecycle, and health monitoring
+ * 
+ * Thread-safe: All process operations are synchronized
  */
 class NullClawBridge(private val context: Context) {
     
@@ -18,10 +24,14 @@ class NullClawBridge(private val context: Context) {
         private const val TAG = "NullClawBridge"
     }
     
-    private var process: Process? = null
+    private val processRef = AtomicReference<Process?>(null)
     private val isRunningFlag = AtomicBoolean(false)
     private var configPath: String? = null
     private var binaryPath: String? = null
+    private val processLock = ReentrantLock()
+    
+    private var outputMonitorThread: Thread? = null
+    private var healthMonitorThread: Thread? = null
     
     /**
      * Setup the NullClaw environment
@@ -33,30 +43,34 @@ class NullClawBridge(private val context: Context) {
      * @return Result containing the binary path or error
      */
     fun setup(config: AgentConfig): Result<String> {
-        return try {
-            // Extract binary from assets
-            val binaryFile = extractBinary()
-            binaryPath = binaryFile.absolutePath
-            
-            // Generate config file
-            val configFile = File(context.filesDir, CONFIG_NAME)
-            val configResult = ConfigGenerator.generateConfigFile(config, configFile)
-            if (configResult.isFailure) {
-                return Result.failure(configResult.exceptionOrNull()!!)
+        return processLock.withLock {
+            try {
+                // Extract binary from assets
+                val binaryFile = extractBinary()
+                binaryPath = binaryFile.absolutePath
+                
+                // Generate config file
+                val configFile = File(context.filesDir, CONFIG_NAME)
+                val configResult = ConfigGenerator.generateConfigFile(config, configFile)
+                if (configResult.isFailure) {
+                    return Result.failure(configResult.exceptionOrNull()!!)
+                }
+                configPath = configFile.absolutePath
+                
+                Result.success(binaryPath!!)
+            } catch (e: Exception) {
+                Result.failure(NullClawException("Setup failed: ${e.message}", e))
             }
-            configPath = configFile.absolutePath
-            
-            Result.success(binaryPath!!)
-        } catch (e: Exception) {
-            Result.failure(NullClawException("Setup failed: ${e.message}", e))
         }
     }
     
     /**
      * Start the NullClaw process
+     * Thread-safe: Uses lock to prevent concurrent starts
+     * 
      * @return Result success or failure
      */
-    fun start(): Result<Unit> {
+    fun start(): Result<Unit> = processLock.withLock {
         if (isRunningFlag.get()) {
             return Result.failure(NullClawException("NullClaw is already running"))
         }
@@ -69,11 +83,12 @@ class NullClawBridge(private val context: Context) {
                 .directory(context.filesDir)
                 .redirectErrorStream(true)
             
-            process = processBuilder.start()
+            val newProcess = processBuilder.start()
+            processRef.set(newProcess)
             isRunningFlag.set(true)
             
             // Start output monitor thread
-            startOutputMonitor()
+            startOutputMonitor(newProcess)
             
             // Start health check thread
             startHealthMonitor()
@@ -81,43 +96,60 @@ class NullClawBridge(private val context: Context) {
             Result.success(Unit)
         } catch (e: Exception) {
             isRunningFlag.set(false)
+            processRef.set(null)
             Result.failure(NullClawException("Failed to start NullClaw: ${e.message}", e))
         }
     }
     
     /**
      * Stop the NullClaw process gracefully
+     * Thread-safe: Interrupts monitor threads before cleanup
      */
     fun stop() {
-        if (!isRunningFlag.get()) return
-        
-        try {
-            process?.destroy()
+        processLock.withLock {
+            if (!isRunningFlag.get()) return
             
-            // Wait up to 5 seconds for graceful shutdown
-            val exited = process?.waitFor(5, java.util.concurrent.TimeUnit.SECONDS) ?: true
+            // Interrupt monitor threads first
+            try {
+                outputMonitorThread?.interrupt()
+                healthMonitorThread?.interrupt()
+                outputMonitorThread = null
+                healthMonitorThread = null
+            } catch (_: Exception) {}
             
-            if (!exited) {
-                // Force kill if graceful shutdown didn't work
-                process?.destroyForcibly()
-                process?.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)
+            val currentProcess = processRef.get()
+            
+            try {
+                currentProcess?.destroy()
+                
+                // Wait up to 5 seconds for graceful shutdown
+                val exited = currentProcess?.waitFor(5, java.util.concurrent.TimeUnit.SECONDS) ?: true
+                
+                if (!exited) {
+                    // Force kill if graceful shutdown didn't work
+                    currentProcess?.destroyForcibly()
+                    currentProcess?.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)
+                }
+            } catch (e: Exception) {
+                // Log but don't throw - best effort cleanup
+                println("[$TAG] Error during stop: ${e.message}")
+            } finally {
+                processRef.set(null)
+                isRunningFlag.set(false)
             }
-        } catch (e: Exception) {
-            // Log but don't throw - best effort cleanup
-        } finally {
-            process = null
-            isRunningFlag.set(false)
         }
     }
     
     /**
      * Check if the NullClaw process is running
+     * Thread-safe: Uses atomic references
      */
     fun isRunning(): Boolean {
         if (!isRunningFlag.get()) return false
         
         // Double-check process is actually alive
-        val alive = process?.isAlive ?: false
+        val currentProcess = processRef.get()
+        val alive = currentProcess?.isAlive ?: false
         if (!alive && isRunningFlag.get()) {
             isRunningFlag.set(false)
         }
@@ -130,7 +162,7 @@ class NullClawBridge(private val context: Context) {
      */
     fun getPid(): Long? {
         return if (isRunning()) {
-            process?.pid()
+            processRef.get()?.pid()
         } else {
             null
         }
@@ -158,17 +190,17 @@ class NullClawBridge(private val context: Context) {
         return outFile
     }
     
-    private fun startOutputMonitor() {
-        Thread {
+    private fun startOutputMonitor(proc: Process) {
+        outputMonitorThread = Thread {
             try {
-                val reader = BufferedReader(InputStreamReader(process?.inputStream))
+                val reader = BufferedReader(InputStreamReader(proc.inputStream))
                 var line: String?
                 while (reader.readLine().also { line = it } != null) {
                     // Log output (in production, route to proper logger)
                     println("[$TAG] $line")
                 }
             } catch (e: Exception) {
-                if (isRunningFlag.get()) {
+                if (isRunningFlag.get() && e !is InterruptedException) {
                     println("[$TAG] Output monitor error: ${e.message}")
                 }
             }
@@ -180,20 +212,24 @@ class NullClawBridge(private val context: Context) {
     }
     
     private fun startHealthMonitor() {
-        Thread {
-            while (isRunningFlag.get()) {
-                try {
+        healthMonitorThread = Thread {
+            try {
+                while (isRunningFlag.get() && !Thread.currentThread().isInterrupted) {
                     Thread.sleep(5000) // Check every 5 seconds
                     
-                    if (process?.isAlive == false && isRunningFlag.get()) {
+                    val currentProcess = processRef.get()
+                    if (currentProcess?.isAlive == false && isRunningFlag.get()) {
                         println("[$TAG] Process died unexpectedly")
                         isRunningFlag.set(false)
                         // Could trigger restart or callback here
                         break
                     }
-                } catch (e: InterruptedException) {
-                    break
-                } catch (e: Exception) {
+                }
+            } catch (e: InterruptedException) {
+                // Expected during shutdown
+                Thread.currentThread().interrupt()
+            } catch (e: Exception) {
+                if (!Thread.currentThread().isInterrupted) {
                     println("[$TAG] Health monitor error: ${e.message}")
                 }
             }
@@ -202,6 +238,13 @@ class NullClawBridge(private val context: Context) {
             isDaemon = true
             start()
         }
+    }
+    
+    /**
+     * Cleanup resources on garbage collection
+     */
+    protected fun finalize() {
+        stop()
     }
 }
 

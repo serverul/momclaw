@@ -82,57 +82,76 @@ class ChatRepository(
 
     /**
      * Send a message with streaming response
+     * Improved error handling: emits StreamState.Error on failures
      */
     fun sendMessageStream(content: String): Flow<StreamState> {
         return kotlinx.coroutines.flow.flow {
-            // Create and save user message
-            val userMessage = ChatMessage(
-                content = content,
-                isUser = true
-            )
-            messageDao.insertMessage(
-                MessageEntity.fromDomainModel(userMessage, currentConversationId)
-            )
-            emit(StreamState.UserMessageSaved(userMessage))
+            var assistantMessage: ChatMessage? = null
+            
+            try {
+                // Create and save user message
+                val userMessage = ChatMessage(
+                    content = content,
+                    isUser = true
+                )
+                messageDao.insertMessage(
+                    MessageEntity.fromDomainModel(userMessage, currentConversationId)
+                )
+                emit(StreamState.UserMessageSaved(userMessage))
 
-            // Create placeholder assistant message
-            val assistantMessage = ChatMessage(
-                content = "",
-                isUser = false,
-                isStreaming = true,
-                isComplete = false
-            )
-            messageDao.insertMessage(
-                MessageEntity.fromDomainModel(assistantMessage, currentConversationId)
-            )
-            emit(StreamState.StreamingStarted(assistantMessage))
+                // Create placeholder assistant message
+                assistantMessage = ChatMessage(
+                    content = "",
+                    isUser = false,
+                    isStreaming = true,
+                    isComplete = false
+                )
+                messageDao.insertMessage(
+                    MessageEntity.fromDomainModel(assistantMessage, currentConversationId)
+                )
+                emit(StreamState.StreamingStarted(assistantMessage))
 
-            // Get conversation history
-            val history = getMessageHistory()
+                // Get conversation history
+                val history = getMessageHistory()
 
-            // Stream tokens
-            val streamingMessage = StringBuilder()
-            agentClient.sendMessageStream(content, history).collect { token ->
-                streamingMessage.append(token)
-                val updatedMessage = assistantMessage.copy(
-                    content = streamingMessage.toString()
+                // Stream tokens
+                val streamingMessage = StringBuilder()
+                agentClient.sendMessageStream(content, history).collect { token ->
+                    streamingMessage.append(token)
+                    val updatedMessage = assistantMessage.copy(
+                        content = streamingMessage.toString()
+                    )
+                    messageDao.updateMessage(
+                        MessageEntity.fromDomainModel(updatedMessage, currentConversationId)
+                    )
+                    emit(StreamState.TokenReceived(updatedMessage, token))
+                }
+
+                // Mark complete
+                val finalMessage = assistantMessage.copy(
+                    content = streamingMessage.toString(),
+                    isStreaming = false,
+                    isComplete = true
                 )
                 messageDao.updateMessage(
-                    MessageEntity.fromDomainModel(updatedMessage, currentConversationId)
+                    MessageEntity.fromDomainModel(finalMessage, currentConversationId)
                 )
-                emit(StreamState.TokenReceived(updatedMessage, token))
+                emit(StreamState.StreamingComplete(finalMessage))
+                
+            } catch (e: Exception) {
+                // Handle error - update message if exists
+                assistantMessage?.let { msg ->
+                    val errorMessage = msg.copy(
+                        content = "Error: ${e.message}",
+                        isStreaming = false,
+                        isComplete = true
+                    )
+                    messageDao.updateMessage(
+                        MessageEntity.fromDomainModel(errorMessage, currentConversationId)
+                    )
+                }
+                emit(StreamState.Error(e))
             }
-
-            // Mark complete
-            val finalMessage = assistantMessage.copy(
-                content = streamingMessage.toString(),
-                isStreaming = false,
-                isComplete = true
-            )
-            messageDao.updateMessage(
-                MessageEntity.fromDomainModel(finalMessage, currentConversationId)
-            )
-            emit(StreamState.StreamingComplete(finalMessage))
         }
     }
 

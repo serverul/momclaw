@@ -13,6 +13,9 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.loa.momclaw.MainActivity
 import com.loa.momclaw.R
+package com.loa.momclaw.agent
+
+import com.loa.momclaw.domain.model.AgentConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +24,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
+import kotlin.math.min
+import kotlin.math.pow
 
 private val logger = KotlinLogging.logger {}
 
@@ -57,6 +62,16 @@ class AgentService : LifecycleService() {
     private var bridge: NullClawBridge? = null
     private var restartCount = 0
     private val maxRestarts = 3
+    
+    // Exponential backoff configuration
+    private val initialDelayMs = 1000L
+    private val maxDelayMs = 30000L
+    private val backoffMultiplier = 2.0
+    
+    private fun calculateBackoffDelay(): Long {
+        val delay = initialDelayMs * backoffMultiplier.pow(restartCount)
+        return min(delay.toLong(), maxDelayMs)
+    }
     
     override fun onBind(intent: Intent?): IBinder? {
         super.onBind(intent)
@@ -138,24 +153,38 @@ class AgentService : LifecycleService() {
         }
     }
     
+    /**
+     * Health monitor with exponential backoff retry
+     */
     private fun startHealthMonitor() {
         lifecycleScope.launch {
             while (_state.value is AgentState.Running) {
-                delay(5000)
+                delay(5000) // Check every 5 seconds
                 
                 val isRunning = bridge?.isRunning() ?: false
                 if (!isRunning) {
                     if (restartCount < maxRestarts) {
                         restartCount++
-                        logger.warn { "Agent died, restarting (${restartCount}/${maxRestarts})..." }
+                        val delayMs = calculateBackoffDelay()
+                        
+                        logger.warn { "Agent died, restarting in ${delayMs}ms (${restartCount}/${maxRestarts})..." }
                         _state.value = AgentState.Restarting(restartCount, maxRestarts)
-                        updateNotification("Restarting agent (${restartCount}/$maxRestarts)...")
+                        updateNotification("Restarting agent in ${delayMs/1000}s (${restartCount}/$maxRestarts)...")
+                        
+                        // Exponential backoff delay
+                        delay(delayMs)
+                        
                         val startResult = withContext(Dispatchers.Default) {
                             bridge?.start()
                         }
+                        
                         if (startResult?.isSuccess != true) {
                             _state.value = AgentState.Error("Agent crashed after $restartCount restarts")
                             updateNotification("Agent crashed")
+                        } else {
+                            // Reset backoff on successful restart
+                            _state.value = AgentState.Running
+                            updateNotification("Agent running (PID: ${bridge?.getPid()})")
                         }
                     } else {
                         _state.value = AgentState.Error("Agent crashed after $maxRestarts restart attempts")

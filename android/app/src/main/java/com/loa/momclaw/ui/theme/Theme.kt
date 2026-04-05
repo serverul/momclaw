@@ -79,10 +79,12 @@ private val LightColorScheme = lightColorScheme(
 
 /**
  * MOMCLAW theme - defaults to dark mode
+ * @param darkTheme Whether to use dark theme (should be connected to settings)
+ * @param dynamicColor Whether to use Material You dynamic colors (Android 12+)
  */
 @Composable
 fun MOMCLAWTheme(
-    darkTheme: Boolean = true,  // Dark theme by default
+    darkTheme: Boolean = true,
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {

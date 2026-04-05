@@ -1,6 +1,12 @@
 package com.loa.momclaw.ui.chat
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -19,6 +25,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -297,17 +304,9 @@ fun AssistantMessageBubble(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (isStreaming) {
-                    // Streaming cursor
+                    // Blinking streaming cursor
                     Spacer(modifier = Modifier.height(4.dp))
-                    Box(
-                        modifier = Modifier
-                            .width(8.dp)
-                            .height(16.dp)
-                            .background(
-                                MaterialTheme.colorScheme.primary,
-                                RoundedCornerShape(2.dp)
-                            )
-                    )
+                    BlinkingCursor()
                 }
             }
         }
@@ -315,31 +314,74 @@ fun AssistantMessageBubble(
 }
 
 /**
- * Pulsing dot for loading indicator
+ * Pulsing dot for loading indicator with proper pulsing animation
  */
 @Composable
 fun PulsingDot(delayMs: Long) {
-    var visible by remember { mutableStateOf(false) }
+    val infiniteTransition = rememberInfiniteTransition(label = "pulsing")
+    
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(600, delayMillis = delayMs.toInt(), easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
+    )
+    
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(600, delayMillis = delayMs.toInt(), easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
 
-    LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(delayMs)
-        visible = true
-    }
+    Box(
+        modifier = Modifier
+            .size(8.dp)
+            .graphicsLayer {
+                this.scaleX = scale
+                this.scaleY = scale
+                this.alpha = alpha
+            }
+            .background(
+                MaterialTheme.colorScheme.primary,
+                CircleShape
+            )
+    )
+}
 
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn(),
-        exit = fadeOut()
-    ) {
-        Box(
-            modifier = Modifier
-                .size(8.dp)
-                .background(
-                    MaterialTheme.colorScheme.primary,
-                    CircleShape
-                )
-        )
-    }
+/**
+ * Blinking cursor for streaming indicator
+ */
+@Composable
+fun BlinkingCursor() {
+    val infiniteTransition = rememberInfiniteTransition(label = "blinking")
+    
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0.2f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(530, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
+
+    Box(
+        modifier = Modifier
+            .width(8.dp)
+            .height(16.dp)
+            .graphicsLayer { this.alpha = alpha }
+            .background(
+                MaterialTheme.colorScheme.primary,
+                RoundedCornerShape(2.dp)
+            )
+    )
 }
 
 /**

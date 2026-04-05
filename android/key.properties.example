@@ -1,0 +1,11 @@
+# Store password for keystore
+storePassword=YOUR_STORE_PASSWORD
+
+# Key password (can be same as storePassword)
+keyPassword=YOUR_KEY_PASSWORD
+
+# Key alias (usually the name you used when creating the keystore)
+keyAlias=momclaw
+
+# Path to keystore file (relative to android/ directory)
+storeFile=../momclaw-release-key.jks

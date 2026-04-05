@@ -1,5 +1,6 @@
 package com.loa.momclaw.agent
 
+import com.loa.momclaw.domain.model.AgentConfig
 import org.json.JSONObject
 import java.io.File
 
@@ -16,7 +17,7 @@ object ConfigGenerator {
      */
     fun generateConfigFile(config: AgentConfig, outputFile: File): Result<File> {
         return try {
-            val jsonContent = config.toJsonConfig()
+            val jsonContent = buildJsonConfig(config)
             
             // Validate JSON is well-formed
             JSONObject(jsonContent) // This will throw if invalid
@@ -30,10 +31,42 @@ object ConfigGenerator {
     }
     
     /**
+     * Build JSON config string from AgentConfig
+     */
+    private fun buildJsonConfig(config: AgentConfig): String {
+        return """
+        {
+          "agents": {
+            "defaults": {
+              "model": {
+                "primary": "${escapeJson(config.modelPrimary)}"
+              },
+              "system_prompt": ${escapeJson(config.systemPrompt)},
+              "temperature": ${config.temperature},
+              "max_tokens": ${config.maxTokens}
+            }
+          },
+          "models": {
+            "providers": {
+              "litert-bridge": {
+                "type": "custom",
+                "base_url": "${escapeJson(config.baseUrl)}"
+              }
+            }
+          },
+          "memory": {
+            "backend": "${escapeJson(config.memoryBackend)}",
+            "path": "${escapeJson(config.memoryPath)}"
+          }
+        }
+        """.trimIndent()
+    }
+    
+    /**
      * Generate a minimal default config
      */
     fun generateDefaultConfig(outputFile: File): Result<File> {
-        return generateConfigFile(AgentConfig(), outputFile)
+        return generateConfigFile(AgentConfig.DEFAULT, outputFile)
     }
     
     /**
@@ -86,3 +119,15 @@ object ConfigGenerator {
 }
 
 class ConfigGenerationException(message: String, cause: Throwable? = null) : Exception(message, cause)
+
+/**
+ * Escape string for JSON
+ */
+private fun escapeJson(str: String): String {
+    return "\"" + str
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t") + "\""
+}
