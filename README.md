@@ -135,7 +135,9 @@ adb push models/gemma-3-E4B-it.litertlm \
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Ghid pentru contribuitori |
 | [SECURITY.md](SECURITY.md) | Politica de securitate |
 | [PRIVACY_POLICY.md](PRIVACY_POLICY.md) | Politica de confidențialitate |
-| [CHANGELOG.md](CHANGELOG.md) | Istoricul versiunilor |
+| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | **Troubleshooting** - Probleme comune și soluții |
+| [FAQ.md](FAQ.md) | **FAQ** - Frequently Asked Questions |
+| [PRODUCTION_BUILD_GUIDE.md](PRODUCTION_BUILD_GUIDE.md) | **Production Build Guide** - Ghid complet pentru build-uri de producție |
 
 ### API Documentation
 

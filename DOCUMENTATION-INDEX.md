@@ -20,6 +20,8 @@ Complete index of all documentation files for the MOMCLAW project.
 | [BUILD-DEPLOYMENT-GUIDE.md](BUILD-DEPLOYMENT-GUIDE.md) | Complete build & deploy guide | DevOps/Developers |
 | [PRODUCTION-CHECKLIST.md](PRODUCTION-CHECKLIST.md) | Production release checklist | Release managers |
 | [BUILD.md](BUILD.md) | Build instructions | Developers |
+| [FAQ.md](FAQ.md) | Frequently Asked Questions | Users, Developers |
+| [PRODUCTION_BUILD_GUIDE.md](PRODUCTION_BUILD_GUIDE.md) | Production build guide | DevOps |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Developer guide | Contributors |
 | [TESTING.md](TESTING.md) | Testing strategy | QA/Developers |
 | [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Pre-release checklist | Release managers |
@@ -328,6 +330,20 @@ Documentation should be updated when:
 - GitHub Issues: Bug reports and feature requests
 - GitHub Discussions: Questions and general discussion
 - Email: support@MOMCLAW.app
+
+---
+
+### FAQ.md
+- **Purpose**: Frequently Asked Questions
+- **Contents**: General questions, installation, privacy, features, troubleshooting
+- **Audience**: Users, developers
+- **Update frequency**: As needed
+
+### PRODUCTION_BUILD_GUIDE.md
+- **Purpose**: Complete production build guide
+- **Contents**: Signing setup, build commands, release checklist, security best practices
+- **Audience**: DevOps, release managers
+- **Update frequency**: Every release
 
 ---
 
