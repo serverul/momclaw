@@ -97,13 +97,14 @@ class InferenceService : LifecycleService() {
                     return@launch
                 }
                 
-                val loaded = bridge?.start(modelPath)
-                if (loaded == true) {
+                try {
+                    bridge?.start(modelPath)
+                    // start() throws on failure
                     _state.value = InferenceState.Running(modelPath, port)
                     updateNotification("Running on localhost:$port")
                     logger.info { "InferenceService: LiteRT Bridge running on port $port" }
-                } else {
-                    _state.value = InferenceState.Error("Failed to load model")
+                } catch (e: IllegalArgumentException) {
+                    _state.value = InferenceState.Error("Failed to load model: ${e.message}")
                     updateNotification("Failed to load model")
                 }
             } catch (e: Exception) {
