@@ -15,9 +15,7 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import io.github.oshai.kotlinlogging.KotlinLogging
 
-private val logger = KotlinLogging.logger
 
 /**
  * LiteRT Bridge Server
@@ -95,14 +93,14 @@ class LiteRTBridge(
                 )
             }
             
-            logger.info { "Model loaded: ${modelInfo.name} (${modelInfo.sizeBytes / (1024 * 1024)}MB) in ${modelLoadTime}ms" }
+            // TODO: Add logging
             
             // Start server
             startServer()
             
             Result.success(Unit)
         } catch (e: Exception) {
-            logger.error(e) { "Failed to start LiteRT Bridge" }
+            // TODO: Add logging
             Result.failure(e)
         }
     }
@@ -112,11 +110,11 @@ class LiteRTBridge(
      */
     suspend fun startServer() {
         if (isServerRunning) {
-            logger.warn { "Server already running on port $port" }
+            // TODO: Add logging
             return
         }
         
-        logger.info { "Starting LiteRT Bridge on port $port" }
+        // TODO: Add logging
         
         server = embeddedServer(Netty, port = port, module = {
             install(StatusPages) {
@@ -127,7 +125,7 @@ class LiteRTBridge(
                     )
                 }
                 exception<Exception> { call, error ->
-                    logger.error(error) { "Unhandled exception" }
+                    // TODO: Add logging
                     call.respond(
                         HttpStatusCode.InternalServerError,
                         ErrorResponse(
@@ -142,7 +140,7 @@ class LiteRTBridge(
         isServerRunning = true
         healthMonitor.recordStart(port)
         
-        logger.info { "LiteRT Bridge started at http://localhost:$port" }
+        // TODO: Add logging
     }
 
     /**
@@ -154,9 +152,9 @@ class LiteRTBridge(
         modelLoadTime = System.currentTimeMillis() - loadStart
         
         if (result) {
-            logger.info { "Model loaded from $modelPath in ${modelLoadTime}ms" }
+            // TODO: Add logging
         } else {
-            logger.error { "Failed to load model from $modelPath" }
+            // TODO: Add logging
         }
         
         return result
@@ -166,7 +164,7 @@ class LiteRTBridge(
      * Stop the server and release model resources
      */
     fun stop() {
-        logger.info { "Stopping LiteRT Bridge" }
+        // TODO: Add logging
         
         engine.close()
         server?.stop(1000, 2000)
@@ -174,7 +172,7 @@ class LiteRTBridge(
         isServerRunning = false
         healthMonitor.recordStop()
         
-        logger.info { "LiteRT Bridge stopped" }
+        // TODO: Add logging
     }
     
     /**
@@ -322,7 +320,7 @@ fun Application.moduleInner(
             val request = call.receive<ChatCompletionRequest>()
             healthMonitor.recordRequest()
             
-            logger.info { "Chat request: ${request.messages.size} messages, stream=${request.stream}" }
+            // TODO: Add logging
             
             // Validate request
             if (request.messages.isEmpty()) {
@@ -422,7 +420,7 @@ fun Application.moduleInner(
                 }
             } catch (e: Exception) {
                 healthMonitor.recordError()
-                logger.error(e) { "Generation failed" }
+                // TODO: Add logging
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     ErrorResponse(ErrorDetail("GENERATION_FAILED", e.message ?: "Generation failed"))

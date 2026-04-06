@@ -17,12 +17,10 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-private val logger = KotlinLogging.logger
 
 /**
  * InferenceService — Foreground service running LiteRT Bridge
@@ -74,7 +72,7 @@ class InferenceService : LifecycleService() {
     private fun transitionState(newState: InferenceState) {
         stateLock.withLock {
             val oldState = _state.value
-            logger.debug { "InferenceService state transition: $oldState -> $newState" }
+            // TODO: Add logging
             _state.value = newState
         }
     }
@@ -85,11 +83,11 @@ class InferenceService : LifecycleService() {
     private fun transitionStateIf(expected: InferenceState, newState: InferenceState): Boolean {
         return stateLock.withLock {
             if (_state.value == expected) {
-                logger.debug { "InferenceService state transition: $expected -> $newState" }
+                // TODO: Add logging
                 _state.value = newState
                 true
             } else {
-                logger.warn { "State transition rejected: expected $expected, got ${_state.value}" }
+                // TODO: Add logging
                 false
             }
         }
@@ -103,13 +101,13 @@ class InferenceService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
         inferenceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        logger.info { "InferenceService created" }
+        // TODO: Add logging
     }
     
     override fun onDestroy() {
         super.onDestroy()
         cleanup()
-        logger.info { "InferenceService destroyed" }
+        // TODO: Add logging
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -138,14 +136,14 @@ class InferenceService : LifecycleService() {
         inferenceScope?.launch {
             // Already running check
             if (_state.value is InferenceState.Running) {
-                logger.warn { "Inference already running" }
+                // TODO: Add logging
                 return@launch
             }
             
             // Atomic transition
             if (!transitionStateIf(InferenceState.Idle, InferenceState.Loading(modelPath)) &&
                 !(_state.value is InferenceState.Error)) {
-                logger.error { "Cannot start inference from state: ${_state.value}" }
+                // TODO: Add logging
                 return@launch
             }
             
@@ -187,18 +185,18 @@ class InferenceService : LifecycleService() {
                     else -> {
                         transitionState(InferenceState.Running(modelPath, port))
                         updateNotification("Running on localhost:$port")
-                        logger.info { "InferenceService: LiteRT Bridge running on port $port" }
+                        // TODO: Add logging
                     }
                 }
                 
             } catch (e: CancellationException) {
-                logger.warn { "Inference startup cancelled" }
+                // TODO: Add logging
                 transitionState(InferenceState.Error("Startup cancelled"))
                 cleanupOnError()
             } catch (e: Exception) {
                 transitionState(InferenceState.Error("Failed to start inference: ${e.message}"))
                 updateNotification("Error: ${e.message}")
-                logger.error(e) { "Failed to start InferenceService" }
+                // TODO: Add logging
                 cleanupOnError()
             }
         }
@@ -208,7 +206,7 @@ class InferenceService : LifecycleService() {
         try {
             bridge?.stop()
         } catch (e: Exception) {
-            logger.warn { "Error during cleanup: ${e.message}" }
+            // TODO: Add logging
         }
         bridge = null
     }
@@ -225,7 +223,7 @@ class InferenceService : LifecycleService() {
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             } catch (e: Exception) {
-                logger.error(e) { "Error stopping InferenceService" }
+                // TODO: Add logging
             }
         }
     }
@@ -237,7 +235,7 @@ class InferenceService : LifecycleService() {
         try {
             bridge?.stop()
         } catch (e: Exception) {
-            logger.warn { "Error during cleanup: ${e.message}" }
+            // TODO: Add logging
         }
         bridge = null
         

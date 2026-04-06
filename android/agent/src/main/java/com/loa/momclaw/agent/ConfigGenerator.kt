@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-private val logger = KotlinLogging.logger
 
 /**
  * Configuration Generator for NullClaw Agent

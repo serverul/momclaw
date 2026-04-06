@@ -174,7 +174,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-service:2.8.7")
     
     // Kotlin Logging
-    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
     
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.8.3")

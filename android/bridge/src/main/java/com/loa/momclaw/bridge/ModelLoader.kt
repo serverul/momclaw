@@ -3,14 +3,12 @@ package com.loa.momclaw.bridge
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.security.MessageDigest
 import java.util.zip.ZipInputStream
 
-private val logger = KotlinLogging.logger
 
 /**
  * Model Loader for LiteRT models from HuggingFace
@@ -47,13 +45,13 @@ class ModelLoader(private val context: Context) {
      */
     suspend fun verifyModel(modelPath: String): LoadResult = withContext(Dispatchers.IO) {
         try {
-            logger.info { "Verifying model at: $modelPath" }
+            // TODO: Add logging
             
             val modelFile = File(modelPath)
             
             // Check if path exists
             if (!modelFile.exists()) {
-                logger.warn { "Model file not found: $modelPath" }
+                // TODO: Add logging
                 return@withContext LoadResult.Error(
                     "Model file not found: $modelPath",
                     ModelNotFoundException(modelPath)
@@ -78,7 +76,7 @@ class ModelLoader(private val context: Context) {
             // Validate model size (should be at least 100MB for Gemma 4E4B)
             val sizeBytes = actualModelFile.length()
             if (sizeBytes < MIN_MODEL_SIZE_BYTES) {
-                logger.warn { "Model file too small: $sizeBytes bytes" }
+                // TODO: Add logging
                 return@withContext LoadResult.Error(
                     "Model file too small (expected >${MIN_MODEL_SIZE_BYTES / (1024 * 1024)}MB, got ${sizeBytes / (1024 * 1024)}MB)",
                     ModelTooSmallException(sizeBytes)
@@ -87,7 +85,7 @@ class ModelLoader(private val context: Context) {
             
             // Calculate checksum (optional, for verification)
             val checksum = calculateChecksum(actualModelFile)
-            logger.info { "Model checksum: $checksum" }
+            // TODO: Add logging
             
             LoadResult.Success(
                 ModelInfo(
@@ -99,7 +97,7 @@ class ModelLoader(private val context: Context) {
                 )
             )
         } catch (e: Exception) {
-            logger.error(e) { "Model verification failed" }
+            // TODO: Add logging
             LoadResult.Error("Model verification failed: ${e.message}", e)
         }
     }
@@ -122,7 +120,7 @@ class ModelLoader(private val context: Context) {
         // 4. Resume capability
         
         val actualTargetPath = targetPath ?: getDefaultModelPath()
-        logger.warn { 
+        // TODO: Add logging
             "HuggingFace download not implemented. Please download manually:\n" +
             "  huggingface-cli download $modelId\n" +
             "  or visit: https://huggingface.co/$modelId\n" +
@@ -149,7 +147,7 @@ class ModelLoader(private val context: Context) {
         val modelDir = File(context.filesDir, "models")
         if (!modelDir.exists()) {
             modelDir.mkdirs()
-            logger.info { "Created model directory: ${modelDir.absolutePath}" }
+            // TODO: Add logging
         }
         return modelDir
     }
@@ -202,7 +200,7 @@ class ModelLoader(private val context: Context) {
                         zis.copyTo(fos)
                     }
                     extractedFile = outFile
-                    logger.info { "Extracted model: ${outFile.absolutePath}" }
+                    // TODO: Add logging
                     break
                 }
                 entry = zis.nextEntry

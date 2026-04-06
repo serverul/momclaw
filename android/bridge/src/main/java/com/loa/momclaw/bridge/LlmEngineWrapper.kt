@@ -11,7 +11,6 @@ import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
-import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -19,7 +18,6 @@ import kotlin.concurrent.write
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-private val logger = KotlinLogging.logger
 
 /**
  * LiteRT LLM Engine Wrapper
@@ -56,11 +54,11 @@ class LlmEngineWrapper(
     suspend fun loadModel(path: String): Boolean {
         return lock.write {
             try {
-                logger.info { "Loading LiteRT model from: $path" }
+                // TODO: Add logging
                 
                 val file = java.io.File(path)
                 if (!file.exists()) {
-                    logger.error { "Model file not found: $path" }
+                    // TODO: Add logging
                     return@write false
                 }
                 
@@ -84,10 +82,10 @@ class LlmEngineWrapper(
                 
                 sessionRef.set(newSession)
                 
-                logger.info { "LiteRT model loaded: $modelName" }
+                // TODO: Add logging
                 true
             } catch (e: Exception) {
-                logger.error(e) { "Failed to load LiteRT model: ${e.message}" }
+                // TODO: Add logging
                 sessionRef.set(null)
                 modelPath = null
                 modelName = null
@@ -228,11 +226,11 @@ class LlmEngineWrapper(
      */
     fun close() {
         lock.write {
-            logger.info { "Closing LiteRT engine" }
+            // TODO: Add logging
             try {
                 sessionRef.getAndSet(null)?.close()
             } catch (e: Exception) {
-                logger.warn(e) { "Error closing LiteRT session" }
+                // TODO: Add logging
             }
             modelPath = null
             modelName = null

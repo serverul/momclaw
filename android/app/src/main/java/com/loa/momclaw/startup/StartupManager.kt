@@ -14,11 +14,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-private val logger = KotlinLogging.logger
 
 /**
  * StartupManager — Unified startup coordinator for MOMCLAW components
@@ -64,7 +62,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
     private fun transitionState(newState: StartupState) {
         lock.withLock {
             val oldState = _state.value
-            logger.debug { "State transition: $oldState -> $newState" }
+            // TODO: Add logging
             _state.value = newState
         }
     }
@@ -75,11 +73,11 @@ class StartupManager(private val context: Context) : LifecycleObserver {
     private fun transitionStateIf(expected: StartupState, newState: StartupState): Boolean {
         return lock.withLock {
             if (_state.value == expected) {
-                logger.debug { "State transition: $expected -> $newState" }
+                // TODO: Add logging
                 _state.value = newState
                 true
             } else {
-                logger.warn { "State transition rejected: expected $expected, got ${_state.value}" }
+                // TODO: Add logging
                 false
             }
         }
@@ -92,14 +90,14 @@ class StartupManager(private val context: Context) : LifecycleObserver {
         scope.launch {
             // Already running check
             if (_state.value == StartupState.Running) {
-                logger.warn { "Services already running" }
+                // TODO: Add logging
                 return@launch
             }
             
             // Atomic transition from Idle/Stopped to Starting
             if (!transitionStateIf(StartupState.Idle, StartupState.Starting) &&
                 !transitionStateIf(StartupState.Stopped, StartupState.Starting)) {
-                logger.error { "Cannot start services from state: ${_state.value}" }
+                // TODO: Add logging
                 return@launch
             }
             
@@ -113,7 +111,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 )
                 
                 // Step 1: Start Inference Service (LiteRT Bridge) with timeout
-                logger.info { "Step 1/3: Starting InferenceService..." }
+                // TODO: Add logging
                 transitionState(StartupState.StartingInference)
                 
                 val inferenceStarted = withTimeoutOrNull(INFERENCE_TIMEOUT_MS) {
@@ -126,7 +124,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 }
                 
                 // Step 2: Wait for LiteRT Bridge to be ready with timeout
-                logger.info { "Step 2/3: Waiting for LiteRT Bridge to be ready..." }
+                // TODO: Add logging
                 transitionState(StartupState.WaitingForInference)
                 
                 val inferenceReady = withTimeoutOrNull(MAX_WAIT_MS) {
@@ -148,7 +146,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 )
                 
                 // Step 3: Start Agent Service (NullClaw) with timeout
-                logger.info { "Step 3/3: Starting AgentService..." }
+                // TODO: Add logging
                 transitionState(StartupState.StartingAgent)
                 
                 val agentStarted = withTimeoutOrNull(AGENT_TIMEOUT_MS) {
@@ -176,14 +174,14 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                     inferenceEndpoint = "http://localhost:8080",
                     agentEndpoint = "http://localhost:9090"
                 ))
-                logger.info { "All services started successfully" }
+                // TODO: Add logging
                 
             } catch (e: CancellationException) {
-                logger.warn { "Startup cancelled" }
+                // TODO: Add logging
                 transitionState(StartupState.Error("Startup cancelled"))
                 cleanupOnError()
             } catch (e: Exception) {
-                logger.error(e) { "Failed to start services" }
+                // TODO: Add logging
                 transitionState(StartupState.Error("Startup failed: ${e.message}"))
                 cleanupOnError()
             }
@@ -205,7 +203,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 context.startForegroundService(inferenceIntent)
                 true
             } catch (e: Exception) {
-                logger.error(e) { "Failed to start InferenceService" }
+                // TODO: Add logging
                 false
             }
         }
@@ -227,7 +225,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 context.startForegroundService(agentIntent)
                 true
             } catch (e: Exception) {
-                logger.error(e) { "Failed to start AgentService" }
+                // TODO: Add logging
                 false
             }
         }
@@ -237,7 +235,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
      * Cleanup on error - stop any started services
      */
     private suspend fun cleanupOnError() {
-        logger.info { "Cleaning up after startup error..." }
+        // TODO: Add logging
         
         // Try to stop agent if it was started
         if (AgentService.state.value !is AgentState.Idle) {
@@ -248,7 +246,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                     }
                     context.startService(agentIntent)
                 } catch (e: Exception) {
-                    logger.warn { "Failed to stop AgentService during cleanup" }
+                    // TODO: Add logging
                 }
             }
         }
@@ -262,7 +260,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                     }
                     context.startService(inferenceIntent)
                 } catch (e: Exception) {
-                    logger.warn { "Failed to stop InferenceService during cleanup" }
+                    // TODO: Add logging
                 }
             }
         }
@@ -280,14 +278,14 @@ class StartupManager(private val context: Context) : LifecycleObserver {
             try {
                 lock.withLock {
                     if (_state.value !is StartupState.Running && _state.value !is StartupState.Starting) {
-                        logger.warn { "Services not running, current state: ${_state.value}" }
+                        // TODO: Add logging
                         return@launch
                     }
                     _state.value = StartupState.Stopping
                 }
                 
                 // Stop Agent first (depends on inference)
-                logger.info { "Stopping AgentService..." }
+                // TODO: Add logging
                 withContext(Dispatchers.Main) {
                     val agentIntent = Intent(context, AgentService::class.java).apply {
                         putExtra(AgentService.KEY_ACTION, AgentService.ACTION_STOP)
@@ -298,7 +296,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 delay(1000) // Give agent time to shutdown gracefully
                 
                 // Stop Inference
-                logger.info { "Stopping InferenceService..." }
+                // TODO: Add logging
                 withContext(Dispatchers.Main) {
                     val inferenceIntent = Intent(context, InferenceService::class.java).apply {
                         putExtra(InferenceService.KEY_ACTION, InferenceService.ACTION_STOP)
@@ -311,10 +309,10 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 ServiceRegistry.unregister(SERVICE_INFERENCE)
                 
                 transitionState(StartupState.Stopped)
-                logger.info { "All services stopped" }
+                // TODO: Add logging
                 
             } catch (e: Exception) {
-                logger.error(e) { "Error stopping services" }
+                // TODO: Add logging
                 transitionState(StartupState.Error("Shutdown error: ${e.message}"))
             }
         }
@@ -332,7 +330,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 return true
             }
             if (currentState is InferenceState.Error) {
-                logger.error { "InferenceService error: ${currentState.message}" }
+                // TODO: Add logging
                 return false
             }
             delay(POLL_INTERVAL_MS)
@@ -353,7 +351,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 return true
             }
             if (currentState is AgentState.Error) {
-                logger.error { "AgentService error: ${currentState.message}" }
+                // TODO: Add logging
                 return false
             }
             delay(POLL_INTERVAL_MS)
@@ -402,12 +400,12 @@ class StartupManager(private val context: Context) : LifecycleObserver {
     
     @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     fun onCreate() {
-        logger.info { "StartupManager: Lifecycle created" }
+        // TODO: Add logging
     }
     
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     fun onDestroy() {
-        logger.info { "StartupManager: Lifecycle destroyed" }
+        // TODO: Add logging
         cleanup()
     }
 }

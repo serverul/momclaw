@@ -4,9 +4,7 @@ import kotlinx.coroutines.flow.StateFlow
 import java.util.concurrent.ConcurrentHashMap
 import com.loa.momclaw.agent.AgentState
 import com.loa.momclaw.inference.InferenceState
-import io.github.oshai.kotlinlogging.KotlinLogging
 
-private val logger = KotlinLogging.logger
 
 /**
  * ServiceRegistry — Centralized service discovery and lifecycle management
@@ -39,7 +37,7 @@ object ServiceRegistry {
         )
         services[name] = info
         stateFlow?.let { serviceStates[name] = it }
-        logger.info { "Registered service: $name with dependencies: $dependencies" }
+        // TODO: Add logging
     }
     
     /**
@@ -48,7 +46,7 @@ object ServiceRegistry {
     fun unregister(name: String) {
         services.remove(name)
         serviceStates.remove(name)
-        logger.info { "Unregistered service: $name" }
+        // TODO: Add logging
     }
     
     /**
@@ -121,7 +119,7 @@ object ServiceRegistry {
     fun clear() {
         services.clear()
         serviceStates.clear()
-        logger.info { "ServiceRegistry cleared" }
+        // TODO: Add logging
     }
     
     /**

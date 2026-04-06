@@ -8,7 +8,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
-private val logger = KotlinLogging.logger
 
 /**
  * Configuration Manager for NullClaw Agent
@@ -40,17 +39,17 @@ class ConfigurationManager(private val context: Context) {
         try {
             val file = configFile
             if (file.exists()) {
-                logger.info { "Loading config from: ${file.absolutePath}" }
+                // TODO: Add logging
                 val content = file.readText()
                 json.decodeFromString<AgentConfig>(content)
             } else {
-                logger.info { "Config file not found, creating default" }
+                // TODO: Add logging
                 val default = AgentConfig.DEFAULT
                 saveConfig(default)
                 default
             }
         } catch (e: Exception) {
-            logger.error(e) { "Failed to load config, using defaults" }
+            // TODO: Add logging
             AgentConfig.DEFAULT
         }
     }
@@ -62,9 +61,9 @@ class ConfigurationManager(private val context: Context) {
         try {
             configFile.parentFile?.mkdirs()
             configFile.writeText(json.encodeToString(config))
-            logger.info { "Config saved to: ${configFile.absolutePath}" }
+            // TODO: Add logging
         } catch (e: Exception) {
-            logger.error(e) { "Failed to save config" }
+            // TODO: Add logging
             throw ConfigException("Failed to save configuration", e)
         }
     }

@@ -4,10 +4,8 @@ import android.app.ActivityManager
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 
-private val logger = KotlinLogging.logger
 
 /**
  * Health Check System for LiteRT Bridge
@@ -81,7 +79,7 @@ class HealthMonitor(private val context: Context) {
      */
     fun recordStart(port: Int) {
         startTime = System.currentTimeMillis()
-        logger.info { "Health monitor started (port: $port)" }
+        // TODO: Add logging
     }
     
     /**
@@ -89,7 +87,7 @@ class HealthMonitor(private val context: Context) {
      */
     fun recordStop() {
         startTime = 0
-        logger.info { "Health monitor stopped" }
+        // TODO: Add logging
     }
     
     /**

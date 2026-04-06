@@ -89,7 +89,6 @@ dependencies {
     implementation("com.github.tony19:logback-android:3.0.0")
     
     // Kotlin Logging
-    implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
 
     // Testing - Unit Tests
     testImplementation("junit:junit:4.13.2")

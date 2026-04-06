@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.withLock
 
-private val logger = KotlinLogging.logger
 
 /**
  * NullClaw Bridge — Binary wrapper for NullClaw agent process
@@ -81,7 +80,7 @@ class NullClawBridge(private val context: Context) {
         }
         
         try {
-            logger.info { "Setting up NullClaw bridge..." }
+            // TODO: Add logging
             
             // Validate configuration
             val validation = configManager.validateConfig(config)
@@ -101,7 +100,7 @@ class NullClawBridge(private val context: Context) {
             binaryFile.setExecutable(true, false)
             binaryFile.setReadable(true, false)
             
-            logger.info { "Binary extracted and made executable: ${binaryFile.absolutePath}" }
+            // TODO: Add logging
             
             // 2. Ensure database directory exists
             val dbDir = File(config.memoryPath).parentFile
@@ -113,14 +112,14 @@ class NullClawBridge(private val context: Context) {
             val configFile = generateConfig(config)
             configPath.set(configFile.absolutePath)
             
-            logger.info { "Config generated at: ${configFile.absolutePath}" }
+            // TODO: Add logging
             
             stateLock.withLock {
                 isSetup.set(true)
             }
             Result.success(Unit)
         } catch (e: Exception) {
-            logger.error(e) { "Failed to setup NullClaw bridge" }
+            // TODO: Add logging
             Result.failure(e)
         }
     }
@@ -138,13 +137,13 @@ class NullClawBridge(private val context: Context) {
             }
             
             if (isRunning.get()) {
-                logger.warn { "NullClaw already running" }
+                // TODO: Add logging
                 return@withContext Result.success(Unit)
             }
         }
         
         try {
-            logger.info { "Starting NullClaw agent process..." }
+            // TODO: Add logging
             
             val binaryPath = getBinaryPath()
             val config = configPath.get() ?: return@withContext Result.failure(
@@ -187,7 +186,7 @@ class NullClawBridge(private val context: Context) {
                 monitor.recordStart()
                 notifyProcessStarted(pid)
                 
-                logger.info { "NullClaw agent started successfully (PID: $pid)" }
+                // TODO: Add logging
                 Result.success(Unit)
             } else {
                 // Cleanup failed startup
@@ -200,7 +199,7 @@ class NullClawBridge(private val context: Context) {
                 Result.failure(IOException("NullClaw process failed to start within timeout (exit code: $exitCode)"))
             }
         } catch (e: Exception) {
-            logger.error(e) { "Failed to start NullClaw agent" }
+            // TODO: Add logging
             monitor.recordError("START_EXCEPTION", e.message ?: "Unknown error")
             notifyProcessError(e)
             Result.failure(e)
@@ -261,7 +260,7 @@ class NullClawBridge(private val context: Context) {
             isRunning.set(false)
             
             if (process != null) {
-                logger.info { "Stopping NullClaw agent..." }
+                // TODO: Add logging
                 cleanupProcess(process)
                 
                 val exitCode = try { process.exitValue() } catch (e: Exception) { -1 }
@@ -274,7 +273,7 @@ class NullClawBridge(private val context: Context) {
             outputReaderJob = null
         }
         
-        logger.info { "NullClaw agent stopped" }
+        // TODO: Add logging
     }
     
     /**
@@ -288,7 +287,7 @@ class NullClawBridge(private val context: Context) {
             // Wait for process to terminate with timeout
             if (!process.waitFor(GRACEFUL_SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
                 // Force kill if still running
-                logger.warn { "NullClaw didn't stop gracefully, forcing..." }
+                // TODO: Add logging
                 process.destroyForcibly()
                 process.waitFor(FORCE_SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             }
@@ -299,10 +298,10 @@ class NullClawBridge(private val context: Context) {
                 process.errorStream?.close()
                 process.outputStream?.close()
             } catch (e: Exception) {
-                logger.debug { "Error closing process streams: ${e.message}" }
+                // TODO: Add logging
             }
         } catch (e: Exception) {
-            logger.error(e) { "Error during process cleanup" }
+            // TODO: Add logging
         }
     }
     
@@ -329,7 +328,7 @@ class NullClawBridge(private val context: Context) {
             stateLock.withLock {
                 isRunning.set(false)
             }
-            logger.warn { "NullClaw process died unexpectedly" }
+            // TODO: Add logging
             monitor.recordError("PROCESS_DIED", "Process died unexpectedly")
         }
         return alive
@@ -374,7 +373,7 @@ class NullClawBridge(private val context: Context) {
             
             responseCode == 200
         } catch (e: Exception) {
-            logger.warn { "Health check failed: ${e.message}" }
+            // TODO: Add logging
             false
         }
     }
@@ -436,7 +435,7 @@ class NullClawBridge(private val context: Context) {
             try {
                 listener.onProcessStarted(pid ?: 0)
             } catch (e: Exception) {
-                logger.warn(e) { "Error in lifecycle listener" }
+                // TODO: Add logging
             }
         }
     }
@@ -446,7 +445,7 @@ class NullClawBridge(private val context: Context) {
             try {
                 listener.onProcessStopped(exitCode)
             } catch (e: Exception) {
-                logger.warn(e) { "Error in lifecycle listener" }
+                // TODO: Add logging
             }
         }
     }
@@ -456,7 +455,7 @@ class NullClawBridge(private val context: Context) {
             try {
                 listener.onProcessError(error)
             } catch (e: Exception) {
-                logger.warn(e) { "Error in lifecycle listener" }
+                // TODO: Add logging
             }
         }
     }
@@ -474,11 +473,11 @@ class NullClawBridge(private val context: Context) {
         
         // Check if already extracted and up to date
         if (outputFile.exists()) {
-            logger.debug { "Binary already exists: ${outputFile.absolutePath}" }
+            // TODO: Add logging
             return outputFile
         }
         
-        logger.info { "Extracting binary for ABI: $abi (asset: $assetName)" }
+        // TODO: Add logging
         
         // Try to extract from assets
         try {
@@ -490,7 +489,7 @@ class NullClawBridge(private val context: Context) {
             return outputFile
         } catch (e: IOException) {
             // Asset not found, try generic name
-            logger.warn { "Asset $assetName not found, trying 'nullclaw'" }
+            // TODO: Add logging
             
             try {
                 context.assets.open("nullclaw").use { input ->
@@ -501,7 +500,7 @@ class NullClawBridge(private val context: Context) {
                 return outputFile
             } catch (e2: IOException) {
                 // Create stub binary for testing
-                logger.warn { "No binary found, creating stub for testing" }
+                // TODO: Add logging
                 createStubBinary(outputFile)
                 return outputFile
             }
@@ -572,13 +571,13 @@ class NullClawBridge(private val context: Context) {
                 val reader = BufferedReader(InputStreamReader(process.inputStream))
                 var line: String?
                 while (reader.readLine().also { line = it } != null) {
-                    logger.debug { "[NullClaw] $line" }
+                    // TODO: Add logging
                 }
             } catch (e: CancellationException) {
-                logger.debug { "Output reader cancelled" }
+                // TODO: Add logging
             } catch (e: Exception) {
                 if (isRunning.get()) {
-                    logger.error(e) { "Error reading NullClaw output" }
+                    // TODO: Add logging
                     monitor.recordError("OUTPUT_READ_ERROR", e.message ?: "Unknown error")
                 }
             }

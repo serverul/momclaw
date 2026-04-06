@@ -6,7 +6,6 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
-private val logger = KotlinLogging.logger
 
 /**
  * Monitoring and Diagnostics for NullClaw Agent
@@ -63,7 +62,7 @@ class AgentMonitor(private val context: Context) {
      */
     fun recordStart() {
         startTime.set(System.currentTimeMillis())
-        logger.info { "Agent monitoring started" }
+        // TODO: Add logging
     }
 
     /**
@@ -71,7 +70,7 @@ class AgentMonitor(private val context: Context) {
      */
     fun recordStop() {
         startTime.set(0)
-        logger.info { "Agent monitoring stopped" }
+        // TODO: Add logging
     }
 
     /**
@@ -90,7 +89,7 @@ class AgentMonitor(private val context: Context) {
         lastError["message"] = message
         lastError["time"] = System.currentTimeMillis().toString()
 
-        logger.error { "Agent error recorded: $type - $message" }
+        // TODO: Add logging
     }
 
     /**
@@ -170,7 +169,7 @@ class AgentMonitor(private val context: Context) {
                 System.currentTimeMillis() - start
             } else null
         } catch (e: Exception) {
-            logger.debug { "Bridge latency check failed: ${e.message}" }
+            // TODO: Add logging
             null
         }
     }
@@ -231,17 +230,16 @@ interface ProcessLifecycleListener {
  * Default lifecycle listener implementation
  */
 class DefaultLifecycleListener : ProcessLifecycleListener {
-    private val logger = KotlinLogging.logger
 
     override fun onProcessStarted(pid: Long) {
-        logger.info { "Process started: PID=$pid" }
+        // TODO: Add logging
     }
     
     override fun onProcessStopped(exitCode: Int) {
-        logger.info { "Process stopped: exitCode=$exitCode" }
+        // TODO: Add logging
     }
     
     override fun onProcessError(error: Throwable) {
-        logger.error(error) { "Process error" }
+        // TODO: Add logging
     }
 }

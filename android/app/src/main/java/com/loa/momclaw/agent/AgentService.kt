@@ -18,13 +18,11 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.math.min
 import kotlin.math.pow
 
-private val logger = KotlinLogging.logger
 
 /**
  * AgentService — Foreground service managing the NullClaw agent process
@@ -97,7 +95,7 @@ class AgentService : LifecycleService() {
     private fun transitionState(newState: AgentState) {
         stateLock.withLock {
             val oldState = _state.value
-            logger.debug { "AgentService state transition: $oldState -> $newState" }
+            // TODO: Add logging
             _state.value = newState
         }
     }
@@ -108,11 +106,11 @@ class AgentService : LifecycleService() {
     private fun transitionStateIf(expected: AgentState, newState: AgentState): Boolean {
         return stateLock.withLock {
             if (_state.value == expected) {
-                logger.debug { "AgentService state transition: $expected -> $newState" }
+                // TODO: Add logging
                 _state.value = newState
                 true
             } else {
-                logger.warn { "State transition rejected: expected $expected, got ${_state.value}" }
+                // TODO: Add logging
                 false
             }
         }
@@ -126,13 +124,13 @@ class AgentService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
         serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        logger.info { "AgentService created" }
+        // TODO: Add logging
     }
     
     override fun onDestroy() {
         super.onDestroy()
         cleanup()
-        logger.info { "AgentService destroyed" }
+        // TODO: Add logging
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -161,14 +159,14 @@ class AgentService : LifecycleService() {
         serviceScope?.launch {
             // Already running check
             if (_state.value is AgentState.Running) {
-                logger.warn { "Agent already running" }
+                // TODO: Add logging
                 return@launch
             }
             
             // Atomic transition
             if (!transitionStateIf(AgentState.Idle, AgentState.SettingUp) &&
                 !(_state.value is AgentState.Error)) {
-                logger.error { "Cannot start agent from state: ${_state.value}" }
+                // TODO: Add logging
                 return@launch
             }
             
@@ -222,7 +220,7 @@ class AgentService : LifecycleService() {
                 if (startResult.isSuccess) {
                     transitionState(AgentState.Running)
                     updateNotification("Agent running (PID: ${bridge?.getPid()})")
-                    logger.info { "AgentService: NullClaw started successfully" }
+                    // TODO: Add logging
                     restartCount = 0
                     startHealthMonitor()
                 } else {
@@ -231,13 +229,13 @@ class AgentService : LifecycleService() {
                     cleanupOnError()
                 }
             } catch (e: CancellationException) {
-                logger.warn { "Agent startup cancelled" }
+                // TODO: Add logging
                 transitionState(AgentState.Error("Startup cancelled"))
                 cleanupOnError()
             } catch (e: Exception) {
                 transitionState(AgentState.Error("Failed to start agent: ${e.message}"))
                 updateNotification("Error: ${e.message}")
-                logger.error(e) { "Failed to start AgentService" }
+                // TODO: Add logging
                 cleanupOnError()
             }
         }
@@ -258,7 +256,7 @@ class AgentService : LifecycleService() {
                         restartCount++
                         val delayMs = calculateBackoffDelay()
                         
-                        logger.warn { "Agent died, restarting in ${delayMs}ms (${restartCount}/${maxRestarts})..." }
+                        // TODO: Add logging
                         transitionState(AgentState.Restarting(restartCount, maxRestarts))
                         updateNotification("Restarting agent in ${delayMs/1000}s (${restartCount}/$maxRestarts)...")
                         
@@ -312,7 +310,7 @@ class AgentService : LifecycleService() {
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             } catch (e: Exception) {
-                logger.error(e) { "Error stopping AgentService" }
+                // TODO: Add logging
             }
         }
     }

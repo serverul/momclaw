@@ -10,7 +10,6 @@ import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-private val logger = KotlinLogging.logger
 
 /**
  * Singleton factory for managing NullClaw Bridge instances.
@@ -51,7 +50,7 @@ object NullClawBridgeFactory {
                 isInitialized = true
                 configManager = ConfigurationManager(context.applicationContext)
                 monitor = AgentMonitor(context.applicationContext)
-                logger.info { "NullClawBridge instance created" }
+                // TODO: Add logging
             }
         }
     }
@@ -68,14 +67,14 @@ object NullClawBridgeFactory {
     suspend fun reset() {
         mutex.withLock {
             instance?.let { bridge ->
-                logger.info { "Stopping NullClawBridge instance..." }
+                // TODO: Add logging
                 bridge.cleanup()  // Use full cleanup instead of just stop()
             }
             instance = null
             isInitialized = false
             configManager = null
             monitor = null
-            logger.info { "NullClawBridgeFactory reset" }
+            // TODO: Add logging
         }
     }
     
@@ -121,7 +120,7 @@ object NullClawBridgeFactory {
         return try {
             bridge.getHealthStatus()
         } catch (e: Exception) {
-            logger.warn(e) { "Failed to get health status" }
+            // TODO: Add logging
             null
         }
     }
@@ -158,7 +157,7 @@ object NullClawBridgeFactory {
             )
             Result.success(config)
         } catch (e: Exception) {
-            logger.error(e) { "Failed to update configuration" }
+            // TODO: Add logging
             Result.failure(e)
         }
     }
