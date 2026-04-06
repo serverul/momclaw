@@ -120,12 +120,9 @@ class ModelLoader(private val context: Context) {
         // 4. Resume capability
         
         val actualTargetPath = targetPath ?: getDefaultModelPath()
-        // TODO: Add logging
-            "HuggingFace download not implemented. Please download manually:\n" +
-            "  huggingface-cli download $modelId\n" +
-            "  or visit: https://huggingface.co/$modelId\n" +
-            "Target path: $actualTargetPath"
-        }
+        
+        // TODO: Add logging for download attempt
+        // HuggingFace download not implemented - see documentation
         
         LoadResult.Error(
             "Automatic HuggingFace download not implemented. " +
