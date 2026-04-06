@@ -120,15 +120,16 @@ adb push models/gemma-3-E4B-it.litertlm \
 | Documentație | Descriere |
 |-------------|-----------|
 | [README.md](README.md) | **Acest fișier** - Overview și quick start |
+| [USER_GUIDE.md](USER_GUIDE.md) | **User Guide** - Ghid complet pentru utilizatori |
 | [QUICKSTART.md](QUICKSTART.md) | **5-minute setup guide** - Get running quickly |
 | [DOCUMENTATION.md](DOCUMENTATION.md) | **Documentație completă** - setup, deployment, API, troubleshooting |
+| [BUILD_CONFIGURATION.md](BUILD_CONFIGURATION.md) | **Build configuration** - Signing, variants, ProGuard, CI/CD |
+| [GOOGLE_PLAY_STORE.md](GOOGLE_PLAY_STORE.md) | **Google Play Store** - Setup, listing, deployment |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | **Deployment guide** - Google Play Store și F-Droid |
-| [BUILD-DEPLOYMENT-GUIDE.md](BUILD-DEPLOYMENT-GUIDE.md) | **Complete build & deploy guide** - All-in-one reference |
 | [PRODUCTION-CHECKLIST.md](PRODUCTION-CHECKLIST.md) | **Production checklist** - Single-source release checklist |
 | [BUILD.md](BUILD.md) | Build instructions detaliate |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Developer guide și arhitectură |
 | [TESTING.md](TESTING.md) | Testing strategy și checklists |
-| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Release checklist pentru deployment |
 | [SPEC.md](SPEC.md) | Specificații tehnice complete |
 | [MOMCLAW-PLAN.md](MOMCLAW-PLAN.md) | Roadmap și planuri viitoare |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Ghid pentru contribuitori |

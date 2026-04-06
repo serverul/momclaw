@@ -1,0 +1,119 @@
+name: F-Droid Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  build-fdroid:
+    name: Build F-Droid APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission
+        run: chmod +x android/gradlew scripts/*.sh
+
+      - name: Build F-Droid APK
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          ./scripts/build-fdroid.sh "$VERSION"
+
+      - name: Sign with GPG
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          
+          # Import GPG key
+          echo "$GPG_PRIVATE_KEY" | gpg --import --batch --passphrase "$GPG_PASSPHRASE"
+          
+          # Sign APK
+          cd android/app/build/outputs/apk/release
+          gpg --armor --detach-sign --batch --passphrase "$GPG_PASSPHRASE" \
+            MOMCLAW-${VERSION}-fdroid.apk
+
+      - name: Generate SHA256 Checksum
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          cd android/app/build/outputs/apk/release
+          
+          sha256sum MOMCLAW-${VERSION}-fdroid.apk > MOMCLAW-${VERSION}-fdroid.apk.sha256
+          cat MOMCLAW-${VERSION}-fdroid.apk.sha256
+
+      - name: Upload F-Droid APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: fdroid-apk
+          path: |
+            android/app/build/outputs/apk/release/MOMCLAW-*-fdroid.apk
+            android/app/build/outputs/apk/release/MOMCLAW-*-fdroid.apk.asc
+            android/app/build/outputs/apk/release/MOMCLAW-*-fdroid.apk.sha256
+          retention-days: 90
+
+      - name: Prepare F-Droid Metadata
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          mkdir -p fdroid-metadata
+          
+          # Copy metadata template
+          cp android/fastlane/metadata/android/en-US/*.txt fdroid-metadata/ 2>/dev/null || true
+          
+          # Create version-specific metadata
+          cat > fdroid-metadata/MOMCLAW-${VERSION}.yml << EOF
+          Version: ${VERSION}
+          VersionCode: $(echo "$VERSION" | awk -F. '{print $1*10000+$2*100+$3}')
+          APK: MOMCLAW-${VERSION}-fdroid.apk
+          SHA256: $(sha256sum android/app/build/outputs/apk/release/MOMCLAW-${VERSION}-fdroid.apk | cut -d' ' -f1)
+          BuildDate: $(date -u +"%Y-%m-%d")
+          EOF
+          
+          cat fdroid-metadata/MOMCLAW-${VERSION}.yml
+
+      - name: Upload F-Droid Metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: fdroid-metadata
+          path: fdroid-metadata/
+          retention-days: 90
+
+      - name: Notify Discord
+        if: env.DISCORD_WEBHOOK_ID != ''
+        env:
+          DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
+          DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          curl -X POST "https://discord.com/api/webhooks/${DISCORD_WEBHOOK_ID}/${DISCORD_WEBHOOK_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"MomClAW F-Droid Build Complete\",
+                \"description\": \"Version v${VERSION} built for F-Droid\",
+                \"color\": 16776960,
+                \"fields\": [
+                  {\"name\": \"Version\", \"value\": \"v${VERSION}\", \"inline\": true},
+                  {\"name\": \"Distribution\", \"value\": \"F-Droid\", \"inline\": true}
+                ]
+              }]
+            }"

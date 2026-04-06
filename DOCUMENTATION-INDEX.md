@@ -12,6 +12,7 @@ Complete index of all documentation files for the MOMCLAW project.
 | Document | Purpose | Audience |
 |----------|---------|----------|
 | [README.md](README.md) | Overview and quick start | Everyone |
+| [USER_GUIDE.md](USER_GUIDE.md) | End-user guide - complete usage documentation | Users |
 | [QUICKSTART.md](QUICKSTART.md) | 5-minute setup guide | New users |
 | [PRODUCTION-READINESS.md](PRODUCTION-READINESS.md) | Production deployment status | DevOps/Releases |
 | [DOCUMENTATION.md](DOCUMENTATION.md) | Complete documentation | Developers |
