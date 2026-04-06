@@ -221,8 +221,7 @@ fun Application.moduleInner(
     currentModelNameProvider: () -> String?
 ) {
     // Local references to current state (via closures)
-    val currentInferenceMode: InferenceMode get() = inferenceModeProvider()
-    val currentModelName: String? get() = currentModelNameProvider()
+    // Note: inferenceModeProvider() and currentModelNameProvider() are called directly where needed
     install(ContentNegotiation) {
         json(json)
     }
@@ -360,13 +359,13 @@ fun Application.moduleInner(
                     var tokensGenerated = 0
                     
                     call.respondTextWriter(contentType = ContentType.Text.EventStream) {
-                        fallbackManager.generateStreamingWithFallback(litertRequest, currentInferenceMode).collect { chunk ->
+                        fallbackManager.generateStreamingWithFallback(litertRequest, inferenceModeProvider()).collect { chunk ->
                             tokensGenerated++
                             
                             val response = ChatCompletionResponse(
                                 id = responseId,
                                 created = created,
-                                model = currentModelName ?: "gemma-4e4b",
+                                model = currentModelNameProvider() ?: "gemma-4e4b",
                                 choices = listOf(
                                     ChatChoice(
                                         index = 0,
@@ -395,14 +394,14 @@ fun Application.moduleInner(
                     }
                 } else {
                     // Non-streaming response
-                    val response = fallbackManager.generateWithFallback(litertRequest, currentInferenceMode)
+                    val response = fallbackManager.generateWithFallback(litertRequest, inferenceModeProvider())
                     val responseId = SSEWriter.generateId()
                     val created = SSEWriter.currentTimestamp()
                     
                     call.respond(ChatCompletionResponse(
                         id = responseId,
                         created = created,
-                        model = currentModelName ?: "gemma-4e4b",
+                        model = currentModelNameProvider() ?: "gemma-4e4b",
                         choices = listOf(
                             ChatChoice(
                                 index = 0,

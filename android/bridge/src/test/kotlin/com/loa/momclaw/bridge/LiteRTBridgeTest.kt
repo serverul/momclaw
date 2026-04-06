@@ -86,8 +86,8 @@ class LiteRTBridgeTest {
     
     @Test
     fun `OperationResult success maps correctly`() {
-        val result = OperationResult.Success(42)
-            .map { it * 2 }
+        val result: OperationResult<Int> = OperationResult.Success(42)
+            .map { value: Int -> value * 2 }
         
         assertTrue(result is OperationResult.Success)
         assertEquals(84, (result as OperationResult.Success).value)
@@ -97,7 +97,7 @@ class LiteRTBridgeTest {
     fun `OperationResult failure preserves error`() {
         val error = BridgeError.ModelError.NotReady()
         val result: OperationResult<Int> = OperationResult.Failure(error)
-            .map { it * 2 }
+            .map { value: Int -> value * 2 }
         
         assertTrue(result is OperationResult.Failure)
         assertEquals(error, (result as OperationResult.Failure).error)

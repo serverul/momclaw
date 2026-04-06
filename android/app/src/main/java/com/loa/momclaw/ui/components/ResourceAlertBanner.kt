@@ -31,7 +31,7 @@ fun ResourceAlertBanner(
     modifier: Modifier = Modifier
 ) {
     AnimatedVisibility(
-        visible = validationResult != null && validationResult ! is ResourceValidator.ValidationResult.Success,
+        visible = validationResult != null && validationResult !is ResourceValidator.ValidationResult.Success,
         enter = expandVertically(),
         exit = shrinkVertically()
     ) {

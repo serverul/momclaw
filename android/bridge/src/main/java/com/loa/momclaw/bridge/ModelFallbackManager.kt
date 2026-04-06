@@ -141,7 +141,7 @@ class ModelFallbackManager(
                     LoadResult.Failure(
                         error = status.error,
                         suggestion = status.suggestion
-                }
+                    )
                 }
             }
         }
