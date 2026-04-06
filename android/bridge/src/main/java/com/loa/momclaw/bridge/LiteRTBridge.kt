@@ -8,12 +8,14 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
@@ -26,46 +28,119 @@ private val logger = KotlinLogging.logger {}
  * Architecture:
  *   NullClaw → HTTP POST /v1/chat/completions → LiteRTBridge → LiteRT-LM → SSE Response
  * 
- * Model path is configured at startup via loadModel().
+ * Features:
+ *   - Model loading from device storage
+ *   - Streaming and non-streaming responses
+ *   - Health monitoring
+ *   - Error handling with detailed messages
+ *   - Process lifecycle management
+ * 
+ * Model: Gemma 3 E4B IT (litert-community/gemma-3-E4B-it-litertlm)
  */
 class LiteRTBridge(
     private val context: Context,
     private val port: Int = 8080
 ) {
-    private lateinit var server: ApplicationEngine
+    private var server: ApplicationEngine? = null
     private val engine = LlmEngineWrapper(context)
+    private val modelLoader = ModelLoader(context)
+    private val healthMonitor = HealthMonitor(context)
     private val json = Json {
         ignoreUnknownKeys = true
         prettyPrint = true
+        encodeDefaults = true
     }
+    
+    @Volatile private var isServerRunning = false
+    @Volatile private var modelLoadTime: Long? = null
     
     /**
      * Load model and start the HTTP server
      */
-    suspend fun start(modelPath: String) {
-        val loaded = engine.loadModel(modelPath)
-        if (!loaded) {
-            throw IllegalArgumentException("Failed to load model from: $modelPath")
+    suspend fun start(modelPath: String): Result<Unit> {
+        return try {
+            // Verify model first
+            val modelResult = modelLoader.verifyModel(modelPath)
+            if (modelResult is ModelLoader.LoadResult.Error) {
+                return Result.failure(
+                    BridgeError.ModelError.LoadFailed(
+                        modelPath, 
+                        modelResult.message,
+                        modelResult.cause
+                    )
+                )
+            }
+            
+            val modelInfo = (modelResult as ModelLoader.LoadResult.Success).info
+            
+            // Check memory
+            val requiredMemoryMB = modelInfo.sizeBytes / (1024 * 1024) * 2 // 2x safety margin
+            if (!healthMonitor.canLoadModel(requiredMemoryMB)) {
+                return Result.failure(
+                    BridgeError.ModelError.InsufficientMemory(
+                        requiredMemoryMB * 1024 * 1024,
+                        healthMonitor.getMemoryInfo().availableMB * 1024 * 1024
+                    )
+                )
+            }
+            
+            // Load model
+            val loadStart = System.currentTimeMillis()
+            val loaded = engine.loadModel(modelPath)
+            modelLoadTime = System.currentTimeMillis() - loadStart
+            
+            if (!loaded) {
+                return Result.failure(
+                    BridgeError.ModelError.LoadFailed(modelPath, "LiteRT failed to load model")
+                )
+            }
+            
+            logger.info { "Model loaded: ${modelInfo.name} (${modelInfo.sizeBytes / (1024 * 1024)}MB) in ${modelLoadTime}ms" }
+            
+            // Start server
+            startServer()
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to start LiteRT Bridge" }
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Start server without model (model must be loaded separately)
+     */
+    suspend fun startServer() {
+        if (isServerRunning) {
+            logger.warn { "Server already running on port $port" }
+            return
         }
         
         logger.info { "Starting LiteRT Bridge on port $port" }
         
         server = embeddedServer(Netty, port = port, module = {
-            moduleInner(engine, json)
+            install(StatusPages) {
+                exception<BridgeError> { call, error ->
+                    call.respond(
+                        HttpStatusCode.InternalServerError,
+                        error.toResponse()
+                    )
+                }
+                exception<Exception> { call, error ->
+                    logger.error(error) { "Unhandled exception" }
+                    call.respond(
+                        HttpStatusCode.InternalServerError,
+                        ErrorResponse(
+                            ErrorDetail("INTERNAL_ERROR", error.message ?: "Unknown error")
+                        )
+                    )
+                }
+            }
+            moduleInner(engine, json, healthMonitor)
         }).start(wait = false)
         
-        logger.info { "LiteRT Bridge started at http://localhost:$port" }
-    }
-    
-    /**
-     * Start without model (model must be loaded separately)
-     */
-    suspend fun startServer() {
-        logger.info { "Starting LiteRT Bridge on port $port (no model loaded)" }
-        
-        server = embeddedServer(Netty, port = port, module = {
-            moduleInner(engine, json)
-        }).start(wait = false)
+        isServerRunning = true
+        healthMonitor.recordStart(port)
         
         logger.info { "LiteRT Bridge started at http://localhost:$port" }
     }
@@ -74,7 +149,17 @@ class LiteRTBridge(
      * Load or reload a model after server start
      */
     suspend fun loadModel(modelPath: String): Boolean {
-        return engine.loadModel(modelPath)
+        val loadStart = System.currentTimeMillis()
+        val result = engine.loadModel(modelPath)
+        modelLoadTime = System.currentTimeMillis() - loadStart
+        
+        if (result) {
+            logger.info { "Model loaded from $modelPath in ${modelLoadTime}ms" }
+        } else {
+            logger.error { "Failed to load model from $modelPath" }
+        }
+        
+        return result
     }
     
     /**
@@ -82,13 +167,52 @@ class LiteRTBridge(
      */
     fun stop() {
         logger.info { "Stopping LiteRT Bridge" }
+        
         engine.close()
-        if (::server.isInitialized) {
-            server.stop(1000, 2000)
-        }
+        server?.stop(1000, 2000)
+        server = null
+        isServerRunning = false
+        healthMonitor.recordStop()
+        
+        logger.info { "LiteRT Bridge stopped" }
     }
     
+    /**
+     * Check if model is ready for inference
+     */
     fun isModelReady(): Boolean = engine.isReady()
+    
+    /**
+     * Check if server is running
+     */
+    fun isServerRunning(): Boolean = isServerRunning
+    
+    /**
+     * Get health status
+     */
+    suspend fun getHealthStatus(): HealthMonitor.HealthStatus {
+        val modelInfo = engine.getModelInfo()
+        return healthMonitor.checkHealth(
+            serverRunning = isServerRunning,
+            port = if (isServerRunning) port else null,
+            modelLoaded = modelInfo["loaded"] as? Boolean ?: false,
+            modelName = modelInfo["name"] as? String,
+            modelPath = modelInfo["path"] as? String,
+            modelLoadTime = modelLoadTime
+        )
+    }
+    
+    /**
+     * Get model loader for external model management
+     */
+    fun getModelLoader(): ModelLoader = modelLoader
+    
+    /**
+     * Cleanup resources
+     */
+    fun cleanup() {
+        stop()
+    }
 }
 
 /**
@@ -96,7 +220,8 @@ class LiteRTBridge(
  */
 fun Application.moduleInner(
     llmEngine: LlmEngineWrapper,
-    json: Json
+    json: Json,
+    healthMonitor: HealthMonitor
 ) {
     install(ContentNegotiation) {
         json(json)
@@ -106,45 +231,114 @@ fun Application.moduleInner(
         anyHost()
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
+        allowHeader(HttpHeaders.CacheControl)
+        allowHeader(HttpHeaders.Accept)
     }
     
     routing {
-        // Health check
+        // Health check endpoint
         get("/health") {
-            call.respond(mapOf(
-                "status" to "healthy",
-                "model_loaded" to llmEngine.isReady(),
-                "model" to llmEngine.getModelInfo()
-            ))
+            healthMonitor.recordRequest()
+            val modelInfo = llmEngine.getModelInfo()
+            
+            val health = healthMonitor.checkHealth(
+                serverRunning = true,
+                port = 8080,
+                modelLoaded = modelInfo["loaded"] as? Boolean ?: false,
+                modelName = modelInfo["name"] as? String,
+                modelPath = modelInfo["path"] as? String,
+                modelLoadTime = null
+            )
+            
+            call.respond(health.toResponse())
+        }
+        
+        // Detailed health check
+        get("/health/details") {
+            healthMonitor.recordRequest()
+            val health = runBlocking { 
+                healthMonitor.checkHealth(
+                    serverRunning = true,
+                    port = 8080,
+                    modelLoaded = llmEngine.isReady(),
+                    modelName = llmEngine.getModelInfo()["name"] as? String,
+                    modelPath = llmEngine.getModelInfo()["path"] as? String,
+                    modelLoadTime = null
+                )
+            }
+            call.respond(health.toResponse())
         }
         
         // Model info (OpenAI-compatible)
         get("/v1/models") {
+            healthMonitor.recordRequest()
             val modelInfo = llmEngine.getModelInfo()
             call.respond(mapOf(
                 "object" to "list",
                 "data" to listOf(
                     mapOf(
-                        "id" to (modelInfo["name"] ?: "unknown"),
+                        "id" to (modelInfo["name"] ?: "gemma-4e4b"),
                         "object" to "model",
                         "created" to System.currentTimeMillis() / 1000,
                         "owned_by" to "google",
                         "path" to (modelInfo["path"] ?: ""),
-                        "loaded" to (modelInfo["loaded"] ?: false)
+                        "loaded" to (modelInfo["loaded"] ?: false),
+                        "type" to (modelInfo["type"] ?: "LiteRT-LM")
                     )
                 )
             ))
         }
         
+        // Load model endpoint
+        post("/v1/models/load") {
+            val request = call.receive<ModelLoadRequest>()
+            healthMonitor.recordRequest()
+            
+            val result = llmEngine.loadModel(request.path)
+            if (result) {
+                call.respond(mapOf(
+                    "status" to "loaded",
+                    "path" to request.path,
+                    "model" to llmEngine.getModelInfo()
+                ))
+            } else {
+                healthMonitor.recordError()
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    ErrorResponse(ErrorDetail("MODEL_LOAD_FAILED", "Failed to load model from ${request.path}"))
+                )
+            }
+        }
+        
+        // Unload model endpoint
+        post("/v1/models/unload") {
+            healthMonitor.recordRequest()
+            llmEngine.close()
+            call.respond(mapOf("status" to "unloaded"))
+        }
+        
         // Chat completions endpoint (OpenAI-compatible)
         post("/v1/chat/completions") {
             val request = call.receive<ChatCompletionRequest>()
-            logger.info { "Received chat request: ${request.messages.size} messages, stream=${request.stream}" }
+            healthMonitor.recordRequest()
+            
+            logger.info { "Chat request: ${request.messages.size} messages, stream=${request.stream}" }
+            
+            // Validate request
+            if (request.messages.isEmpty()) {
+                healthMonitor.recordError()
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    ErrorResponse(ErrorDetail("INVALID_REQUEST", "Messages cannot be empty"))
+                )
+                return@post
+            }
             
             if (!llmEngine.isReady()) {
+                healthMonitor.recordError()
                 call.respond(
                     HttpStatusCode.ServiceUnavailable,
-                    mapOf("error" to "Model not loaded")
+                    ErrorResponse(ErrorDetail("MODEL_NOT_READY", "Model not loaded. Use POST /v1/models/load first."))
                 )
                 return@post
             }
@@ -158,22 +352,21 @@ fun Application.moduleInner(
                 stopTokens = request.stop ?: emptyList()
             )
             
-            if (request.stream) {
-                // Streaming response via SSE (manual implementation for Ktor 2.x)
-                // NOTE: Ktor 2.x doesn't have the SSE plugin; we use respondTextWriter directly
-                val responseId = SSEWriter.generateId()
-                val created = SSEWriter.currentTimestamp()
-                var tokensGenerated = 0
-                
-                call.respondTextWriter(contentType = ContentType.Text.EventStream) {
-                    try {
+            try {
+                if (request.stream) {
+                    // Streaming response via SSE
+                    val responseId = SSEWriter.generateId()
+                    val created = SSEWriter.currentTimestamp()
+                    var tokensGenerated = 0
+                    
+                    call.respondTextWriter(contentType = ContentType.Text.EventStream) {
                         llmEngine.generateStreaming(litertRequest).collect { chunk ->
                             tokensGenerated++
                             
                             val response = ChatCompletionResponse(
                                 id = responseId,
                                 created = created,
-                                model = llmEngine.getModelInfo()["name"] as? String ?: "litert",
+                                model = llmEngine.getModelInfo()["name"] as? String ?: "gemma-4e4b",
                                 choices = listOf(
                                     ChatChoice(
                                         index = 0,
@@ -199,36 +392,41 @@ fun Application.moduleInner(
                                 flush()
                             }
                         }
-                    } catch (e: Exception) {
-                        logger.error(e) { "Error during streaming response" }
                     }
-                }
-            } else {
-                // Non-streaming response
-                val response = runBlocking { llmEngine.generate(litertRequest) }
-                val responseId = SSEWriter.generateId()
-                val created = SSEWriter.currentTimestamp()
-                
-                call.respond(ChatCompletionResponse(
-                    id = responseId,
-                    created = created,
-                    model = llmEngine.getModelInfo()["name"] as? String ?: "litert",
-                    choices = listOf(
-                        ChatChoice(
-                            index = 0,
-                            message = ChatMessage(
-                                role = "assistant",
-                                content = response.text
-                            ),
-                            finishReason = "stop"
+                } else {
+                    // Non-streaming response
+                    val response = runBlocking { llmEngine.generate(litertRequest) }
+                    val responseId = SSEWriter.generateId()
+                    val created = SSEWriter.currentTimestamp()
+                    
+                    call.respond(ChatCompletionResponse(
+                        id = responseId,
+                        created = created,
+                        model = llmEngine.getModelInfo()["name"] as? String ?: "gemma-4e4b",
+                        choices = listOf(
+                            ChatChoice(
+                                index = 0,
+                                message = ChatMessage(
+                                    role = "assistant",
+                                    content = response.text
+                                ),
+                                finishReason = "stop"
+                            )
+                        ),
+                        usage = Usage(
+                            promptTokens = 0,
+                            completionTokens = response.tokensGenerated,
+                            totalTokens = response.tokensGenerated
                         )
-                    ),
-                    usage = Usage(
-                        promptTokens = 0,
-                        completionTokens = response.tokensGenerated,
-                        totalTokens = response.tokensGenerated
-                    )
-                ))
+                    ))
+                }
+            } catch (e: Exception) {
+                healthMonitor.recordError()
+                logger.error(e) { "Generation failed" }
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    ErrorResponse(ErrorDetail("GENERATION_FAILED", e.message ?: "Generation failed"))
+                )
             }
         }
         
@@ -236,8 +434,35 @@ fun Application.moduleInner(
         post("/v1/completions") {
             call.respond(
                 HttpStatusCode.NotImplemented,
-                mapOf("error" to "Use /v1/chat/completions instead")
+                ErrorResponse(ErrorDetail("NOT_IMPLEMENTED", "Use /v1/chat/completions instead"))
             )
+        }
+        
+        // Metrics endpoint
+        get("/metrics") {
+            val modelInfo = llmEngine.getModelInfo()
+            val memoryInfo = healthMonitor.getMemoryInfo()
+            
+            call.respond(mapOf(
+                "model" to mapOf(
+                    "loaded" to modelInfo["loaded"],
+                    "name" to modelInfo["name"],
+                    "type" to modelInfo["type"]
+                ),
+                "memory" to mapOf(
+                    "available_mb" to memoryInfo.availableMB,
+                    "total_mb" to memoryInfo.totalMB,
+                    "low_memory" to memoryInfo.lowMemory
+                )
+            ))
         }
     }
 }
+
+/**
+ * Request for loading a model
+ */
+@kotlinx.serialization.Serializable
+data class ModelLoadRequest(
+    val path: String
+)

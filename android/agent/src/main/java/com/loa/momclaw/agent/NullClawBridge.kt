@@ -2,9 +2,12 @@ package com.loa.momclaw.agent
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import com.loa.momclaw.agent.config.ConfigurationManager
 import com.loa.momclaw.agent.model.AgentConfig
+import com.loa.momclaw.agent.monitoring.AgentMonitor
+import com.loa.momclaw.agent.monitoring.ProcessLifecycleListener
 import kotlinx.coroutines.*
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.BufferedReader
 import java.io.File
 import java.io.IOException
@@ -35,6 +38,9 @@ private val logger = KotlinLogging.logger {}
  * - Atomic state transitions with ReentrantLock
  * - Proper resource cleanup for coroutines
  * - Thread-safe process management
+ * - Integrated health monitoring
+ * - Configuration management
+ * - Lifecycle listeners
  */
 class NullClawBridge(private val context: Context) {
     
@@ -47,6 +53,11 @@ class NullClawBridge(private val context: Context) {
     // Output reader job for proper cleanup
     private var outputReaderJob: Job? = null
     private val bridgeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    
+    // Configuration and monitoring
+    private val configManager = ConfigurationManager(context)
+    private val monitor = AgentMonitor(context)
+    private val lifecycleListeners = mutableListOf<ProcessLifecycleListener>()
     
     // Supported ABIs
     private val abiMapping = mapOf(
@@ -72,6 +83,14 @@ class NullClawBridge(private val context: Context) {
         
         try {
             logger.info { "Setting up NullClaw bridge..." }
+            
+            // Validate configuration
+            val validation = configManager.validateConfig(config)
+            if (!validation.isValid) {
+                return@withContext Result.failure(
+                    ConfigException("Invalid configuration: ${validation.errors.joinToString()}")
+                )
+            }
             
             // 1. Extract binary from assets
             val binaryFile = extractBinary()
@@ -148,6 +167,7 @@ class NullClawBridge(private val context: Context) {
                 // Set environment variables
                 environment()["NULLCLAW_LOG_LEVEL"] = if (isDebugBuild()) "debug" else "info"
                 environment()["NULLCLAW_DATA_DIR"] = context.filesDir.absolutePath
+                environment()["NULLCLAW_BRIDGE_URL"] = "http://localhost:8080"
             }
             
             val process = processBuilder.start()
@@ -163,17 +183,27 @@ class NullClawBridge(private val context: Context) {
                 stateLock.withLock {
                     isRunning.set(true)
                 }
-                logger.info { "NullClaw agent started successfully (PID: ${getPid()})" }
+                
+                val pid = getPid()
+                monitor.recordStart()
+                notifyProcessStarted(pid)
+                
+                logger.info { "NullClaw agent started successfully (PID: $pid)" }
                 Result.success(Unit)
             } else {
                 // Cleanup failed startup
                 cleanupProcess(process)
                 val exitCode = try { process.exitValue() } catch (e: Exception) { -1 }
-                logger.error { "NullClaw failed to start (exit code: $exitCode)" }
+                
+                monitor.recordError("STARTUP_FAILED", "Exit code: $exitCode")
+                notifyProcessError(IOException("NullClaw process failed to start within timeout"))
+                
                 Result.failure(IOException("NullClaw process failed to start within timeout (exit code: $exitCode)"))
             }
         } catch (e: Exception) {
             logger.error(e) { "Failed to start NullClaw agent" }
+            monitor.recordError("START_EXCEPTION", e.message ?: "Unknown error")
+            notifyProcessError(e)
             Result.failure(e)
         }
     }
@@ -234,6 +264,10 @@ class NullClawBridge(private val context: Context) {
             if (process != null) {
                 logger.info { "Stopping NullClaw agent..." }
                 cleanupProcess(process)
+                
+                val exitCode = try { process.exitValue() } catch (e: Exception) { -1 }
+                monitor.recordStop()
+                notifyProcessStopped(exitCode)
             }
             
             // Cancel output reader coroutine
@@ -282,6 +316,7 @@ class NullClawBridge(private val context: Context) {
         stateLock.withLock {
             isSetup.set(false)
             configPath.set(null)
+            lifecycleListeners.clear()
         }
     }
     
@@ -296,6 +331,7 @@ class NullClawBridge(private val context: Context) {
                 isRunning.set(false)
             }
             logger.warn { "NullClaw process died unexpectedly" }
+            monitor.recordError("PROCESS_DIED", "Process died unexpectedly")
         }
         return alive
     }
@@ -341,6 +377,88 @@ class NullClawBridge(private val context: Context) {
         } catch (e: Exception) {
             logger.warn { "Health check failed: ${e.message}" }
             false
+        }
+    }
+    
+    /**
+     * Get detailed health status
+     */
+    suspend fun getHealthStatus(): AgentMonitor.AgentHealth {
+        return monitor.checkHealth(
+            processAlive = isRunning(),
+            pid = getPid(),
+            exitCode = if (!isRunning()) try { processRef.get()?.exitValue() } catch (e: Exception) { -1 } else null,
+            bridgeConnected = checkBridgeConnection(),
+            bridgeEndpoint = "http://localhost:8080"
+        )
+    }
+    
+    /**
+     * Check connection to LiteRT bridge
+     */
+    private fun checkBridgeConnection(): Boolean {
+        return try {
+            val socket = java.net.Socket()
+            socket.connect(java.net.InetSocketAddress("localhost", 8080), 500)
+            socket.close()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+    
+    /**
+     * Get diagnostics information
+     */
+    fun getDiagnostics(): AgentMonitor.Diagnostics {
+        return monitor.getDiagnostics()
+    }
+    
+    /**
+     * Add lifecycle listener
+     */
+    fun addLifecycleListener(listener: ProcessLifecycleListener) {
+        stateLock.withLock {
+            lifecycleListeners.add(listener)
+        }
+    }
+    
+    /**
+     * Remove lifecycle listener
+     */
+    fun removeLifecycleListener(listener: ProcessLifecycleListener) {
+        stateLock.withLock {
+            lifecycleListeners.remove(listener)
+        }
+    }
+    
+    private fun notifyProcessStarted(pid: Long?) {
+        lifecycleListeners.forEach { listener ->
+            try {
+                listener.onProcessStarted(pid ?: 0)
+            } catch (e: Exception) {
+                logger.warn(e) { "Error in lifecycle listener" }
+            }
+        }
+    }
+    
+    private fun notifyProcessStopped(exitCode: Int) {
+        lifecycleListeners.forEach { listener ->
+            try {
+                listener.onProcessStopped(exitCode)
+            } catch (e: Exception) {
+                logger.warn(e) { "Error in lifecycle listener" }
+            }
+        }
+    }
+    
+    private fun notifyProcessError(error: Throwable) {
+        lifecycleListeners.forEach { listener ->
+            try {
+                listener.onProcessError(error)
+            } catch (e: Exception) {
+                logger.warn(e) { "Error in lifecycle listener" }
+            }
         }
     }
     
@@ -440,67 +558,8 @@ class NullClawBridge(private val context: Context) {
      */
     private fun generateConfig(config: AgentConfig): File {
         val configFile = File(context.filesDir, "nullclaw-config.json")
-        configFile.writeText(generateConfigJson(config))
+        configFile.writeText(configManager.generateNullClawConfig(config))
         return configFile
-    }
-    
-    /**
-     * Generate JSON configuration for NullClaw.
-     */
-    private fun generateConfigJson(config: AgentConfig): String {
-        return """
-        {
-          "agents": {
-            "defaults": {
-              "model": {
-                "primary": "${config.modelPrimary}"
-              },
-              "system_prompt": ${escapeJson(config.systemPrompt)}
-            }
-          },
-          "models": {
-            "providers": {
-              "litert-bridge": {
-                "type": "custom",
-                "base_url": "${config.baseUrl}",
-                "api_format": "openai"
-              }
-            }
-          },
-          "memory": {
-            "backend": "${config.memoryBackend}",
-            "path": "${config.memoryPath}"
-          },
-          "tools": {
-            "enabled": ["shell", "file_read", "file_write"],
-            "shell": {
-              "allowed_commands": ["ls", "cat", "echo", "pwd", "date"],
-              "timeout_ms": 5000
-            }
-          },
-          "gateway": {
-            "mode": "local",
-            "bind": "loopback",
-            "port": 9090
-          },
-          "inference": {
-            "temperature": ${config.temperature},
-            "max_tokens": ${config.maxTokens}
-          }
-        }
-        """.trimIndent()
-    }
-    
-    /**
-     * Escape a string for JSON.
-     */
-    private fun escapeJson(str: String): String {
-        return "\"" + str
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-            .replace("\n", "\\n")
-            .replace("\r", "\\r")
-            .replace("\t", "\\t") + "\""
     }
     
     /**
@@ -521,6 +580,7 @@ class NullClawBridge(private val context: Context) {
             } catch (e: Exception) {
                 if (isRunning.get()) {
                     logger.error(e) { "Error reading NullClaw output" }
+                    monitor.recordError("OUTPUT_READ_ERROR", e.message ?: "Unknown error")
                 }
             }
         }
@@ -534,3 +594,5 @@ class NullClawBridge(private val context: Context) {
         private const val FORCE_SHUTDOWN_TIMEOUT_MS = 500L
     }
 }
+
+class ConfigException(message: String, cause: Throwable? = null) : Exception(message, cause)

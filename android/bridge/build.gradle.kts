@@ -2,7 +2,7 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.25"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21"
 }
 
 android {
@@ -58,7 +58,7 @@ dependencies {
     // compileOnly("com.google.ai.edge:litert-lm:1.0.0")
     
     // Ktor Server (Netty)
-    val ktorVersion = "2.3.8"
+    val ktorVersion = "2.3.12"
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
@@ -80,20 +80,23 @@ dependencies {
     // Kotlinx
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
 
     // AndroidX Core
     implementation("androidx.core:core-ktx:1.13.1")
 
-    // Logback (for Ktor logging)
-    implementation("ch.qos.logback:logback-classic:1.4.14")
+    // Logback (for Ktor logging) - Android compatible
+    implementation("com.github.tony19:logback-android:3.0.0")
     
     // Kotlin Logging
-    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
+    implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
 
     // Testing - Unit Tests
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
+    testImplementation("io.mockk:mockk:1.13.12")
+    testImplementation("app.cash.turbine:turbine:1.1.0") // Flow testing
     
     // Testing - Android Instrumented Tests
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

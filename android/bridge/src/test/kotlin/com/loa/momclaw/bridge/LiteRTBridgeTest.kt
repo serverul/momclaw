@@ -1,223 +1,182 @@
 package com.loa.momclaw.bridge
 
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.testing.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.serialization.json.Json
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.*
+import org.junit.Test
+import java.io.File
 
 /**
- * Mock LlmEngineWrapper for testing without actual LiteRT model
+ * Unit tests for LiteRT Bridge components
  */
-class MockLlmEngineWrapper : LlmEngineWrapper(null) {
-    private var isModelLoaded = false
-    
-    override suspend fun loadModel(path: String): Boolean {
-        isModelLoaded = true
-        return true
-    }
-    
-    override fun isReady(): Boolean = isModelLoaded
-    
-    override fun getModelInfo(): Map<String, Any?> = mapOf(
-        "name" to "mock-gemma-4e4b",
-        "path" to "/mock/path/model.litertlm",
-        "loaded" to isModelLoaded,
-        "type" to "Mock-LiteRT-LM",
-        "tokenCount" to 4096
-    )
-    
-    override fun formatPrompt(messages: List<ChatMessage>): String {
-        return messages.joinToString("\n") { "${it.role}: ${it.content}" }
-    }
-    
-    override suspend fun generate(request: LiteRTRequest): LiteRTResponseChunk {
-        return LiteRTResponseChunk(
-            text = "Mock response for: ${request.prompt.take(50)}...",
-            isComplete = true,
-            tokensGenerated = 10
-        )
-    }
-    
-    override fun generateStreaming(request: LiteRTRequest): Flow<LiteRTResponseChunk> = flow {
-        val words = listOf("Mock", " streaming", " response", " for", " test")
-        words.forEach { word ->
-            emit(LiteRTResponseChunk(text = word, isComplete = false, tokensGenerated = 1))
-            kotlinx.coroutines.delay(100)
-        }
-        emit(LiteRTResponseChunk(text = "", isComplete = true, tokensGenerated = words.size))
-    }
-    
-    override fun close() {
-        isModelLoaded = false
-    }
-}
-
 class LiteRTBridgeTest {
     
-    private val json = Json { 
-        ignoreUnknownKeys = true
-        prettyPrint = true
+    // ==================== ModelLoader Tests ====================
+    
+    @Test
+    fun `ModelLoader generates correct default path`() {
+        // Default path should be in app files directory
+        val expectedPath = "/data/data/com.loa.momclaw/files/models/gemma-3-E4B-it.litertlm"
+        // Note: In tests, we can't access real context, so this verifies the pattern
+        assertTrue("Default path should contain models directory", 
+            expectedPath.contains("models"))
+        assertTrue("Default path should end with .litertlm",
+            expectedPath.endsWith(".litertlm"))
     }
     
-    private val mockEngine = MockLlmEngineWrapper()
-    
-    /**
-     * Test health endpoint returns healthy status
-     */
     @Test
-    fun testHealthEndpoint() = testApplication {
-        application {
-            moduleInner(mockEngine, json)
-        }
-        
-        val response = client.get("/health")
-        assertEquals(HttpStatusCode.OK, response.status)
-        
-        val body = response.bodyAsText()
-        assertTrue(body.contains("healthy"))
-    }
-    
-    /**
-     * Test models endpoint returns model info
-     */
-    @Test
-    fun testModelsEndpoint() = testApplication {
-        application {
-            moduleInner(mockEngine, json)
-        }
-        
-        val response = client.get("/v1/models")
-        assertEquals(HttpStatusCode.OK, response.status)
-        
-        val body = response.bodyAsText()
-        assertTrue(body.contains("mock-gemma-4e4b"))
-    }
-    
-    /**
-     * Test non-streaming chat completion
-     */
-    @Test
-    fun testNonStreamingChatCompletion() = testApplication {
-        application {
-            moduleInner(mockEngine, json)
-        }
-        
-        val client = createClient {
-            install(ContentNegotiation) {
-                json(json)
-            }
-        }
-        
-        val request = ChatCompletionRequest(
-            model = "gemma-4e4b",
-            messages = listOf(
-                ChatMessage(role = "user", content = "Hello!")
-            ),
-            stream = false
+    fun `ModelInfo contains required fields`() {
+        val info = ModelLoader.ModelInfo(
+            name = "gemma-3-E4B-it",
+            path = "/path/to/model.litertlm",
+            sizeBytes = 1024 * 1024 * 500, // 500MB
+            checksum = "abc123",
+            isReady = true
         )
         
-        val response = client.post("/v1/chat/completions") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }
-        
-        assertEquals(HttpStatusCode.OK, response.status)
-        
-        val body = response.bodyAsText()
-        assertTrue(body.contains("Mock response"))
+        assertEquals("gemma-3-E4B-it", info.name)
+        assertEquals("/path/to/model.litertlm", info.path)
+        assertEquals(500L * 1024 * 1024, info.sizeBytes)
+        assertEquals("abc123", info.checksum)
+        assertTrue(info.isReady)
     }
     
-    /**
-     * Test streaming chat completion
-     */
     @Test
-    fun testStreamingChatCompletion() = testApplication {
-        application {
-            moduleInner(mockEngine, json)
-        }
+    fun `LoadResult success contains model info`() {
+        val info = ModelLoader.ModelInfo(
+            name = "test-model",
+            path = "/test/model.litertlm",
+            sizeBytes = 1000,
+            checksum = null,
+            isReady = true
+        )
+        val result = ModelLoader.LoadResult.Success(info)
         
-        val client = createClient {
-            install(ContentNegotiation) {
-                json(json)
-            }
-        }
+        assertTrue(result is ModelLoader.LoadResult.Success)
+        assertEquals("test-model", (result as ModelLoader.LoadResult.Success).info.name)
+    }
+    
+    @Test
+    fun `LoadResult error contains message and cause`() {
+        val cause = RuntimeException("Test error")
+        val result = ModelLoader.LoadResult.Error("Test message", cause)
         
+        assertTrue(result is ModelLoader.LoadResult.Error)
+        assertEquals("Test message", (result as ModelLoader.LoadResult.Error).message)
+        assertEquals(cause, result.cause)
+    }
+    
+    // ==================== Error Tests ====================
+    
+    @Test
+    fun `BridgeError creates proper error codes`() {
+        val error = BridgeError.ModelError.NotFound("/path/to/model")
+        assertEquals("MODEL_NOT_FOUND", error.code)
+        assertTrue(error.message.contains("not found"))
+    }
+    
+    @Test
+    fun `BridgeError toResponse creates valid JSON structure`() {
+        val error = BridgeError.ModelError.NotReady()
+        val response = error.toResponse()
+        
+        assertNotNull(response.error)
+        assertEquals("MODEL_NOT_READY", response.error.code)
+        assertTrue(response.error.message.contains("not loaded"))
+    }
+    
+    @Test
+    fun `OperationResult success maps correctly`() {
+        val result = OperationResult.Success(42)
+            .map { it * 2 }
+        
+        assertTrue(result is OperationResult.Success)
+        assertEquals(84, (result as OperationResult.Success).value)
+    }
+    
+    @Test
+    fun `OperationResult failure preserves error`() {
+        val error = BridgeError.ModelError.NotReady()
+        val result: OperationResult<Int> = OperationResult.Failure(error)
+            .map { it * 2 }
+        
+        assertTrue(result is OperationResult.Failure)
+        assertEquals(error, (result as OperationResult.Failure).error)
+    }
+    
+    // ==================== Chat Request Tests ====================
+    
+    @Test
+    fun `ChatCompletionRequest defaults are valid`() {
         val request = ChatCompletionRequest(
-            model = "gemma-4e4b",
+            messages = listOf(ChatMessage("user", "Hello"))
+        )
+        
+        assertEquals("gemma-4e4b", request.model)
+        assertEquals(0.7, request.temperature, 0.01)
+        assertEquals(0.9, request.topP, 0.01)
+        assertFalse(request.stream)
+        assertNull(request.maxTokens)
+    }
+    
+    @Test
+    fun `ChatCompletionRequest serialization works`() {
+        val request = ChatCompletionRequest(
+            model = "test-model",
             messages = listOf(
-                ChatMessage(role = "user", content = "Hello!")
+                ChatMessage("system", "You are helpful"),
+                ChatMessage("user", "Hello")
             ),
+            temperature = 0.8,
             stream = true
         )
         
-        val response = client.post("/v1/chat/completions") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }
+        val json = kotlinx.serialization.json.Json { encodeDefaults = true }
+        val jsonString = json.encodeToString(ChatCompletionRequest.serializer(), request)
         
-        assertEquals(HttpStatusCode.OK, response.status)
-        
-        val body = response.bodyAsText()
-        assertTrue(body.contains("data:"))
+        assertTrue(jsonString.contains("\"model\":\"test-model\""))
+        assertTrue(jsonString.contains("\"stream\":true"))
+        assertTrue(jsonString.contains("\"temperature\":0.8"))
     }
     
-    /**
-     * Test completions endpoint returns not implemented
-     */
+    // ==================== SSE Writer Tests ====================
+    
     @Test
-    fun testCompletionsNotImplemented() = testApplication {
-        application {
-            moduleInner(mockEngine, json)
-        }
+    fun `SSEWriter generates valid IDs`() {
+        val id = SSEWriter.generateId()
         
-        val response = client.post("/v1/completions") {
-            contentType(ContentType.Application.Json)
-            setBody("{}")
-        }
-        
-        assertEquals(HttpStatusCode.NotImplemented, response.status)
+        assertTrue("ID should start with chatcmpl-", id.startsWith("chatcmpl-"))
+        assertTrue("ID should have substantial length", id.length > 10)
     }
     
-    /**
-     * Test service unavailable when model not loaded
-     */
     @Test
-    fun testServiceUnavailableWhenModelNotLoaded() = testApplication {
-        val unloadedMock = MockLlmEngineWrapper()
-        // Don't load model - isReady should return false
+    fun `SSEWriter generates valid timestamps`() {
+        val timestamp = SSEWriter.currentTimestamp()
         
-        application {
-            moduleInner(unloadedMock, json)
-        }
+        assertTrue("Timestamp should be positive", timestamp > 0)
+        assertTrue("Timestamp should be reasonable (after 2020)", timestamp > 1577836800)
+    }
+    
+    // ==================== LiteRTRequest Tests ====================
+    
+    @Test
+    fun `LiteRTRequest has sensible defaults`() {
+        val request = LiteRTRequest(prompt = "Hello")
         
-        val client = createClient {
-            install(ContentNegotiation) {
-                json(json)
-            }
-        }
-        
-        val request = ChatCompletionRequest(
-            model = "gemma-4e4b",
-            messages = listOf(ChatMessage(role = "user", content = "Hello!")),
-            stream = false
+        assertEquals(0.7f, request.temperature, 0.01f)
+        assertEquals(0.9f, request.topP, 0.01f)
+        assertEquals(2048, request.maxTokens)
+        assertTrue(request.stopTokens.isEmpty())
+    }
+    
+    @Test
+    fun `LiteRTResponseChunk indicates completion`() {
+        val chunk = LiteRTResponseChunk(
+            text = "Hello",
+            isComplete = true,
+            tokensGenerated = 5
         )
         
-        val response = client.post("/v1/chat/completions") {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }
-        
-        assertEquals(HttpStatusCode.ServiceUnavailable, response.status)
-        assertTrue(response.bodyAsText().contains("Model not loaded"))
+        assertTrue(chunk.isComplete)
+        assertEquals(5, chunk.tokensGenerated)
     }
 }

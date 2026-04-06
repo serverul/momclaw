@@ -1,10 +1,13 @@
 package com.loa.momclaw.agent
 
 import android.content.Context
+import com.loa.momclaw.agent.config.ConfigurationManager
 import com.loa.momclaw.agent.model.AgentConfig
+import com.loa.momclaw.agent.monitoring.AgentMonitor
+import com.loa.momclaw.agent.monitoring.ProcessLifecycleListener
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -18,6 +21,8 @@ private val logger = KotlinLogging.logger {}
  * - Proper resource cleanup on reset
  * - Atomic state transitions
  * - Lifecycle management
+ * - Configuration management
+ * - Health monitoring integration
  */
 object NullClawBridgeFactory {
     
@@ -30,6 +35,12 @@ object NullClawBridgeFactory {
     @Volatile
     private var isInitialized = false
     
+    @Volatile
+    private var configManager: ConfigurationManager? = null
+    
+    @Volatile
+    private var monitor: AgentMonitor? = null
+    
     /**
      * Get or create the NullClaw Bridge instance.
      * Thread-safe singleton pattern.
@@ -39,6 +50,8 @@ object NullClawBridgeFactory {
             instance ?: NullClawBridge(context.applicationContext).also {
                 instance = it
                 isInitialized = true
+                configManager = ConfigurationManager(context.applicationContext)
+                monitor = AgentMonitor(context.applicationContext)
                 logger.info { "NullClawBridge instance created" }
             }
         }
@@ -61,6 +74,8 @@ object NullClawBridgeFactory {
             }
             instance = null
             isInitialized = false
+            configManager = null
+            monitor = null
             logger.info { "NullClawBridgeFactory reset" }
         }
     }
@@ -98,6 +113,70 @@ object NullClawBridgeFactory {
             isInitialized = false
         }
     }
+    
+    /**
+     * Get health status of the running agent.
+     */
+    suspend fun getHealthStatus(): AgentMonitor.AgentHealth? {
+        val bridge = instance ?: return null
+        return try {
+            bridge.getHealthStatus()
+        } catch (e: Exception) {
+            logger.warn(e) { "Failed to get health status" }
+            null
+        }
+    }
+    
+    /**
+     * Get diagnostics information.
+     */
+    fun getDiagnostics(): AgentMonitor.Diagnostics? {
+        return monitor?.getDiagnostics()
+    }
+    
+    /**
+     * Get configuration manager.
+     */
+    fun getConfigurationManager(): ConfigurationManager? = configManager
+    
+    /**
+     * Update configuration.
+     */
+    suspend fun updateConfiguration(
+        systemPrompt: String? = null,
+        temperature: Float? = null,
+        maxTokens: Int? = null
+    ): Result<AgentConfig> {
+        val manager = configManager ?: return Result.failure(
+            IllegalStateException("Configuration manager not initialized")
+        )
+        
+        return try {
+            val config = manager.updateConfig(
+                systemPrompt = systemPrompt,
+                temperature = temperature,
+                maxTokens = maxTokens
+            )
+            Result.success(config)
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to update configuration" }
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Add lifecycle listener to the bridge.
+     */
+    fun addLifecycleListener(listener: ProcessLifecycleListener) {
+        instance?.addLifecycleListener(listener)
+    }
+    
+    /**
+     * Remove lifecycle listener from the bridge.
+     */
+    fun removeLifecycleListener(listener: ProcessLifecycleListener) {
+        instance?.removeLifecycleListener(listener)
+    }
 }
 
 /**
@@ -122,6 +201,20 @@ object NullClawBridgeModule {
      * Provide default AgentConfig.
      */
     fun provideDefaultAgentConfig(): AgentConfig = AgentConfig.DEFAULT
+    
+    /**
+     * Provide ConfigurationManager.
+     */
+    fun provideConfigurationManager(context: Context): ConfigurationManager {
+        return ConfigurationManager(context.applicationContext)
+    }
+    
+    /**
+     * Provide AgentMonitor.
+     */
+    fun provideAgentMonitor(context: Context): AgentMonitor {
+        return AgentMonitor(context.applicationContext)
+    }
 }
 
 /**
