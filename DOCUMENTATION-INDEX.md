@@ -285,7 +285,7 @@ Complete index of all documentation files for the MOMCLAW project.
 
 ## 📊 Documentation Stats
 
-- **Total documentation files**: 20+
+- **Total documentation files**: 22
 - **Total lines of documentation**: 10,000+
 - **Languages**: Romanian (primary), English
 - **Formats**: Markdown

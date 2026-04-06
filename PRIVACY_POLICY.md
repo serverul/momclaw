@@ -179,7 +179,7 @@ We may update this privacy policy from time to time. Changes will be:
 
 - **GitHub Issues:** https://github.com/serverul/MOMCLAW/issues
 - **GitHub Discussions:** https://github.com/serverul/MOMCLAW/discussions
-- **Email:** privacy@example.com (TODO)
+- **Email:** privacy@momclaw.app
 
 ### Source Code
 

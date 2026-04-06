@@ -140,3 +140,6 @@ coverage/
 venv/
 .env
 .env.local
+
+# Development memory
+memory/

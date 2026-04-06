@@ -22,9 +22,9 @@
 | **Files Changed** | 71+ files |
 | **Lines Added** | 10,000+ |
 | **Lines Deleted** | 900+ |
-| **Kotlin Files** | 32 |
-| **Documentation Files** | 20+ |
-| **Build Scripts** | 10+ |
+| **Kotlin Files** | 59 |
+| **Documentation Files** | 41 |
+| **Build Scripts** | 12 |
 | **CI/CD Workflows** | 7 |
 | **Subagents Spawned** | 24 |
 | **Tokens Used** | 500k+ |
@@ -33,7 +33,7 @@
 
 ## 🏗️ Architecture Implementation
 
-### Core Components (32 Kotlin Files)
+### Core Components (59 Kotlin Files)
 - ✅ **Material 3 UI** - ChatScreen, ModelsScreen, SettingsScreen
 - ✅ **LiteRT Bridge** - Ktor HTTP server (OpenAI API)
 - ✅ **NullClaw Agent** - ARM64 binary integration

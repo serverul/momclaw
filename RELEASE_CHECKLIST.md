@@ -224,7 +224,7 @@ If critical issues are found:
 
 - **GitHub Issues:** https://github.com/serverul/MOMCLAW/issues
 - **Discussions:** https://github.com/serverul/MOMCLAW/discussions
-- **Security Issues:** security@example.com (TODO)
+- **Security Issues:** security@momclaw.app
 
 ---
 

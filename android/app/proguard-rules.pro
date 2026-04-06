@@ -203,78 +203,57 @@
     public void print(...);
 }
 
-# Keep generic signatures
+-assumenosideeffects class java.lang.System {
+    public static *** out(...);
+    public static *** err(...);
+}
+
+# Keep generic signatures & annotations
 -keepattributes Signature
 -keepattributes Exceptions
 -keepattributes InnerClasses
 -keepattributes EnclosingMethod
-
-# Keep annotations
 -keepattributes *Annotation*
 
-# Optimize aggressively
--optimizationpasses 5
--allowaccessmodification
--optimizations !code/simplification/arithmetic,!field/*,!class/merging/*,!code/allocation/variable
-
-# ================================
-# Debugging (remove for production)
-# ================================
-
-# Keep source file names and line numbers for stack traces
+# Keep source file names and line numbers for crash stack traces
 -keepattributes SourceFile,LineNumberTable
 
 # Uncomment to disable obfuscation for debugging
 # -dontobfuscate
 
 # ================================
-# Additional Optimizations (2026-04-06)
+# Optimization (consolidated)
 # ================================
 
-# Enable aggressive optimization for release builds
+# Aggressive optimization — 7 passes for release
 -optimizationpasses 7
 -allowaccessmodification
 -repackageclasses 'a'
+-optimizations !code/simplification/arithmetic,!field/*,!class/merging/*,!code/allocation/variable,code/simplification/string,code/inlining/*
 
-# Remove unused resources more aggressively
--shrinkfields
--shrinkmethods
-
-# Optimize string operations
--optimizations 'code/simplification/string,code/simplification/arithmetic'
-
-# Keep enum classes (needed for proper serialization)
+# Keep enum classes (needed for serialization)
 -keepclassmembers enum * {
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
 
-# Optimize Compose recomposition
+# Keep Compose runtime recomposition
 -keepclassmembers class androidx.compose.runtime.** {
     *** Companion;
     *** recompose(...);
 }
 
-# Optimize Flow and StateFlow
+# Keep Flow/StateFlow methods
 -keepclassmembers class kotlinx.coroutines.flow.** {
     <methods>;
 }
 
-# Remove kotlin-stdlib-js unused parts
+# Remove unused kotlin-stdlib-js parts
 -dontwarn kotlin.js.**
 -dontwarn kotlin.reflect.jvm.internal.**
 
-# Optimize reflection usage
+# Keep reflection usage
 -keep class kotlin.reflect.** { *; }
 -keepclassmembers class **$WhenMappings {
     <fields>;
-}
-
-# Inline small methods for performance
--optimizations code/inlining/*
-
-# Remove System.out calls in release
--assumenosideeffects class java.lang.System {
-    public static *** out(...);
-    public static *** err(...);
 }

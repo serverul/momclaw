@@ -25,7 +25,7 @@ We take security seriously. If you discover a security vulnerability, please fol
 
 Instead, please:
 
-1. **Email:** security@example.com (TODO: Set up security email)
+1. **Email:** security@momclaw.app (or GitHub Security Advisory)
    
 2. **GitHub Security Advisory (Preferred):**
    - Go to https://github.com/serverul/MOMCLAW/security/advisories
@@ -195,7 +195,7 @@ If you'd like to conduct a security audit, please contact us.
 
 ## Contact
 
-- **Security Issues:** security@example.com (TODO)
+- **Security Issues:** security@momclaw.app
 - **General Issues:** https://github.com/serverul/MOMCLAW/issues
 - **GitHub Security:** https://github.com/serverul/MOMCLAW/security
 

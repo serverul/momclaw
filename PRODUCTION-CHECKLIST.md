@@ -27,7 +27,7 @@ make validate
 - [ ] Detekt passes: `./android/gradlew detekt`
 - [ ] No compiler warnings
 - [ ] Code coverage acceptable (target: 60%+)
-- [ ] All TODOs resolved or documented
+- [x] All TODOs resolved or documented
 
 ### 2. Version Updates
 
