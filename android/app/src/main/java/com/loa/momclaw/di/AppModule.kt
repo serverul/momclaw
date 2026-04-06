@@ -9,7 +9,7 @@ import com.loa.momclaw.data.remote.AgentClient
 import com.loa.momclaw.domain.repository.ChatRepository
 import dagger.Module
 import dagger.Provides
-import dagger.hilt.InstallInSingleton
+import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
@@ -18,8 +18,8 @@ import javax.inject.Singleton
  * Hilt module for providing app-level dependencies
  */
 @Module
-@InstallInSingleton
-object AppModule : SingletonComponent {
+@InstallIn(SingletonComponent::class)
+object AppModule {
     
     @Provides
     @Singleton
