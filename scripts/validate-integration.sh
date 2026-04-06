@@ -93,8 +93,8 @@ echo
 echo -e "${YELLOW}▶ Validating Dependency Injection${NC}"
 validate_file "android/app/src/main/java/com/loa/momclaw/MOMCLAWApplication.kt" "Application class exists"
 validate_content "android/app/src/main/java/com/loa/momclaw/MOMCLAWApplication.kt" "@HiltAndroidApp" "Hilt application annotation"
-validate_content "android/app/src/main/java/com/loa/momclaw/MOMCLAWApplication.kt" "@Module" "Hilt module defined"
-validate_content "android/app/src/main/java/com/loa/momclaw/MOMCLAWApplication.kt" "@Provides" "Provider methods defined"
+validate_content "android/app/src/main/java/com/loa/momclaw/di/AppModule.kt" "@Module" "Hilt module defined"
+validate_content "android/app/src/main/java/com/loa/momclaw/di/AppModule.kt" "@Provides" "Provider methods defined"
 validate_content "android/app/src/main/java/com/loa/momclaw/ui/chat/ChatViewModel.kt" "@HiltViewModel" "ViewModel uses Hilt"
 
 echo

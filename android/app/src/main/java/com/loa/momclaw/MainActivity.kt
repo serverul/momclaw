@@ -15,6 +15,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.loa.momclaw.domain.model.AgentConfig
+import com.loa.momclaw.startup.StartupManager
 import com.loa.momclaw.ui.navigation.NavGraph
 import com.loa.momclaw.ui.settings.SettingsViewModel
 import com.loa.momclaw.ui.theme.MOMCLAWTheme
@@ -30,9 +32,22 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
     
+    @Inject
+    lateinit var startupManager: StartupManager
+    
+    @Inject
+    lateinit var agentConfig: AgentConfig
+    
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Add lifecycle observer for automatic service management
+        lifecycle.addObserver(startupManager)
+        
+        // Start services when activity is created
+        startupManager.startServices(agentConfig)
+        
         enableEdgeToEdge()
         setContent {
             // Get settings ViewModel to access dark theme preference

@@ -241,6 +241,12 @@ Complete index of all documentation files for the MOMCLAW project.
 - **Contents**: NullClaw integration, tool execution
 - **Audience**: AI/ML developers
 
+### docs/BRIDGE_AGENT_STATUS_REPORT.md
+- **Purpose**: Bridge/Agent module verification report
+- **Contents**: Module status, integration issues, fixes applied
+- **Audience**: Developers, integrators
+- **Last Updated**: 2026-04-06
+
 ---
 
 ## 🎯 User Guides

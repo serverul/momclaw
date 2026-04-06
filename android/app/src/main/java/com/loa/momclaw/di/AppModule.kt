@@ -8,6 +8,7 @@ import com.loa.momclaw.data.local.preferences.SettingsPreferences
 import com.loa.momclaw.data.remote.AgentClient
 import com.loa.momclaw.domain.model.AgentConfig
 import com.loa.momclaw.domain.repository.ChatRepository
+import com.loa.momclaw.startup.StartupManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -68,5 +69,13 @@ object AppModule {
         settingsPreferences: SettingsPreferences
     ): ChatRepository {
         return ChatRepository(messageDao, agentClient, settingsPreferences)
+    }
+
+    @Provides
+    @Singleton
+    fun provideStartupManager(
+        @ApplicationContext context: Context
+    ): StartupManager {
+        return StartupManager(context)
     }
 }

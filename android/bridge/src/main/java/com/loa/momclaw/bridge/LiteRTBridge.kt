@@ -120,7 +120,7 @@ class LiteRTBridge(
                     )
                 }
             }
-            moduleInner(engine, json, healthMonitor)
+            moduleInner(engine, json, healthMonitor, fallbackManager, { inferenceMode }, { currentModelName })
         }).start(wait = false)
         
         isServerRunning = true
@@ -215,8 +215,14 @@ class LiteRTBridge(
 fun Application.moduleInner(
     llmEngine: LlmEngineWrapper,
     json: Json,
-    healthMonitor: HealthMonitor
+    healthMonitor: HealthMonitor,
+    fallbackManager: ModelFallbackManager,
+    inferenceModeProvider: () -> InferenceMode,
+    currentModelNameProvider: () -> String?
 ) {
+    // Local references to current state (via closures)
+    val currentInferenceMode: InferenceMode get() = inferenceModeProvider()
+    val currentModelName: String? get() = currentModelNameProvider()
     install(ContentNegotiation) {
         json(json)
     }
@@ -332,7 +338,7 @@ fun Application.moduleInner(
                 healthMonitor.recordError()
                 call.respond(
                     HttpStatusCode.ServiceUnavailable,
-                    ErrorResponse(ErrorDetail("MODEL_NOT_READY", "Model not loaded. Use POST /v1/models/load first."))
+                    ErrorResponse(ErrorDetail("MODEL_NOT_READY", "Model not loaded. Load a model first."))
                 )
                 return@post
             }
@@ -354,13 +360,13 @@ fun Application.moduleInner(
                     var tokensGenerated = 0
                     
                     call.respondTextWriter(contentType = ContentType.Text.EventStream) {
-                        llmEngine.generateStreaming(litertRequest).collect { chunk ->
+                        fallbackManager.generateStreamingWithFallback(litertRequest, currentInferenceMode).collect { chunk ->
                             tokensGenerated++
                             
                             val response = ChatCompletionResponse(
                                 id = responseId,
                                 created = created,
-                                model = llmEngine.getModelInfo()["name"] as? String ?: "gemma-4e4b",
+                                model = currentModelName ?: "gemma-4e4b",
                                 choices = listOf(
                                     ChatChoice(
                                         index = 0,
@@ -389,14 +395,14 @@ fun Application.moduleInner(
                     }
                 } else {
                     // Non-streaming response
-                    val response = runBlocking { llmEngine.generate(litertRequest) }
+                    val response = fallbackManager.generateWithFallback(litertRequest, currentInferenceMode)
                     val responseId = SSEWriter.generateId()
                     val created = SSEWriter.currentTimestamp()
                     
                     call.respond(ChatCompletionResponse(
                         id = responseId,
                         created = created,
-                        model = llmEngine.getModelInfo()["name"] as? String ?: "gemma-4e4b",
+                        model = currentModelName ?: "gemma-4e4b",
                         choices = listOf(
                             ChatChoice(
                                 index = 0,
