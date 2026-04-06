@@ -17,11 +17,11 @@
 
 ## ✅ Version & Metadata
 
-- [ ] `versionName = "1.0.0"` in `android/app/build.gradle.kts`
-- [ ] `versionCode` incremented
-- [ ] `CHANGELOG.md` has `[1.0.0]` section with all changes
-- [ ] `README.md` version badge updated
-- [ ] Fastlane changelog created: `android/fastlane/metadata/android/en-US/changelogs/`
+- [x] `versionName = "1.0.0"` in `android/app/build.gradle.kts`
+- [x] `versionCode` incremented
+- [x] `CHANGELOG.md` has `[1.0.0]` section with all changes
+- [x] `README.md` version badge updated
+- [x] Fastlane changelog created: `android/fastlane/metadata/android/en-US/changelogs/`
 
 ## ✅ Documentation
 
@@ -50,6 +50,8 @@
 - [x] `.github/workflows/google-play-deploy.yml` — Play Store deploy
 - [x] `.github/workflows/security.yml` — security scanning
 - [x] `.github/workflows/fdroid-build.yml` — F-Droid build
+- [x] `.github/workflows/ci.yml` — PR validation CI
+- [x] `.github/workflows/dependabot-auto-merge.yml` — Dependabot auto-merge
 
 ## ✅ Build Scripts
 
