@@ -6,6 +6,7 @@ import com.loa.momclaw.data.local.database.MOMCLAWDatabase
 import com.loa.momclaw.data.local.database.MessageDao
 import com.loa.momclaw.data.local.preferences.SettingsPreferences
 import com.loa.momclaw.data.remote.AgentClient
+import com.loa.momclaw.domain.model.AgentConfig
 import com.loa.momclaw.domain.repository.ChatRepository
 import dagger.Module
 import dagger.Provides
@@ -20,7 +21,19 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-    
+
+    @Provides
+    @Singleton
+    fun provideDatabase(
+        @ApplicationContext context: Context
+    ): MOMCLAWDatabase {
+        return Room.databaseBuilder(
+            context,
+            MOMCLAWDatabase::class.java,
+            "momclaw_database"
+        ).build()
+    }
+
     @Provides
     @Singleton
     fun provideSettingsPreferences(
@@ -28,13 +41,25 @@ object AppModule {
     ): SettingsPreferences {
         return SettingsPreferences(context)
     }
-    
+
     @Provides
     @Singleton
     fun provideMessageDao(database: MOMCLAWDatabase): MessageDao {
         return database.messageDao()
     }
-    
+
+    @Provides
+    @Singleton
+    fun provideAgentConfig(): AgentConfig {
+        return AgentConfig.DEFAULT
+    }
+
+    @Provides
+    @Singleton
+    fun provideAgentClient(config: AgentConfig): AgentClient {
+        return AgentClient(config)
+    }
+
     @Provides
     @Singleton
     fun provideChatRepository(
