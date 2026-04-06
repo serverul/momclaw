@@ -11,7 +11,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-private val logger = KotlinLogging.logger
+private val logger = KotlinLogging.logger {}
 
 /**
  * Singleton factory for managing NullClaw Bridge instances.

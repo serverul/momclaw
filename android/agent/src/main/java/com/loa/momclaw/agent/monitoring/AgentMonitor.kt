@@ -11,7 +11,7 @@ private val logger = KotlinLogging.logger
 
 /**
  * Monitoring and Diagnostics for NullClaw Agent
- * 
+ *
  * Features:
  * - Process lifecycle monitoring
  * - Health status tracking
@@ -19,12 +19,12 @@ private val logger = KotlinLogging.logger
  * - Diagnostic logging
  */
 class AgentMonitor(private val context: Context) {
-    
+
     private val startTime = AtomicLong(0)
     private val requestCount = AtomicLong(0)
     private val errorCount = AtomicLong(0)
     private val lastError = ConcurrentHashMap<String, String>()
-    
+
     /**
      * Agent health status
      */
@@ -35,30 +35,30 @@ class AgentMonitor(private val context: Context) {
         val uptime: Long,
         val metrics: AgentMetrics
     )
-    
+
     enum class Status {
         RUNNING, STOPPED, ERROR, STARTING, STOPPING
     }
-    
+
     data class ProcessStatus(
         val isAlive: Boolean,
         val pid: Long?,
         val exitCode: Int?
     )
-    
+
     data class BridgeStatus(
         val connected: Boolean,
         val endpoint: String,
         val latencyMs: Long?
     )
-    
+
     data class AgentMetrics(
         val requestsTotal: Long,
         val errorsTotal: Long,
         val errorRate: Double,
         val avgLatencyMs: Double
     )
-    
+
     /**
      * Record agent start
      */
@@ -66,7 +66,7 @@ class AgentMonitor(private val context: Context) {
         startTime.set(System.currentTimeMillis())
         logger.info { "Agent monitoring started" }
     }
-    
+
     /**
      * Record agent stop
      */
@@ -74,14 +74,14 @@ class AgentMonitor(private val context: Context) {
         startTime.set(0)
         logger.info { "Agent monitoring stopped" }
     }
-    
+
     /**
      * Record request
      */
     fun recordRequest() {
         requestCount.incrementAndGet()
     }
-    
+
     /**
      * Record error
      */
@@ -90,10 +90,10 @@ class AgentMonitor(private val context: Context) {
         lastError["type"] = type
         lastError["message"] = message
         lastError["time"] = System.currentTimeMillis().toString()
-        
+
         logger.error { "Agent error recorded: $type - $message" }
     }
-    
+
     /**
      * Check agent health
      */
@@ -104,45 +104,45 @@ class AgentMonitor(private val context: Context) {
         bridgeConnected: Boolean,
         bridgeEndpoint: String
     ): AgentHealth = withContext(Dispatchers.IO) {
-        
+
         val processStatus = ProcessStatus(
             isAlive = processAlive,
             pid = pid,
             exitCode = if (!processAlive) exitCode else null
         )
-        
+
         // Measure bridge latency
         val bridgeLatency = if (bridgeConnected) {
             measureBridgeLatency(bridgeEndpoint)
         } else null
-        
+
         val bridgeStatus = BridgeStatus(
             connected = bridgeConnected,
             endpoint = bridgeEndpoint,
             latencyMs = bridgeLatency
         )
-        
+
         val requests = requestCount.get()
         val errors = errorCount.get()
-        
+
         val metrics = AgentMetrics(
             requestsTotal = requests,
             errorsTotal = errors,
             errorRate = if (requests > 0) errors.toDouble() / requests else 0.0,
             avgLatencyMs = 0.0 // TODO: Track actual latencies
         )
-        
+
         val status = when {
             !processAlive && exitCode != null -> Status.ERROR
             !processAlive -> Status.STOPPED
             !bridgeConnected -> Status.STARTING
             else -> Status.RUNNING
         }
-        
+
         val uptime = if (startTime.get() > 0) {
             System.currentTimeMillis() - startTime.get()
         } else 0
-        
+
         AgentHealth(
             status = status,
             process = processStatus,
@@ -151,7 +151,7 @@ class AgentMonitor(private val context: Context) {
             metrics = metrics
         )
     }
-    
+
     /**
      * Measure latency to LiteRT bridge
      */
@@ -166,7 +166,7 @@ class AgentMonitor(private val context: Context) {
             conn.connect()
             val code = conn.responseCode
             conn.disconnect()
-            
+
             if (code == 200) {
                 System.currentTimeMillis() - start
             } else null
@@ -175,7 +175,7 @@ class AgentMonitor(private val context: Context) {
             null
         }
     }
-    
+
     /**
      * Get diagnostic info
      */
@@ -189,7 +189,7 @@ class AgentMonitor(private val context: Context) {
             memoryInfo = getMemoryInfo()
         )
     }
-    
+
     private fun getMemoryInfo(): Map<String, Long> {
         val runtime = Runtime.getRuntime()
         return mapOf(
@@ -199,7 +199,7 @@ class AgentMonitor(private val context: Context) {
             "used_mb" to (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024)
         )
     }
-    
+
     /**
      * Reset metrics
      */
@@ -208,7 +208,7 @@ class AgentMonitor(private val context: Context) {
         errorCount.set(0)
         lastError.clear()
     }
-    
+
     data class Diagnostics(
         val platform: String,
         val device: String,
@@ -232,8 +232,8 @@ interface ProcessLifecycleListener {
  * Default lifecycle listener implementation
  */
 class DefaultLifecycleListener : ProcessLifecycleListener {
-    private val logger = KotlinLogging.logger
-    
+    private val logger = KotlinLogging.logger {}
+
     override fun onProcessStarted(pid: Long) {
         logger.info { "Process started: PID=$pid" }
     }

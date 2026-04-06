@@ -9,7 +9,7 @@ import kotlinx.serialization.json.Json
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 
-private val logger = KotlinLogging.logger
+private val logger = KotlinLogging.logger {}
 
 /**
  * Configuration Manager for NullClaw Agent

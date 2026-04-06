@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.withLock
 
-private val logger = KotlinLogging.logger
+private val logger = KotlinLogging.logger {}
 
 /**
  * NullClaw Bridge — Binary wrapper for NullClaw agent process
