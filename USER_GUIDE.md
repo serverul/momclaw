@@ -1,51 +1,41 @@
 # MomClAW User Guide
 
-**Version**: 1.0.0  
-**Last Updated**: 2026-04-06
+**Version 1.0.0** | Complete guide for MomClAW users
 
 ---
 
 ## 📖 Table of Contents
 
-- [Introduction](#introduction)
+- [What is MomClAW?](#what-is-momclaw)
 - [Getting Started](#getting-started)
-- [Core Features](#core-features)
-- [Using the App](#using-the-app)
+- [Using MomClAW](#using-momclaw)
+- [Features Guide](#features-guide)
 - [Settings & Configuration](#settings--configuration)
-- [Managing Models](#managing-models)
-- [Understanding Conversations](#understanding-conversations)
-- [Memory & History](#memory--history)
-- [Advanced Features](#advanced-features)
-- [Troubleshooting](#troubleshooting)
-- [Privacy & Security](#privacy--security)
+- [Model Management](#model-management)
 - [Tips & Best Practices](#tips--best-practices)
+- [Troubleshooting](#troubleshooting)
 - [FAQ](#faq)
+- [Privacy & Security](#privacy--security)
 
 ---
 
-## Introduction
+## What is MomClAW?
 
-### What is MomClAW?
+MomClAW is a **privacy-first AI assistant** that runs **100% offline** on your Android device. Unlike cloud-based AI assistants, MomClAW:
 
-MomClAW (Mobile Offline Model Agent) is an AI assistant that runs **entirely on your Android device**—no cloud, no tracking, 100% offline. It uses advanced language models to provide intelligent conversations, tool execution, and persistent memory.
+- ✅ Keeps all your conversations private on your device
+- ✅ Works without internet connection (after model download)
+- ✅ Requires no account or sign-up
+- ✅ Has no tracking, telemetry, or data collection
+- ✅ Gives you full control over the AI model
 
-### Key Features
+### Powered by Gemma 3
 
-- 🧠 **AI-Powered Conversations**: Natural language understanding with Gemma 3 E4B-it
-- 🔧 **Tool Integration**: Execute shell commands, manage files, search the web
-- 💾 **Persistent Memory**: All conversations saved locally in SQLite
-- 🔒 **Privacy-First**: Your data never leaves your device
-- ⚡ **Optimized Performance**: Mobile-tuned inference with LiteRT-LM
-- 🌙 **Modern UI**: Material You design with dark theme support
-
-### System Requirements
-
-- **Android Version**: Android 9.0 (API 28) or higher
-- **RAM**: 4GB or more recommended
-- **Storage**: 
-  - 3GB+ free for model download (~2.5GB)
-  - Additional space for conversations and data
-- **Architecture**: ARM64 or ARMv7 device
+MomClAW uses the **Gemma 3 E4B-it** model from Google, optimized for mobile devices with:
+- Natural, intelligent conversations
+- Context-aware responses
+- Multi-turn dialogue support
+- Tool execution capabilities
 
 ---
 
@@ -53,804 +43,461 @@ MomClAW (Mobile Offline Model Agent) is an AI assistant that runs **entirely on 
 
 ### Installation
 
-#### From Google Play Store (Recommended)
-1. Open Google Play Store
-2. Search for "MomClAW"
-3. Tap "Install"
-4. Wait for installation to complete
+#### From APK (Direct Install)
 
-#### From GitHub Releases
-1. Go to [MomClAW Releases](https://github.com/serverul/MOMCLAW/releases)
-2. Download the latest APK for your device architecture:
-   - `arm64-v8a` for modern 64-bit devices (most common)
-   - `armeabi-v7a` for older 32-bit devices
-3. Open the downloaded APK
-4. If prompted, enable "Install from unknown sources"
-5. Tap "Install"
+1. Download the APK from [GitHub Releases](https://github.com/serverul/MOMCLAW/releases)
+2. Enable "Install from Unknown Sources" in your device settings
+3. Open the APK file and tap "Install"
+4. Launch MomClAW from your app drawer
+
+#### From Google Play Store
+
+1. Search for "MomClAW" in Google Play
+2. Tap "Install"
+3. Launch the app
 
 ### First-Time Setup
 
-1. **Launch the App**
-   - Tap the MomClAW icon
-   - Grant requested permissions:
-     - Storage (for model and conversation storage)
-     - Optional: Notifications
+When you first open MomClAW, you'll need to:
 
-2. **Download Model** (First Use)
-   - You'll see a prompt to download the AI model
-   - Tap "Download Model"
-   - Wait for download (~2.5GB, use Wi-Fi)
-   - Model is saved to: `/sdcard/Android/data/com.loa.MOMCLAW/files/models/`
+1. **Grant Storage Permission** - Required to save the AI model
+2. **Download the Model** (~2.5GB)
+   - Tap "Download Model" button
+   - Wait for download to complete (5-15 min depending on connection)
+   - Model is saved to app's private storage
 
-3. **Initialize Model**
-   - After download, tap "Load Model"
-   - First load takes 30-60 seconds
-   - Subsequent loads are faster (10-15 seconds)
+3. **Load the Model**
+   - Tap "Load Model" in the Models screen
+   - First load takes 10-30 seconds
+   - Model stays loaded in memory while app is active
 
-4. **Start Chatting**
-   - Type your first message
-   - The AI will respond based on context
+### System Requirements
 
-### Initial Configuration
-
-**Recommended First Steps:**
-1. Go to **Settings**
-2. Adjust these settings:
-   - **Temperature**: 0.7 (balanced creativity)
-   - **Max Tokens**: 2048 (sufficient for most responses)
-   - **System Prompt**: Customize if needed
-
-3. Test basic conversation:
-   - Ask: "Hello! What can you help me with?"
-   - Try: "Explain how you work"
+| Requirement | Minimum | Recommended |
+|------------|---------|-------------|
+| Android Version | 9.0 (API 28) | 12.0+ (API 31+) |
+| RAM | 4GB | 6GB+ |
+| Storage | 3GB free | 4GB+ free |
+| CPU | ARM64-v8a | Modern 8-core |
 
 ---
 
-## Core Features
+## Using MomClAW
 
-### 1. Conversational AI
+### Main Interface
 
-**Basic Chat:**
-- Type messages in natural language
-- Receive context-aware responses
-- Supports multi-turn conversations
-- Maintains conversation history
+MomClAW has a clean, intuitive interface with three main screens:
 
-**Example Interactions:**
+#### 1. Chat Screen
+- **Message Input**: Type your message at the bottom
+- **Conversation History**: Scroll through past messages
+- **Streaming Responses**: Watch AI generate responses in real-time
+- **Copy/Share**: Long-press messages to copy or share
+
+#### 2. Models Screen
+- **Model List**: See available models
+- **Download Models**: Get new AI models
+- **Load/Unload**: Manage active models
+- **Storage Info**: See model sizes
+
+#### 3. Settings Screen
+- **AI Parameters**: Customize behavior
+- **Appearance**: Dark theme, colors
+- **Privacy**: Clear data, export/import
+- **About**: Version, license info
+
+### Starting a Conversation
+
+1. Ensure a model is loaded (check Models screen)
+2. Go to Chat screen
+3. Type your message in the input field
+4. Tap Send (➤) or press Enter
+5. Watch the AI generate its response
+
+### Conversation Features
+
+- **Multi-turn Dialogue**: The AI remembers context from previous messages
+- **Streaming**: See responses appear word-by-word
+- **Code Blocks**: Formatted code with syntax highlighting
+- **Markdown Support**: Bold, italic, lists, headers
+
+---
+
+## Features Guide
+
+### 🧠 Intelligent Conversations
+
+MomClAW provides context-aware responses:
+- Remembers previous messages in conversation
+- Understands follow-up questions
+- Maintains coherent multi-turn dialogues
+
+**Example:**
 ```
-You: "What's the capital of France?"
-AI: "The capital of France is Paris. It's known for the Eiffel Tower..."
+You: What is machine learning?
+AI: [Explains machine learning]
 
-You: "Tell me more about its history"
-AI: [Continues with context about Paris history]
+You: Can you give me an example?
+AI: Sure! A common example is... [Uses context from first question]
 ```
 
-### 2. Tool Execution
+### 🔧 Tool Execution
 
-MomClAW can execute tools to help with tasks:
+MomClAW can execute tools on your device:
 
-**Shell Commands:**
+#### Shell Commands
 ```
-You: "Create a new directory called 'project'"
-AI: [Executes: mkdir project] "I've created the directory."
-```
-
-**File Operations:**
-```
-You: "List files in the current directory"
-AI: [Lists files with details]
+You: List files in my Downloads folder
+AI: I'll check that for you.
+[Executes: ls ~/Downloads]
+Result: file1.pdf, file2.jpg, ...
 ```
 
-**Web Search** (requires internet):
+#### File Operations
 ```
-You: "Search for recent news about AI"
+You: Read the file /sdcard/notes.txt
+AI: [Reads and displays file contents]
+```
+
+#### Web Search (requires internet)
+```
+You: Search for latest news about Kotlin
 AI: [Searches and summarizes results]
 ```
 
-### 3. Persistent Memory
+### 💾 Persistent Memory
 
-All conversations are automatically saved:
-- Browse chat history
+- All conversations are saved automatically
 - Search through past conversations
-- Export conversations
-- Clear specific chats or all data
+- Export conversations to JSON/Markdown
+- Import conversations from backups
 
----
+### 🌙 Dark Theme
 
-## Using the App
+MomClAW supports:
+- **Light Mode**: Bright, clean interface
+- **Dark Mode**: Easy on the eyes, battery-saving
+- **System Default**: Follows your device settings
 
-### Main Chat Interface
+### 🎨 Material You Design
 
-**Top Bar:**
-- **Conversation Title**: Tap to rename
-- **Menu (⋮)**: 
-  - New conversation
-  - Export chat
-  - Clear conversation
-  - Settings
-
-**Chat Area:**
-- Your messages (right-aligned)
-- AI responses (left-aligned)
-- Timestamps for each message
-- Long-press to copy text
-
-**Input Area:**
-- Text field for typing
-- Send button
-- Voice input (if enabled)
-
-### Navigation
-
-**Bottom Navigation:**
-- **Chat**: Main conversation interface
-- **Models**: Model management
-- **History**: Past conversations
-- **Settings**: App configuration
-
-### Creating New Conversation
-
-1. Tap **⋮** menu in top-right
-2. Select "New conversation"
-3. Type your first message
-4. Conversation auto-saves
-
-### Managing Conversations
-
-**Rename Conversation:**
-1. Tap conversation title
-2. Enter new name
-3. Press Enter
-
-**Export Conversation:**
-1. Tap **⋮** menu
-2. Select "Export chat"
-3. Choose format:
-   - Plain text (.txt)
-   - JSON (structured data)
-4. Save location appears
-
-**Delete Conversation:**
-1. Go to **History** tab
-2. Long-press conversation
-3. Select "Delete"
-4. Confirm deletion
+On Android 12+ devices:
+- Dynamic color theming based on wallpaper
+- Consistent with system design
+- Smooth animations and transitions
 
 ---
 
 ## Settings & Configuration
 
-### Accessing Settings
+### AI Parameters
 
-1. Tap **Settings** in bottom navigation
-2. Browse categories:
-   - AI Settings
-   - Model Settings
-   - Memory Settings
-   - Appearance
-   - Privacy
-   - About
+Customize AI behavior in Settings → AI Parameters:
 
-### AI Settings
+| Parameter | Range | Description |
+|-----------|-------|-------------|
+| **Temperature** | 0.0 - 2.0 | Creativity (0.0 = deterministic, 1.0 = balanced, 2.0 = creative) |
+| **Max Tokens** | 100 - 4096 | Maximum response length |
+| **Top P** | 0.0 - 1.0 | Nucleus sampling (lower = more focused) |
+| **Top K** | 1 - 100 | Consider top K token choices |
+| **Repeat Penalty** | 1.0 - 2.0 | Penalize repetition (1.0 = off) |
 
-**Temperature** (0.0 - 2.0)
-- **Low (0.0-0.5)**: More focused, deterministic
-- **Medium (0.6-0.9)**: Balanced creativity
-- **High (1.0+)**: More creative, varied
-- **Recommended**: 0.7
+#### Recommended Presets
 
-**Max Tokens** (100 - 4096)
-- Controls maximum response length
-- Higher = longer responses, more time
-- **Recommended**: 2048
+**Balanced (Default)**
+- Temperature: 0.7
+- Max Tokens: 2048
+- Top P: 0.9
+- Top K: 40
+- Repeat Penalty: 1.1
 
-**Top P** (0.0 - 1.0)
-- Nucleus sampling threshold
-- Lower = more focused
-- **Recommended**: 0.9
+**Creative**
+- Temperature: 1.2
+- Max Tokens: 4096
+- Top P: 0.95
+- Top K: 60
+- Repeat Penalty: 1.15
 
-**System Prompt**
-- Custom instructions for AI behavior
-- Example: "You are a helpful coding assistant."
-- Leave empty for default behavior
+**Precise**
+- Temperature: 0.3
+- Max Tokens: 1024
+- Top P: 0.8
+- Top K: 20
+- Repeat Penalty: 1.05
 
-### Model Settings
+### Appearance Settings
 
-**Current Model**
-- Shows loaded model name
-- Model size and version
+- **Theme**: Light, Dark, System Default
+- **Dynamic Colors**: Enable/disable Material You (Android 12+)
+- **Font Size**: Small, Normal, Large, Extra Large
+- **Message Bubbles**: Rounded, Squared
 
-**Model Path**
-- Location: `/sdcard/Android/data/com.loa.MOMCLAW/files/models/`
+### Privacy Settings
+
+- **Clear Conversation History**: Delete all chats
+- **Clear Model Cache**: Remove downloaded models
+- **Export Data**: Backup conversations and settings
+- **Import Data**: Restore from backup
+
+---
+
+## Model Management
+
+### Available Models
+
+MomClAW currently supports:
+
+| Model | Size | RAM Required | Best For |
+|-------|------|--------------|----------|
+| **Gemma 3 E4B-it** | 2.5GB | 4GB+ | General conversations, tasks |
+| Future models... | - | - | Coming soon |
+
+### Downloading Models
+
+1. Go to **Models** screen
+2. Tap **Download** next to desired model
+3. Wait for download to complete
+4. Model is saved in app's private storage
+
+**Note**: Downloads require internet connection. After download, the app works 100% offline.
+
+### Loading/Unloading Models
 
 **Load Model**
-- Load downloaded model
-- 10-60 seconds depending on device
+- Tap "Load" next to downloaded model
+- First load: 10-30 seconds
+- Subsequent loads: 1-5 seconds (cached)
+- Model stays loaded while app is active
 
 **Unload Model**
-- Free memory
-- Model loads again on next use
-
-### Memory Settings
-
-**Conversation History**
-- Enable/disable auto-save
-- Set retention period (days)
-
-**Memory Limit**
-- Maximum conversations to keep
-- Automatic cleanup when exceeded
-
-### Appearance
-
-**Theme**
-- System default
-- Light
-- Dark
-
-**Dynamic Colors** (Android 12+)
-- Enable/disable Material You colors
-
-**Font Size**
-- Small
-- Medium (default)
-- Large
-
----
-
-## Managing Models
-
-### Model Overview
-
-MomClAW uses the **Gemma 3 E4B-it** model:
-- **Size**: ~2.5GB
-- **Format**: LiteRT-LM (optimized for mobile)
-- **Quantization**: Q4_K_M (balanced quality/speed)
-
-### Downloading Model
-
-**First Download:**
-1. App prompts automatically
-2. Tap "Download Model"
-3. Use Wi-Fi (large file)
-4. Wait 5-15 minutes depending on speed
-
-**Manual Download:**
-1. Go to **Models** tab
-2. Tap "Download Model"
-3. Select model version
-4. Confirm download
-
-### Model Locations
-
-**Internal Storage:**
-```
-/sdcard/Android/data/com.loa.MOMCLAW/files/models/
-  └── gemma-3-E4B-it.litertlm
-```
-
-**External Storage (if configured):**
-```
-[SD Card]/Android/data/com.loa.MOMCLAW/files/models/
-```
-
-### Loading Model
-
-1. Go to **Models** tab
-2. Tap "Load Model"
-3. Wait for initialization (10-60s)
-4. Status shows "Loaded"
-
-### Updating Model
-
-When new model versions are available:
-1. Download new model
-2. Delete old model if desired
-3. Load new model
-
-### Managing Storage
-
-**Check Model Size:**
-1. Go to **Settings** → **About**
-2. View "Storage Used"
-
-**Delete Old Models:**
-1. Go to **Models** tab
-2. Long-press old model
-3. Select "Delete"
-
----
-
-## Understanding Conversations
-
-### How Context Works
-
-MomClAW maintains context across the conversation:
-- Remembers previous messages
-- References earlier statements
-- Tracks conversation flow
-
-**Example:**
-```
-You: "My name is Alice"
-AI: "Nice to meet you, Alice! How can I help?"
-
-You: "What's my name?"
-AI: "You told me your name is Alice."
-```
-
-### Conversation Limits
-
-**Context Window:**
-- Maximum tokens the model can process
-- Varies by model (typically 8K-32K)
-- Older messages may be truncated
-
-**Managing Long Conversations:**
-- Start new chat for different topics
-- Export important conversations
-- Clear old conversations periodically
-
-### Tips for Better Conversations
-
-**Be Clear and Specific:**
-- ✅ "Write a Python function to sort a list"
-- ❌ "Help with code"
-
-**Provide Context:**
-- ✅ "I'm learning Python. Explain list comprehensions."
-- ❌ "What are comprehensions?"
-
-**Break Complex Tasks:**
-- ✅ "First, explain what an API is. Then give an example."
-- ❌ "Explain APIs with examples for everything."
-
----
-
-## Memory & History
-
-### Conversation History
-
-**Accessing History:**
-1. Tap **History** in bottom nav
-2. Browse by date or search
-3. Tap to continue conversation
-
-**Search History:**
-1. Tap search icon
-2. Enter keywords
-3. Results show matching conversations
-
-### Managing Memory
-
-**Storage Location:**
-```
-/data/data/com.loa.MOMCLAW/databases/
-  └── momclaw_database.db
-```
-
-**Export Conversations:**
-1. In **History**, tap conversation
-2. Tap **⋮** → **Export**
-3. Choose format
-4. Save to file
-
-**Clear History:**
-1. Go to **Settings** → **Memory**
-2. Tap "Clear All Conversations"
-3. Confirm action
-4. **Warning**: This cannot be undone
-
-### Memory Best Practices
-
-**Organize Conversations:**
-- Use clear titles
-- Delete irrelevant chats
-- Export important ones
-
-**Manage Storage:**
-- Monitor conversation count
-- Enable auto-cleanup
-- Export before clearing
-
----
-
-## Advanced Features
-
-### Custom System Prompts
-
-**What are System Prompts?**
-- Instructions that define AI behavior
-- Set once per conversation
-- Override default personality
-
-**Examples:**
-```
-"You are a Python programming expert. Provide code examples and explanations."
-
-"You are a creative writing assistant. Help with stories and character development."
-
-"You are a concise assistant. Keep responses brief and to the point."
-```
-
-**Setting Custom Prompt:**
-1. Go to **Settings** → **AI Settings**
-2. Edit "System Prompt"
-3. Save changes
-4. New conversations use this prompt
-
-### Tool Configuration
-
-**Enable/Disable Tools:**
-1. Go to **Settings** → **Tools**
-2. Toggle tools:
-   - Shell commands
-   - File operations
-   - Web search
-
-**Tool Permissions:**
-- Shell: Requires storage permission
-- File: Requires storage permission
-- Web: Requires internet permission
-
-### API Access (Advanced)
-
-MomClAW provides a local API:
-- **LiteRT Bridge**: `http://localhost:8080/v1`
-- **OpenAI-compatible** endpoints
-
-**Use Cases:**
-- Custom integrations
-- Automation scripts
-- External apps
-
-**Documentation**: See [DOCUMENTATION.md](DOCUMENTATION.md#api-documentation)
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-#### App Won't Start
-
-**Symptoms:**
-- Crashes on launch
-- Shows black screen
-
-**Solutions:**
-1. Clear app cache: Settings → Apps → MomClAW → Clear Cache
-2. Restart device
-3. Reinstall app
-4. Check Android version (9.0+ required)
-
-#### Model Won't Load
-
-**Symptoms:**
-- "Failed to load model" error
-- Loading stuck forever
-
-**Solutions:**
-1. Check available RAM (close other apps)
-2. Verify model file exists
-3. Free storage space
-4. Re-download model
-5. Restart app
-
-#### Slow Responses
-
-**Symptoms:**
-- Long wait times
-- App freezes during response
-
-**Solutions:**
-1. Close background apps
-2. Reduce max tokens in settings
-3. Check device temperature
-4. Restart app
-5. Use smaller model (if available)
-
-#### Out of Memory
-
-**Symptoms:**
-- App crashes
-- "Out of memory" error
-
-**Solutions:**
-1. Unload model when not in use
-2. Clear conversation history
-3. Restart device
-4. Reduce context size
-
-#### Storage Full
-
-**Symptoms:**
-- Can't save conversations
-- Download fails
-
-**Solutions:**
-1. Delete old models
-2. Export and clear conversations
-3. Move to SD card (if available)
-4. Clear app data
-
-### Error Messages
-
-**"Model file not found"**
-- Download model again
-- Check file location
-
-**"Insufficient permissions"**
-- Grant storage permission
-- Reinstall app
-
-**"Failed to initialize model"**
-- Restart app
-- Check device compatibility
-- Free RAM
-
-**"Database error"**
-- Clear app data
-- Reinstall app
-
-### Getting Help
-
-**Support Channels:**
-- **GitHub Issues**: [momclaw/issues](https://github.com/serverul/MOMCLAW/issues)
-- **Discussions**: [momclaw/discussions](https://github.com/serverul/MOMCLAW/discussions)
-- **Email**: support@momclaw.app
-
-**When Reporting Issues:**
-1. Include device model and Android version
-2. Describe steps to reproduce
-3. Attach error screenshots
-4. Note any recent changes
-
----
-
-## Privacy & Security
-
-### Data Handling
-
-**What Data is Stored:**
-- Conversation history (locally)
-- Model files (locally)
-- App settings (locally)
-
-**What Data is NOT Sent:**
-- ❌ Conversations
-- ❌ Personal information
-- ❌ Usage analytics
-- ❌ Crash reports (unless opted-in)
-
-### Permissions
-
-**Required Permissions:**
-- `INTERNET`: Optional web search tool
-- `FOREGROUND_SERVICE`: Background processing
-- `READ/WRITE_EXTERNAL_STORAGE`: Model and file storage
-
-**Why These Permissions:**
-- **Storage**: Store models and conversation files
-- **Internet**: Web search tool (offline use doesn't need this)
-- **Foreground Service**: Keep AI running in background
-
-### Security Best Practices
-
-**Protect Your Data:**
-1. Use device encryption
-2. Set up screen lock
-3. Don't share conversation exports
-4. Clear sensitive conversations
-
-**Manage Privacy:**
-1. Review permissions regularly
-2. Disable unused tools
-3. Clear history periodically
-4. Use private conversations
-
-### Data Deletion
-
-**Delete App Data:**
-1. Settings → Apps → MomClAW → Clear Data
-2. All conversations deleted
-3. Models remain on storage
-
-**Complete Removal:**
-1. Uninstall app
-2. Delete folder: `/sdcard/Android/data/com.loa.MOMCLAW/`
-3. All data removed
+- Frees up RAM
+- Does NOT delete the model file
+- Useful on devices with limited RAM
+
+### Model Updates
+
+- Check for updates in Models screen
+- New versions may improve quality or performance
+- Old models can be safely deleted after update
 
 ---
 
 ## Tips & Best Practices
 
-### Performance Optimization
+### Performance Tips
 
-**Improve Speed:**
-1. Close other apps
-2. Unload model when done
-3. Use shorter max tokens
-4. Restart app daily
+1. **Keep Model Loaded**: Avoid frequent load/unload cycles
+2. **Close Background Apps**: Free up RAM for better performance
+3. **Use Dark Mode**: Saves battery on OLED screens
+4. **Clear Old Conversations**: Reduces database size
 
-**Save Battery:**
-1. Lower temperature (less computation)
-2. Reduce max tokens
-3. Unload model when idle
-4. Disable background service
+### Conversation Tips
 
-### Conversation Quality
+1. **Be Specific**: Clear questions get better answers
+2. **Provide Context**: Help AI understand your needs
+3. **Use Follow-ups**: Build on previous messages
+4. **Experiment with Temperature**: Find your preferred style
 
-**Better Responses:**
-1. Be specific in requests
-2. Provide context
-3. Break complex tasks into steps
-4. Use system prompts for specialized tasks
+### Battery Tips
 
-**Context Management:**
-1. Start new chat for different topics
-2. Clear irrelevant context
-3. Summarize long conversations
-4. Export important ones
+1. **Unload Model When Done**: Saves RAM and battery
+2. **Lower Max Tokens**: Shorter responses = less computation
+3. **Close App When Not in Use**: Fully exit, don't just minimize
 
-### Organization
+---
 
-**Keep Chats Organized:**
-1. Use descriptive titles
-2. Delete old conversations
-3. Export important ones
-4. Use tags or notes (if supported)
+## Troubleshooting
 
-### Workflow Tips
+### App Crashes on Launch
 
-**Daily Use:**
-1. Load model at start of day
-2. Keep conversations focused
-3. Unload at end of day
-4. Review and clean weekly
+**Possible causes:**
+1. **Insufficient RAM** - Close background apps, try on device with 4GB+ RAM
+2. **Corrupted Model** - Delete and re-download model
+3. **Outdated Android** - Update to Android 9.0+
 
-**Project Work:**
-1. Create separate chat per project
-2. Use system prompt for context
-3. Export when complete
-4. Archive old projects
+**Solution:**
+```bash
+# Clear app data
+Settings → Apps → MomClAW → Storage → Clear Data
+
+# Re-download model
+```
+
+### Model Won't Load
+
+**Possible causes:**
+1. **Not Enough RAM** - Unload other models, close apps
+2. **Corrupted Download** - Re-download model
+3. **Storage Permission Denied** - Grant permission in Settings
+
+**Solution:**
+1. Check available RAM (Settings → Memory)
+2. Delete model and download again
+3. Verify storage permission is granted
+
+### Slow Responses
+
+**Possible causes:**
+1. **Low-End Device** - Normal on devices with <4GB RAM
+2. **High Temperature** - CPU throttling due to heat
+3. **Background Apps** - Other apps consuming CPU
+
+**Solutions:**
+- Lower Max Tokens setting
+- Close background apps
+- Take breaks to let device cool
+
+### App Uses Too Much Storage
+
+**Model Storage Location:**
+```
+/sdcard/Android/data/com.loa.MOMCLAW/files/models/
+```
+
+**To Free Space:**
+1. Go to Models screen
+2. Delete unused models
+3. Clear conversation history
+
+### Responses Are Repetitive
+
+**Adjust Settings:**
+1. Increase **Repeat Penalty** (try 1.15 - 1.3)
+2. Increase **Temperature** (try 0.8 - 1.0)
+3. Lower **Top K** (try 30 - 40)
+
+### Responses Are Incoherent
+
+**Adjust Settings:**
+1. Lower **Temperature** (try 0.5 - 0.7)
+2. Increase **Top P** (try 0.9 - 0.95)
+3. Lower **Max Tokens** for more focused responses
 
 ---
 
 ## FAQ
 
-### General
+### General Questions
 
-**Q: Is MomClAW really offline?**  
-A: Yes! All AI processing happens on your device. Internet is only needed for:
-- Initial model download
-- Web search tool (optional)
+**Q: Does MomClAW require internet?**
+A: Only for initial model download. After that, it works 100% offline.
 
-**Q: How accurate is the AI?**  
-A: MomClAW uses Gemma 3 E4B-it, a state-of-the-art model. Accuracy depends on:
-- Question complexity
-- Model training data
-- Context provided
+**Q: Is my data sent to the cloud?**
+A: No. All conversations stay on your device. Zero data collection.
 
-**Q: Can I use MomClAW without internet?**  
-A: Yes! Once the model is downloaded, all features work offline except web search.
+**Q: Do I need an account?**
+A: No account required. Just install and use.
 
-### Performance
+**Q: Can I use multiple models?**
+A: Yes, but only one can be loaded at a time due to RAM constraints.
 
-**Q: Why is it slow?**  
-A: Mobile AI requires significant computation. Factors affecting speed:
-- Device RAM and CPU
-- Model size
-- Response length
-- Background apps
+**Q: What languages does MomClAW support?**
+A: Gemma 3 supports English primarily, with some capability in other languages.
 
-**Q: How much battery does it use?**  
-A: Similar to other AI apps. Tips to reduce:
-- Unload model when idle
-- Use shorter responses
-- Reduce temperature
+### Technical Questions
 
-**Q: Can I use a smaller model?**  
-A: Currently, MomClAW uses one model size. Future versions may offer options.
+**Q: Why does it require 4GB+ RAM?**
+A: The AI model needs significant memory to run efficiently.
 
-### Privacy
+**Q: Can I move the model to SD card?**
+A: No, models must be in internal storage for performance reasons.
 
-**Q: Is my data private?**  
-A: Yes! All data stays on your device. Nothing is sent to servers.
+**Q: Why is the first response slow?**
+A: The first generation after loading requires "warming up" the model. Subsequent responses are faster.
 
-**Q: Do you collect analytics?**  
-A: No. MomClAW has no telemetry or analytics.
+**Q: Can I use MomClAW on an emulator?**
+A: Yes, but you need an x86_64 system image and 6GB+ RAM allocated.
 
-**Q: Can I delete my data?**  
-A: Yes. Clear conversations in app, or uninstall to remove everything.
+### Privacy Questions
 
-### Features
+**Q: Does MomClAW collect any data?**
+A: No. Zero telemetry, zero analytics, zero tracking.
 
-**Q: What languages are supported?**  
-A: Primarily English and Romanian. The model understands many languages with varying quality.
+**Q: Where are my conversations stored?**
+A: In a local SQLite database in the app's private directory.
 
-**Q: Can I customize the AI personality?**  
-A: Yes! Use system prompts in settings to define behavior.
+**Q: Can I export my conversations?**
+A: Yes! Go to Settings → Privacy → Export Data.
 
-**Q: Does it support voice input?**  
-A: Yes, if enabled in settings. Requires Android voice input service.
-
-**Q: Can I export conversations?**  
-A: Yes! Export to text or JSON from the conversation menu.
-
-### Technical
-
-**Q: What devices are supported?**  
-A: Android 9.0+ with ARM64 or ARMv7 architecture. 4GB+ RAM recommended.
-
-**Q: How much storage do I need?**  
-A: 3GB+ free space: ~2.5GB for model, plus space for conversations.
-
-**Q: Can I move the model to SD card?**  
-A: Yes, if your device supports adoptable storage or allows app data on SD.
-
-**Q: Is the code open source?**  
-A: Yes! See [GitHub](https://github.com/serverul/MOMCLAW). Apache 2.0 license.
+**Q: How do I delete all my data?**
+A: Settings → Privacy → Clear Conversation History, or uninstall the app.
 
 ---
 
-## Getting Updates
+## Privacy & Security
 
-### Checking for Updates
+### Data Collection
 
-**Google Play:**
-- Automatic updates (if enabled)
-- Manual: Play Store → My apps → MomClAW → Update
+**MomClAW collects ZERO data:**
 
-**GitHub:**
-- Check [Releases](https://github.com/serverul/MOMCLAW/releases)
-- Download and install new APK
+- ❌ No personal information
+- ❌ No usage analytics
+- ❌ No crash reports sent externally
+- ❌ No advertising IDs
+- ❌ No device fingerprints
 
-### What's New
+### Data Storage
 
-**Version 1.0.0:**
-- Initial release
-- Core AI features
-- Tool integration
-- Persistent memory
-- Material You design
+All data is stored locally:
 
-**Future Versions:**
-See [MOMCLAW-PLAN.md](MOMCLAW-PLAN.md) for roadmap.
+```
+/sdcard/Android/data/com.loa.MOMCLAW/
+├── files/
+│   ├── models/         # AI models
+│   ├── database/       # Conversation history
+│   └── settings/       # App settings
+└── cache/              # Temporary files
+```
+
+### Data Deletion
+
+To completely remove all data:
+
+1. **In-App**: Settings → Privacy → Clear All Data
+2. **System**: Settings → Apps → MomClAW → Storage → Clear Data
+3. **Uninstall**: Removes everything
+
+### Permissions
+
+MomClAW requests minimal permissions:
+
+| Permission | Purpose | Required? |
+|-----------|---------|-----------|
+| **Storage** | Save AI models | Yes |
+| **Network** | Download models | Optional (only for downloads) |
+
+### Security Best Practices
+
+1. **Keep App Updated**: New versions may include security fixes
+2. **Download Models from Trusted Sources**: Only from official sources
+3. **Export Backups**: Regularly backup important conversations
+4. **Use Screen Lock**: Protect your device and conversations
 
 ---
 
-## Additional Resources
+## Support & Community
 
-### Documentation
+### Get Help
 
-- [README.md](README.md) - Project overview
-- [DOCUMENTATION.md](DOCUMENTATION.md) - Technical docs
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guide
+- **GitHub Issues**: [MOMCLAW/issues](https://github.com/serverul/MOMCLAW/issues)
+- **GitHub Discussions**: [MOMCLAW/discussions](https://github.com/serverul/MOMCLAW/discussions)
+- **Email**: support@MOMCLAW.app
 
-### Community
+### Contributing
 
-- **GitHub Discussions**: Questions and general discussion
-- **GitHub Issues**: Bug reports and feature requests
-- **Email**: support@momclaw.app
+Want to improve MomClAW? See [CONTRIBUTING.md](CONTRIBUTING.md)
 
-### Learning More
+### License
 
-**About the Model:**
-- [Gemma Documentation](https://ai.google.dev/gemma)
-- [LiteRT-LM](https://ai.google.dev/edge/litert)
-
-**About MomClAW:**
-- [Architecture](DOCUMENTATION.md#arhitectură)
-- [Development](DEVELOPMENT.md)
+MomClAW is open-source software licensed under the Apache License 2.0.
 
 ---
 
-**Thank you for using MomClAW!** 🐾
+**Thank you for using MomClAW! 🐾**
 
 Built with ❤️ by [LinuxOnAsteroids](https://github.com/serverul)
 
 ---
 
 **Last Updated**: 2026-04-06  
-**Version**: 1.0.0
+**Guide Version**: 1.0
