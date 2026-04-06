@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
  */
 sealed class BridgeError(
     val code: String,
-    val message: String,
+    override val message: String,
     val details: Map<String, Any?> = emptyMap(),
     cause: Throwable? = null
 ) : Exception(message, cause) {
