@@ -99,12 +99,13 @@ android {
         buildConfig = true
     }
     
-    externalNativeBuild {
-        cmake {
-            path("src/main/cpp/CMakeLists.txt")
-            version = "3.22.1"
-        }
-    }
+    // CMake disabled for initial build - no native code needed
+    // externalNativeBuild {
+    //     cmake {
+    //         path("src/main/cpp/CMakeLists.txt")
+    //         version = "3.22.1"
+    //     }
+    // }
     
     packaging {
         resources {
