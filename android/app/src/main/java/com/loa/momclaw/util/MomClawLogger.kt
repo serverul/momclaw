@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * MomClaw Logger - Structured logging utility with file output support
+ * MOMCLAW Logger - Structured logging utility with file output support
  * 
  * Features:
  * - Multiple log levels (VERBOSE, DEBUG, INFO, WARN, ERROR)
@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 object MomClawLogger {
     
-    private const val TAG = "MomClaw"
+    private const val TAG = "MOMCLAW"
     private const val MAX_BUFFER_SIZE = 1000
     private const val MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
     
@@ -67,7 +67,7 @@ object MomClawLogger {
      */
     fun enableFileLogging(directory: File) {
         try {
-            logFile = File(directory, "momclaw-${System.currentTimeMillis()}.log")
+            logFile = File(directory, "MOMCLAW-${System.currentTimeMillis()}.log")
             fileWriter = FileWriter(logFile, true)
             fileLoggingEnabled.set(true)
             i(TAG, "File logging enabled: ${logFile?.absolutePath}")
@@ -190,7 +190,7 @@ object MomClawLogger {
             oldFile.renameTo(backupFile)
             
             // Create new file
-            logFile = File(oldFile.parent, "momclaw-${System.currentTimeMillis()}.log")
+            logFile = File(oldFile.parent, "MOMCLAW-${System.currentTimeMillis()}.log")
             fileWriter = FileWriter(logFile, true)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to rotate log file", e)

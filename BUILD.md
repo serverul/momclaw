@@ -1,6 +1,6 @@
-# MomClaw Build Guide
+# MOMCLAW Build Guide
 
-This document explains how to build the MomClaw Android application from source.
+This document explains how to build the MOMCLAW Android application from source.
 
 ## Prerequisites
 
@@ -14,8 +14,8 @@ This document explains how to build the MomClaw Android application from source.
 
 ```bash
 # Clone the repository
-git clone https://github.com/serverul/momclaw.git
-cd momclaw
+git clone https://github.com/serverul/MOMCLAW.git
+cd MOMCLAW
 
 # Make gradlew executable (Unix/Linux/macOS)
 chmod +x android/gradlew
@@ -32,7 +32,7 @@ chmod +x android/gradlew
 
 ## Build Variants
 
-MomClaw supports the following build types:
+MOMCLAW supports the following build types:
 
 - **debug**: For development and testing (includes debug symbols, no minification)
 - **release**: For distribution (minified, obfuscated, signed)
@@ -54,7 +54,7 @@ MomClaw supports the following build types:
 
 ### Module-specific Tasks
 
-MomClaw is a multi-module project:
+MOMCLAW is a multi-module project:
 
 - `:app` - Main Android application
 - `:bridge` - Kotlin HTTP server (LiteRT bridge)
@@ -71,7 +71,7 @@ Build specific modules:
 
 ## Native Build Configuration
 
-MomClaw uses CMake for native components (future extensions). Current native setup:
+MOMCLAW uses CMake for native components (future extensions). Current native setup:
 
 - **CMake version**: 3.22.1+
 - **C++ Standard**: C++17
@@ -88,11 +88,11 @@ externalNativeBuild {
 }
 ```
 
-Currently, no native libraries are built as MomClaw uses precompiled LiteRT-LM and NullClaw binaries.
+Currently, no native libraries are built as MOMCLAW uses precompiled LiteRT-LM and NullClaw binaries.
 
 ## Dependencies
 
-MomClaw uses the following key dependencies:
+MOMCLAW uses the following key dependencies:
 
 ### AndroidX & Jetpack
 - Compose BOM 2024.10.01 (Material 3)
@@ -118,15 +118,15 @@ To create a signed release build:
 
 1. Create a keystore (if you don't have one):
    ```bash
-   keytool -genkey -v -keystore momclaw-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias momclaw
+   keytool -genkey -v -keystore MOMCLAW-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias MOMCLAW
    ```
 
 2. Place the keystore in the project root and create `key.properties`:
    ```properties
    storePassword=your_store_password
    keyPassword=your_key_password
-   keyAlias=momclaw
-   storeFile=./momclaw-release-key.jks
+   keyAlias=MOMCLAW
+   storeFile=./MOMCLAW-release-key.jks
    ```
 
 3. Build the signed AAB:
@@ -155,7 +155,7 @@ The signed bundle will be at `android/app/build/outputs/bundle/release/app-relea
 
 ## CI/CD Integration
 
-MomClaw includes GitHub Actions workflows in `.github/workflows/`:
+MOMCLAW includes GitHub Actions workflows in `.github/workflows/`:
 
 - `android-build.yml`: Comprehensive build/test matrix
 - `ci.yml`: Simplified CI for PRs
@@ -166,8 +166,8 @@ MomClaw includes GitHub Actions workflows in `.github/workflows/`:
 For consistent builds, use Docker:
 
 ```bash
-docker build -t momclaw-builder -f android/Dockerfile .
-docker run --rm -v $(pwd):/workspace momclaw-builder ./gradlew assembleDebug
+docker build -t MOMCLAW-builder -f android/Dockerfile .
+docker run --rm -v $(pwd):/workspace MOMCLAW-builder ./gradlew assembleDebug
 ```
 
 *Note: Dockerfile would need to be created for this approach.*
@@ -189,7 +189,7 @@ du -h android/app/build/outputs/apk/debug/app-debug.apk
 
 ## Supported ABIs
 
-By default, MomClaw builds for all ABIs:
+By default, MOMCLAW builds for all ABIs:
 - armeabi-v7a (32-bit ARM)
 - arm64-v8a (64-bit ARM)
 - x86 (32-bit x86)

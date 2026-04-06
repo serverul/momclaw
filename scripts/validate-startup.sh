@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# MomClAW Startup Sequence Validator
+# MOMCLAW Startup Sequence Validator
 # Validates that the startup sequence is correctly implemented
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -14,7 +14,7 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 echo -e "${CYAN}════════════════════════════════════════${NC}"
-echo -e "${CYAN}MomClAW Startup Sequence Validator${NC}"
+echo -e "${CYAN}MOMCLAW Startup Sequence Validator${NC}"
 echo -e "${CYAN}════════════════════════════════════════${NC}"
 echo
 
@@ -39,7 +39,7 @@ echo "Checking StartupManager implementation..."
 echo
 
 # Check StartupManager exists
-if [ -f "$PROJECT_ROOT/android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" ]; then
+if [ -f "$PROJECT_ROOT/android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" ]; then
     echo -e "${GREEN}✓${NC} StartupManager.kt exists"
     VALIDATION_PASSED=$((VALIDATION_PASSED + 1))
 else
@@ -49,32 +49,32 @@ fi
 
 # Check proper startup sequence
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" \
     "StartingInference" \
     "Step 1: Start Inference Service"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" \
     "WaitingForInference" \
     "Step 2: Wait for Inference Ready"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" \
     "StartingAgent" \
     "Step 3: Start Agent Service"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" \
     "waitForInferenceReady" \
     "Inference readiness check implemented"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" \
     "waitForAgentReady" \
     "Agent readiness check implemented"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" \
     "startForegroundService" \
     "Services started as foreground (startForegroundService call)"
 
@@ -82,17 +82,17 @@ echo
 echo "Checking service lifecycle..."
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" \
     "LifecycleObserver" \
     "Lifecycle observer implemented"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" \
     "stopServices" \
     "Stop services method exists"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" \
     "ON_DESTROY" \
     "Cleanup on destroy"
 
@@ -100,17 +100,17 @@ echo
 echo "Checking error handling..."
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" \
     "try {" \
     "Try-catch blocks present"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" \
     "StartupState.Error" \
     "Error state defined"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" \
     "logger.error" \
     "Error logging implemented"
 
@@ -118,17 +118,17 @@ echo
 echo "Checking InferenceService..."
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/inference/InferenceService.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/inference/InferenceService.kt" \
     "LifecycleService" \
     "InferenceService extends LifecycleService"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/inference/InferenceService.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/inference/InferenceService.kt" \
     "InferenceState.Running" \
     "Running state defined"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/inference/InferenceService.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/inference/InferenceService.kt" \
     "startForeground" \
     "Foreground notification setup"
 
@@ -136,27 +136,27 @@ echo
 echo "Checking AgentService..."
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/agent/AgentService.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/agent/AgentService.kt" \
     "LifecycleService" \
     "AgentService extends LifecycleService"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/agent/AgentService.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/agent/AgentService.kt" \
     "calculateBackoffDelay" \
     "Exponential backoff for restarts"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/agent/AgentService.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/agent/AgentService.kt" \
     "AgentState.Running" \
     "Running state defined"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/agent/AgentService.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/agent/AgentService.kt" \
     "startHealthMonitor" \
     "Health monitoring implemented"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/agent/AgentService.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/agent/AgentService.kt" \
     "maxRestarts\|MAX_RESTARTS" \
     "Max restart limit defined"
 
@@ -164,17 +164,17 @@ echo
 echo "Checking service state management..."
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/inference/InferenceService.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/inference/InferenceService.kt" \
     "StateFlow<InferenceState>" \
     "InferenceService exposes StateFlow"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/agent/AgentService.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/agent/AgentService.kt" \
     "StateFlow<AgentState>" \
     "AgentService exposes StateFlow"
 
 check_pattern \
-    "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" \
+    "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" \
     "StateFlow<StartupState>" \
     "StartupManager exposes StateFlow"
 

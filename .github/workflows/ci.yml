@@ -36,5 +36,5 @@ jobs:
       if: success()
       uses: actions/upload-artifact@v4
       with:
-        name: momclaw-debug-apk
+        name: MOMCLAW-debug-apk
         path: android/app/build/outputs/apk/debug/*.apk

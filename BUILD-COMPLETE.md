@@ -1,8 +1,8 @@
-# MomClaw - Build Configuration Complete ✅
+# MOMCLAW - Build Configuration Complete ✅
 
 ## 🎯 Task Summary
 
-Finalizată documentația și build config pentru MomClaw. Proiectul este acum **100% funcțional** și **ready pentru production deployment**.
+Finalizată documentația și build config pentru MOMCLAW. Proiectul este acum **100% funcțional** și **ready pentru production deployment**.
 
 ---
 
@@ -293,7 +293,7 @@ cd android
 2. **Create first release:**
    ```bash
    # Generate keystore
-   keytool -genkey -v -keystore momclaw-release-key.jks ...
+   keytool -genkey -v -keystore MOMCLAW-release-key.jks ...
    
    # Configure signing
    cp android/key.properties.example android/key.properties
@@ -320,15 +320,15 @@ cd android
 
 ## 📞 Support
 
-- **Issues:** [GitHub Issues](https://github.com/serverul/momclaw/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/serverul/momclaw/discussions)
+- **Issues:** [GitHub Issues](https://github.com/serverul/MOMCLAW/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/serverul/MOMCLAW/discussions)
 - **Security:** See [SECURITY.md](SECURITY.md) (to be created)
 
 ---
 
 ## ✨ Summary
 
-**MomClaw is now production-ready!**
+**MOMCLAW is now production-ready!**
 
 - ✅ Build system fully configured
 - ✅ Signing setup complete

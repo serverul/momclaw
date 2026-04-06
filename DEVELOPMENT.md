@@ -1,8 +1,8 @@
-# MomClaw Developer Guide
+# MOMCLAW Developer Guide
 
 ## Project Overview
 
-MOMCLAW (Mobile Offline Model Agent CLAW) is an AI-powered chat application for Android that combines:
+MOMCLAW (Mobile Offline Model Agent MOMCLAW) is an AI-powered chat application for Android that combines:
 
 - **Chat UI** - Clean Material 3 Compose interface
 - **Agent Integration** - NullClaw agent via local HTTP
@@ -12,7 +12,7 @@ MOMCLAW (Mobile Offline Model Agent CLAW) is an AI-powered chat application for 
 ## Project Structure
 
 ```
-momclaw/
+MOMCLAW/
 ├── android/                        # Android multi-module project
 │   ├── app/                        # Main application module
 │   │   ├── src/main/
@@ -104,12 +104,12 @@ MOMCLAW uses **Hilt** for dependency injection:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/serverul/momclaw.git
-   cd momclaw
+   git clone https://github.com/serverul/MOMCLAW.git
+   cd MOMCLAW
    ```
 
 2. Open in Android Studio:
-   - File → Open → Select `momclaw/android` directory
+   - File → Open → Select `MOMCLAW/android` directory
    - Android Studio will sync Gradle automatically
 
 3. Run the app:
@@ -120,7 +120,7 @@ MOMCLAW uses **Hilt** for dependency injection:
 
 ```bash
 # Navigate to android directory
-cd momclaw/android
+cd MOMCLAW/android
 
 # Sync and build
 ./gradlew assembleDebug

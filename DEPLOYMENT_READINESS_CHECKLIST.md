@@ -1,4 +1,4 @@
-# MomClaw Deployment Readiness Checklist
+# MOMCLAW Deployment Readiness Checklist
 
 ## ✅ Completed Fixes
 
@@ -48,18 +48,18 @@
 - [ ] Generate release keystore:
   ```bash
   keytool -genkey -v \
-    -keystore momclaw-release-key.jks \
+    -keystore MOMCLAW-release-key.jks \
     -keyalg RSA -keysize 2048 \
     -validity 10000 \
-    -alias momclaw
+    -alias MOMCLAW
   ```
 - [ ] Backup keystore securely (DO NOT commit to repo)
 - [ ] Create `android/key.properties` (gitignored):
   ```properties
   storePassword=YOUR_STORE_PASSWORD
   keyPassword=YOUR_KEY_PASSWORD
-  keyAlias=momclaw
-  storeFile=../momclaw-release-key.jks
+  keyAlias=MOMCLAW
+  storeFile=../MOMCLAW-release-key.jks
   ```
 
 ### 3. Agent Binary

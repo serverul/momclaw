@@ -1,6 +1,6 @@
-# MomClaw Build & Deployment Guide
+# MOMCLAW Build & Deployment Guide
 
-**Complete guide for building, testing, and deploying MomClaw**
+**Complete guide for building, testing, and deploying MOMCLAW**
 
 **Version**: 1.0.0  
 **Last Updated**: 2026-04-06
@@ -87,8 +87,8 @@ sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;25.2.9519653"
 ### 3. Clone Repository
 
 ```bash
-git clone https://github.com/serverul/momclaw.git
-cd momclaw
+git clone https://github.com/serverul/MOMCLAW.git
+cd MOMCLAW
 ```
 
 ### 4. Initial Setup
@@ -130,9 +130,9 @@ make aab
 | Build Type | Output Path |
 |------------|-------------|
 | Debug APK | `android/app/build/outputs/apk/debug/app-debug.apk` |
-| Release APK | `momclaw-VERSION.apk` |
-| Release AAB | `momclaw-VERSION.aab` |
-| F-Droid APK | `momclaw-VERSION-fdroid.apk` |
+| Release APK | `MOMCLAW-VERSION.apk` |
+| Release AAB | `MOMCLAW-VERSION.aab` |
+| F-Droid APK | `MOMCLAW-VERSION-fdroid.apk` |
 
 ### Build Variants
 
@@ -222,11 +222,11 @@ make keystore
 
 # Manual
 keytool -genkeypair -v \
-  -alias momclaw \
+  -alias MOMCLAW \
   -keyalg RSA \
   -keysize 2048 \
   -validity 10000 \
-  -keystore momclaw-release-key.jks \
+  -keystore MOMCLAW-release-key.jks \
   -storepass YOUR_PASSWORD \
   -keypass YOUR_PASSWORD
 ```
@@ -237,13 +237,13 @@ keytool -genkeypair -v \
 cat > android/key.properties << EOF
 storePassword=YOUR_STORE_PASSWORD
 keyPassword=YOUR_KEY_PASSWORD
-keyAlias=momclaw
-storeFile=../momclaw-release-key.jks
+keyAlias=MOMCLAW
+storeFile=../MOMCLAW-release-key.jks
 EOF
 
 # IMPORTANT: Add to .gitignore (already done)
 echo "android/key.properties" >> .gitignore
-echo "momclaw-release-key.jks" >> .gitignore
+echo "MOMCLAW-release-key.jks" >> .gitignore
 ```
 
 ### Configure GitHub Secrets
@@ -254,7 +254,7 @@ See [.github/SECRETS_SETUP.md](.github/SECRETS_SETUP.md) for detailed instructio
 - `KEYSTORE_BASE64` - Base64-encoded keystore file
 - `STORE_PASSWORD` - Keystore password
 - `KEY_PASSWORD` - Key password
-- `KEY_ALIAS` - Key alias (usually "momclaw")
+- `KEY_ALIAS` - Key alias (usually "MOMCLAW")
 
 **Optional secrets:**
 - `GOOGLE_PLAY_SERVICE_ACCOUNT` - For Play Store deployment
@@ -269,7 +269,7 @@ See [.github/SECRETS_SETUP.md](.github/SECRETS_SETUP.md) for detailed instructio
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    MomClaw Deployment                        │
+│                    MOMCLAW Deployment                        │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐  │
@@ -408,20 +408,20 @@ make build-fdroid VERSION=1.0.0
 
 | File | Purpose |
 |------|---------|
-| `momclaw-VERSION-fdroid.apk` | Unsigned APK |
-| `momclaw-VERSION-fdroid.apk.asc` | GPG signature |
-| `momclaw-VERSION-fdroid.apk.sha256` | SHA256 checksum |
+| `MOMCLAW-VERSION-fdroid.apk` | Unsigned APK |
+| `MOMCLAW-VERSION-fdroid.apk.asc` | GPG signature |
+| `MOMCLAW-VERSION-fdroid.apk.sha256` | SHA256 checksum |
 
 ### F-Droid Metadata
 
-The F-Droid build workflow automatically generates metadata in `fdroid-metadata/com.loa.momclaw.yml`.
+The F-Droid build workflow automatically generates metadata in `fdroid-metadata/com.loa.MOMCLAW.yml`.
 
 ### Submit to F-Droid
 
 #### Option 1: fdroiddata Repository
 
 1. Fork [fdroiddata](https://gitlab.com/fdroid/fdroiddata)
-2. Add metadata to `metadata/com.loa.momclaw.yml`
+2. Add metadata to `metadata/com.loa.MOMCLAW.yml`
 3. Submit merge request
 
 #### Option 2: Self-Hosted Repository
@@ -450,8 +450,8 @@ git push origin v1.0.0
 
 ### Release Contents
 
-- **APK**: `momclaw-VERSION.apk` (signed)
-- **AAB**: `momclaw-VERSION.aab` (for Play Store)
+- **APK**: `MOMCLAW-VERSION.apk` (signed)
+- **AAB**: `MOMCLAW-VERSION.aab` (for Play Store)
 - **Changelog**: From CHANGELOG.md
 - **Release Notes**: Auto-generated
 
@@ -463,9 +463,9 @@ git push origin v1.0.0
 
 # Create release
 gh release create v1.0.0 \
-  momclaw-1.0.0.apk \
-  momclaw-1.0.0.aab \
-  --title "MomClaw v1.0.0" \
+  MOMCLAW-1.0.0.apk \
+  MOMCLAW-1.0.0.aab \
+  --title "MOMCLAW v1.0.0" \
   --notes-file CHANGELOG.md
 ```
 
@@ -637,8 +637,8 @@ make help                     # Show all commands
 
 - **Documentation**: [DOCUMENTATION.md](DOCUMENTATION.md)
 - **Deployment Guide**: [DEPLOYMENT.md](DEPLOYMENT.md)
-- **Issues**: [GitHub Issues](https://github.com/serverul/momclaw/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/serverul/momclaw/discussions)
+- **Issues**: [GitHub Issues](https://github.com/serverul/MOMCLAW/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/serverul/MOMCLAW/discussions)
 
 ---
 

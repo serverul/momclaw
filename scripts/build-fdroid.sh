@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# MomClaw F-Droid Build Script
+# MOMCLAW F-Droid Build Script
 # Builds unsigned APK and signs with GPG for F-Droid distribution
 
 set -e
@@ -23,7 +23,7 @@ if [ -z "$VERSION" ]; then
 fi
 
 echo -e "${BLUE}═══════════════════════════════════════${NC}"
-echo -e "${BLUE}MomClaw F-Droid Build v$VERSION${NC}"
+echo -e "${BLUE}MOMCLAW F-Droid Build v$VERSION${NC}"
 echo -e "${BLUE}═══════════════════════════════════════${NC}"
 echo
 
@@ -41,7 +41,7 @@ if ! command -v gpg &> /dev/null; then
 fi
 
 if [ ! -f "android/gradlew" ]; then
-    echo -e "${RED}Error: android/gradlew not found. Run from momclaw root.${NC}"
+    echo -e "${RED}Error: android/gradlew not found. Run from MOMCLAW root.${NC}"
     exit 1
 fi
 
@@ -56,7 +56,7 @@ echo
 # Clean build
 echo -e "${YELLOW}Cleaning previous builds...${NC}"
 ./android/gradlew clean
-rm -f momclaw-*-fdroid.apk momclaw-*-fdroid.apk.asc
+rm -f MOMCLAW-*-fdroid.apk MOMCLAW-*-fdroid.apk.asc
 echo -e "${GREEN}✓ Clean complete${NC}"
 echo
 
@@ -75,22 +75,22 @@ echo -e "${GREEN}✓ APK built successfully${NC}"
 echo
 
 # Check if keystore exists
-KEYSTORE="momclaw-release-key.jks"
+KEYSTORE="MOMCLAW-release-key.jks"
 if [ ! -f "$KEYSTORE" ]; then
     echo -e "${YELLOW}Warning: Keystore not found at $KEYSTORE${NC}"
     echo -e "${YELLOW}Building unsigned APK only (for F-Droid build server)${NC}"
     
     cp android/app/build/outputs/apk/release/app-release-unsigned.apk \
-       momclaw-$VERSION-fdroid-unsigned.apk
+       MOMCLAW-$VERSION-fdroid-unsigned.apk
     
-    echo -e "${GREEN}✓ Unsigned APK: momclaw-$VERSION-fdroid-unsigned.apk${NC}"
+    echo -e "${GREEN}✓ Unsigned APK: MOMCLAW-$VERSION-fdroid-unsigned.apk${NC}"
     
     # GPG sign
     echo -e "${YELLOW}Signing with GPG...${NC}"
-    gpg --armor --detach-sign momclaw-$VERSION-fdroid-unsigned.apk
+    gpg --armor --detach-sign MOMCLAW-$VERSION-fdroid-unsigned.apk
     
-    if [ -f "momclaw-$VERSION-fdroid-unsigned.apk.asc" ]; then
-        echo -e "${GREEN}✓ GPG signature: momclaw-$VERSION-fdroid-unsigned.apk.asc${NC}"
+    if [ -f "MOMCLAW-$VERSION-fdroid-unsigned.apk.asc" ]; then
+        echo -e "${GREEN}✓ GPG signature: MOMCLAW-$VERSION-fdroid-unsigned.apk.asc${NC}"
     fi
     
     echo
@@ -99,8 +99,8 @@ if [ ! -f "$KEYSTORE" ]; then
     echo -e "${BLUE}═══════════════════════════════════════${NC}"
     echo
     echo "Files:"
-    echo "  - momclaw-$VERSION-fdroid-unsigned.apk"
-    echo "  - momclaw-$VERSION-fdroid-unsigned.apk.asc"
+    echo "  - MOMCLAW-$VERSION-fdroid-unsigned.apk"
+    echo "  - MOMCLAW-$VERSION-fdroid-unsigned.apk.asc"
     echo
     echo "Next steps for F-Droid:"
     echo "  1. Submit metadata YAML to fdroiddata"
@@ -112,7 +112,7 @@ fi
 # Sign with jarsigner (for self-hosted F-Droid repo)
 echo -e "${YELLOW}Signing APK with keystore...${NC}"
 
-KEY_ALIAS="momclaw"
+KEY_ALIAS="MOMCLAW"
 KEY_PASS=""
 STORE_PASS=""
 
@@ -144,7 +144,7 @@ jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
     -keystore $KEYSTORE \
     -storepass $STORE_PASS \
     -keypass $KEY_PASS \
-    -signedjar momclaw-$VERSION-fdroid.apk \
+    -signedjar MOMCLAW-$VERSION-fdroid.apk \
     android/app/build/outputs/apk/release/app-release-unsigned.apk \
     $KEY_ALIAS
 
@@ -158,7 +158,7 @@ echo
 
 # Verify
 echo -e "${YELLOW}Verifying signature...${NC}"
-jarsigner -verify -verbose -certs momclaw-$VERSION-fdroid.apk
+jarsigner -verify -verbose -certs MOMCLAW-$VERSION-fdroid.apk
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}Error: Signature verification failed${NC}"
@@ -170,10 +170,10 @@ echo
 
 # GPG sign
 echo -e "${YELLOW}Signing with GPG...${NC}"
-gpg --armor --detach-sign momclaw-$VERSION-fdroid.apk
+gpg --armor --detach-sign MOMCLAW-$VERSION-fdroid.apk
 
-if [ -f "momclaw-$VERSION-fdroid.apk.asc" ]; then
-    echo -e "${GREEN}✓ GPG signature: momclaw-$VERSION-fdroid.apk.asc${NC}"
+if [ -f "MOMCLAW-$VERSION-fdroid.apk.asc" ]; then
+    echo -e "${GREEN}✓ GPG signature: MOMCLAW-$VERSION-fdroid.apk.asc${NC}"
 else
     echo -e "${YELLOW}Warning: GPG signing failed (optional for self-hosted repos)${NC}"
 fi
@@ -186,13 +186,13 @@ echo -e "${GREEN}F-Droid build complete!${NC}"
 echo -e "${BLUE}═══════════════════════════════════════${NC}"
 echo
 echo "Files:"
-echo "  - momclaw-$VERSION-fdroid.apk ($(du -h momclaw-$VERSION-fdroid.apk | cut -f1))"
-if [ -f "momclaw-$VERSION-fdroid.apk.asc" ]; then
-    echo "  - momclaw-$VERSION-fdroid.apk.asc"
+echo "  - MOMCLAW-$VERSION-fdroid.apk ($(du -h MOMCLAW-$VERSION-fdroid.apk | cut -f1))"
+if [ -f "MOMCLAW-$VERSION-fdroid.apk.asc" ]; then
+    echo "  - MOMCLAW-$VERSION-fdroid.apk.asc"
 fi
 echo
 echo "Next steps for F-Droid:"
-echo "  1. Test APK on device: adb install momclaw-$VERSION-fdroid.apk"
+echo "  1. Test APK on device: adb install MOMCLAW-$VERSION-fdroid.apk"
 echo "  2. Upload to self-hosted repo or submit to fdroiddata"
 echo "  3. Update metadata YAML with new version"
 echo

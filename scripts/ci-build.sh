@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# MomClaw CI/CD Script
+# MOMCLAW CI/CD Script
 # Main automation script for all build/deploy operations
 
 set -e
@@ -82,7 +82,7 @@ show_help() {
 # Check if in correct directory
 check_directory() {
     if [ ! -f "android/gradlew" ]; then
-        echo -e "${RED}Error: Run this script from momclaw root directory${NC}"
+        echo -e "${RED}Error: Run this script from MOMCLAW root directory${NC}"
         exit 1
     fi
 }
@@ -257,14 +257,14 @@ clean_build() {
     echo -e "${BLUE}Cleaning build artifacts...${NC}"
     ensure_gradlew
     ./android/gradlew clean
-    rm -rf momclaw-*.apk momclaw-*.aab
+    rm -rf MOMCLAW-*.apk MOMCLAW-*.aab
     echo -e "${GREEN}✓ Cleaned${NC}"
 }
 
 generate_keystore() {
     echo -e "${BLUE}Generating signing keystore...${NC}"
     
-    if [ -f "momclaw-release-key.jks" ]; then
+    if [ -f "MOMCLAW-release-key.jks" ]; then
         echo -e "${YELLOW}Warning: Keystore already exists${NC}"
         read -p "Overwrite? (y/N): " -n 1 -r
         echo
@@ -273,13 +273,13 @@ generate_keystore() {
         fi
     fi
     
-    keytool -genkey -v -keystore momclaw-release-key.jks \
+    keytool -genkey -v -keystore MOMCLAW-release-key.jks \
         -keyalg RSA -keysize 2048 -validity 10000 \
-        -alias momclaw
+        -alias MOMCLAW
     
     echo -e "${GREEN}✓ Keystore generated${NC}"
     echo -e "${YELLOW}Important: Backup this keystore securely!${NC}"
-    echo "Location: momclaw-release-key.jks"
+    echo "Location: MOMCLAW-release-key.jks"
 }
 
 download_model() {

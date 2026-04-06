@@ -133,6 +133,14 @@
 -dontwarn com.google.ai.edge.litert.**
 -dontwarn com.google.ai.edge.litertlm.**
 
+# Keep TensorFlow Lite delegates and runtime
+-keep class org.tensorflow.lite.** { *; }
+-keep class org.tensorflow.lite.delegate.** { *; }
+-dontwarn org.tensorflow.lite.**
+
+# Keep GPU delegate if used
+-keep class com.google.ai.edge.litert.delegates.** { *; }
+
 # Keep all native methods
 -keepclasseswithmembernames class * {
     native <methods>;
@@ -218,3 +226,55 @@
 
 # Uncomment to disable obfuscation for debugging
 # -dontobfuscate
+
+# ================================
+# Additional Optimizations (2026-04-06)
+# ================================
+
+# Enable aggressive optimization for release builds
+-optimizationpasses 7
+-allowaccessmodification
+-repackageclasses 'a'
+
+# Remove unused resources more aggressively
+-shrinkfields
+-shrinkmethods
+
+# Optimize string operations
+-optimizations 'code/simplification/string,code/simplification/arithmetic'
+
+# Keep enum classes (needed for proper serialization)
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+
+# Optimize Compose recomposition
+-keepclassmembers class androidx.compose.runtime.** {
+    *** Companion;
+    *** recompose(...);
+}
+
+# Optimize Flow and StateFlow
+-keepclassmembers class kotlinx.coroutines.flow.** {
+    <methods>;
+}
+
+# Remove kotlin-stdlib-js unused parts
+-dontwarn kotlin.js.**
+-dontwarn kotlin.reflect.jvm.internal.**
+
+# Optimize reflection usage
+-keep class kotlin.reflect.** { *; }
+-keepclassmembers class **$WhenMappings {
+    <fields>;
+}
+
+# Inline small methods for performance
+-optimizations code/inlining/*
+
+# Remove System.out calls in release
+-assumenosideeffects class java.lang.System {
+    public static *** out(...);
+    public static *** err(...);
+}

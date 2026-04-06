@@ -1,6 +1,6 @@
-# MomClaw Documentation Index
+# MOMCLAW Documentation Index
 
-Complete index of all documentation files for the MomClaw project.
+Complete index of all documentation files for the MOMCLAW project.
 
 **Version**: 1.0.0  
 **Last Updated**: 2026-04-06
@@ -265,7 +265,7 @@ Complete index of all documentation files for the MomClaw project.
 | Deploy to Google Play | [DEPLOYMENT.md#google-play-store](DEPLOYMENT.md#google-play-store) |
 | Deploy to F-Droid | [DEPLOYMENT.md#f-droid](DEPLOYMENT.md#f-droid) |
 | Contribute code | [CONTRIBUTING.md](CONTRIBUTING.md) |
-| Report a bug | [GitHub Issues](https://github.com/serverul/momclaw/issues) |
+| Report a bug | [GitHub Issues](https://github.com/serverul/MOMCLAW/issues) |
 | Check release status | [PRODUCTION-READINESS.md](PRODUCTION-READINESS.md) |
 | Setup CI/CD secrets | [.github/SECRETS_SETUP.md](.github/SECRETS_SETUP.md) |
 
@@ -320,13 +320,13 @@ Documentation should be updated when:
 ## 📞 Getting Help
 
 ### Documentation Issues
-- Found a documentation bug? [Open an issue](https://github.com/serverul/momclaw/issues)
-- Have a documentation suggestion? [Start a discussion](https://github.com/serverul/momclaw/discussions)
+- Found a documentation bug? [Open an issue](https://github.com/serverul/MOMCLAW/issues)
+- Have a documentation suggestion? [Start a discussion](https://github.com/serverul/MOMCLAW/discussions)
 
 ### Support Channels
 - GitHub Issues: Bug reports and feature requests
 - GitHub Discussions: Questions and general discussion
-- Email: support@momclaw.app
+- Email: support@MOMCLAW.app
 
 ---
 

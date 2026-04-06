@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# MomClaw Build Validation Script
+# MOMCLAW Build Validation Script
 # Runs all checks before a release
 
 set -e
@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}═══════════════════════════════════════${NC}"
-echo -e "${BLUE}MomClaw Build Validation${NC}"
+echo -e "${BLUE}MOMCLAW Build Validation${NC}"
 echo -e "${BLUE}═══════════════════════════════════════${NC}"
 echo
 
@@ -151,7 +151,7 @@ echo
 echo -e "${BLUE}Signing${NC}"
 echo -e "${BLUE}─────────────────────────────────────${NC}"
 
-if [ -f "momclaw-release-key.jks" ]; then
+if [ -f "MOMCLAW-release-key.jks" ]; then
     echo -e "${GREEN}✓ Keystore found${NC}"
     
     if [ -f "android/key.properties" ]; then

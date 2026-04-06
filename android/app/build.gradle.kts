@@ -18,11 +18,11 @@ if (keyPropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.loa.momclaw"
+    namespace = "com.loa.MOMCLAW"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.loa.momclaw"
+        applicationId = "com.loa.MOMCLAW"
         minSdk = 28  // Android 9 - required for llama.cpp
         targetSdk = 35
         versionCode = 1

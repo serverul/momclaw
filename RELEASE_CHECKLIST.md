@@ -1,4 +1,4 @@
-# MomClaw Release Checklist
+# MOMCLAW Release Checklist
 
 Use this checklist for every release to ensure nothing is missed.
 
@@ -222,8 +222,8 @@ If critical issues are found:
 
 ## 🆘 Emergency Contacts
 
-- **GitHub Issues:** https://github.com/serverul/momclaw/issues
-- **Discussions:** https://github.com/serverul/momclaw/discussions
+- **GitHub Issues:** https://github.com/serverul/MOMCLAW/issues
+- **Discussions:** https://github.com/serverul/MOMCLAW/discussions
 - **Security Issues:** security@example.com (TODO)
 
 ---

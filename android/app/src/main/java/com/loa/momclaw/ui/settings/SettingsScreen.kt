@@ -42,7 +42,8 @@ data class SettingsUiState(
 }
 
 /**
- * Settings screen for app configuration
+ * Settings screen for app configuration with Material3 compliance
+ * and responsive layout for different screen sizes
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,14 +70,19 @@ fun SettingsScreen(
     
     // Snackbar state for save confirmation
     val snackbarHostState = remember { SnackbarHostState() }
+    
+    // Derived states to minimize recomposition
+    val showSaveButton = remember(uiState.hasChanges) {
+        uiState.hasChanges
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { 
                     Text(
-                        "Settings",
-                        fontSize = 20.sp
+                        text = "Settings",
+                        style = MaterialTheme.typography.titleLarge
                     ) 
                 },
                 navigationIcon = {
@@ -88,8 +94,8 @@ fun SettingsScreen(
                     }
                 },
                 actions = {
-                    if (uiState.hasChanges) {
-                        TextButton(onClick = onSave) {
+                    if (showSaveButton) {
+                        FilledTonalButton(onClick = onSave) {
                             Text("Save")
                         }
                     }
@@ -130,6 +136,8 @@ fun SettingsScreen(
                             onModelPrimaryChange = onModelPrimaryChange,
                             onBaseUrlChange = onBaseUrlChange
                         )
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
 
                     // Right column - App Settings and About
@@ -147,7 +155,7 @@ fun SettingsScreen(
                             onBackgroundAgentChange = onBackgroundAgentChange
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
                         AboutSection(
                             onResetToDefaults = onResetToDefaults
@@ -155,7 +163,7 @@ fun SettingsScreen(
 
                         // Save button in column for tablets
                         AnimatedVisibility(
-                            visible = uiState.hasChanges,
+                            visible = showSaveButton,
                             enter = fadeIn() + slideInVertically(),
                             exit = fadeOut() + slideOutVertically()
                         ) {
@@ -213,7 +221,7 @@ fun SettingsScreen(
 
                     // Save button at bottom for phones
                     AnimatedVisibility(
-                        visible = uiState.hasChanges,
+                        visible = showSaveButton,
                         enter = fadeIn() + slideInVertically(),
                         exit = fadeOut() + slideOutVertically()
                     ) {
@@ -264,7 +272,10 @@ private fun AgentSettingsSection(
             modifier = Modifier.fillMaxWidth(),
             minLines = 3,
             maxLines = 6,
-            supportingText = { Text("Instructions for the AI assistant") }
+            supportingText = { Text("Instructions for the AI assistant") },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary
+            )
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -303,7 +314,10 @@ private fun AgentSettingsSection(
             leadingIcon = {
                 Icon(Icons.Default.Memory, contentDescription = null)
             },
-            supportingText = { Text("Model ID for inference") }
+            supportingText = { Text("Model ID for inference") },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary
+            )
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -319,7 +333,10 @@ private fun AgentSettingsSection(
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
             singleLine = true,
-            supportingText = { Text("NullClaw endpoint") }
+            supportingText = { Text("NullClaw endpoint") },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary
+            )
         )
     }
 }
@@ -397,7 +414,10 @@ private fun AboutSection(
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary
                 )
-            }
+            },
+            colors = ListItemDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.surface
+            )
         )
 
         ListItem(
@@ -408,7 +428,10 @@ private fun AboutSection(
                     Icons.Default.Memory,
                     contentDescription = null
                 )
-            }
+            },
+            colors = ListItemDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.surface
+            )
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -459,7 +482,7 @@ fun SettingsSection(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                fontSize = 16.sp
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
         content()
@@ -487,7 +510,8 @@ fun SettingsSlider(
         ) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = displayValue(value),
@@ -500,7 +524,11 @@ fun SettingsSlider(
             onValueChange = onValueChange,
             valueRange = valueRange,
             steps = steps,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = SliderDefaults.colors(
+                thumbColor = MaterialTheme.colorScheme.primary,
+                activeTrackColor = MaterialTheme.colorScheme.primary
+            )
         )
         Text(
             text = supportingText,
@@ -533,8 +561,15 @@ fun SettingsSwitch(
         trailingContent = {
             Switch(
                 checked = checked,
-                onCheckedChange = onCheckedChange
+                onCheckedChange = onCheckedChange,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
+                )
             )
-        }
+        },
+        colors = ListItemDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     )
 }

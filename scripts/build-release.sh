@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# MomClaw Release Build Script
+# MOMCLAW Release Build Script
 # Builds signed APK and AAB for Google Play distribution
 
 set -e
@@ -24,7 +24,7 @@ if [ -z "$VERSION" ]; then
 fi
 
 echo -e "${BLUE}═══════════════════════════════════════${NC}"
-echo -e "${BLUE}MomClaw Release Build v$VERSION (build $BUILD_NUMBER)${NC}"
+echo -e "${BLUE}MOMCLAW Release Build v$VERSION (build $BUILD_NUMBER)${NC}"
 echo -e "${BLUE}═══════════════════════════════════════${NC}"
 echo
 
@@ -37,7 +37,7 @@ if ! command -v java &> /dev/null; then
 fi
 
 if [ ! -f "android/gradlew" ]; then
-    echo -e "${RED}Error: android/gradlew not found. Run from momclaw root.${NC}"
+    echo -e "${RED}Error: android/gradlew not found. Run from MOMCLAW root.${NC}"
     exit 1
 fi
 
@@ -52,17 +52,17 @@ echo
 # Clean build
 echo -e "${YELLOW}Cleaning previous builds...${NC}"
 ./android/gradlew clean
-rm -f momclaw-*.apk momclaw-*.aab
+rm -f MOMCLAW-*.apk MOMCLAW-*.aab
 echo -e "${GREEN}✓ Clean complete${NC}"
 echo
 
 # Check keystore
-KEYSTORE="momclaw-release-key.jks"
+KEYSTORE="MOMCLAW-release-key.jks"
 if [ ! -f "$KEYSTORE" ]; then
     echo -e "${RED}Error: Keystore not found at $KEYSTORE${NC}"
     echo -e "${YELLOW}Generate a keystore first:${NC}"
     echo "  keytool -genkey -v -keystore $KEYSTORE \\"
-    echo "    -keyalg RSA -keysize 2048 -validity 10000 -alias momclaw"
+    echo "    -keyalg RSA -keysize 2048 -validity 10000 -alias MOMCLAW"
     exit 1
 fi
 
@@ -70,7 +70,7 @@ echo -e "${GREEN}✓ Keystore found${NC}"
 echo
 
 # Read credentials
-KEY_ALIAS="momclaw"
+KEY_ALIAS="MOMCLAW"
 KEY_PASS=""
 STORE_PASS=""
 
@@ -144,10 +144,10 @@ echo
 echo -e "${YELLOW}Renaming artifacts...${NC}"
 
 cp android/app/build/outputs/apk/release/app-release.apk \
-   momclaw-$VERSION.apk
+   MOMCLAW-$VERSION.apk
 
 cp android/app/build/outputs/bundle/release/app-release.aab \
-   momclaw-$VERSION.aab
+   MOMCLAW-$VERSION.aab
 
 echo -e "${GREEN}✓ Artifacts renamed${NC}"
 echo
@@ -155,8 +155,8 @@ echo
 # Generate checksums
 echo -e "${YELLOW}Generating checksums...${NC}"
 
-sha256sum momclaw-$VERSION.apk > momclaw-$VERSION.apk.sha256
-sha256sum momclaw-$VERSION.aab > momclaw-$VERSION.aab.sha256
+sha256sum MOMCLAW-$VERSION.apk > MOMCLAW-$VERSION.apk.sha256
+sha256sum MOMCLAW-$VERSION.aab > MOMCLAW-$VERSION.aab.sha256
 
 echo -e "${GREEN}✓ Checksums generated${NC}"
 echo
@@ -167,16 +167,16 @@ echo -e "${GREEN}Release build complete!${NC}"
 echo -e "${BLUE}═══════════════════════════════════════${NC}"
 echo
 echo "Files:"
-echo "  - momclaw-$VERSION.apk ($(du -h momclaw-$VERSION.apk | cut -f1))"
-echo "  - momclaw-$VERSION.aab ($(du -h momclaw-$VERSION.aab | cut -f1))"
-echo "  - momclaw-$VERSION.apk.sha256"
-echo "  - momclaw-$VERSION.aab.sha256"
+echo "  - MOMCLAW-$VERSION.apk ($(du -h MOMCLAW-$VERSION.apk | cut -f1))"
+echo "  - MOMCLAW-$VERSION.aab ($(du -h MOMCLAW-$VERSION.aab | cut -f1))"
+echo "  - MOMCLAW-$VERSION.apk.sha256"
+echo "  - MOMCLAW-$VERSION.aab.sha256"
 echo
 echo "Next steps:"
-echo "  1. Test APK: adb install momclaw-$VERSION.apk"
+echo "  1. Test APK: adb install MOMCLAW-$VERSION.apk"
 echo "  2. Upload to Google Play:"
 echo "     cd android && fastlane internal"
 echo "  3. Create GitHub release:"
-echo "     gh release create v$VERSION momclaw-$VERSION.apk momclaw-$VERSION.aab"
+echo "     gh release create v$VERSION MOMCLAW-$VERSION.apk MOMCLAW-$VERSION.aab"
 echo
 echo -e "${GREEN}✓ Done${NC}"

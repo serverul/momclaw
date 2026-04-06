@@ -1,6 +1,6 @@
 # NullClaw Binary Setup
 
-This directory should contain the NullClaw agent binary for MomClaw.
+This directory should contain the NullClaw agent binary for MOMCLAW.
 
 ## What is NullClaw?
 
@@ -73,7 +73,7 @@ The NullClaw agent reads configuration from:
 ```bash
 # Start agent manually for testing
 adb shell
-cd /data/data/com.loa.momclaw/files
+cd /data/data/com.loa.MOMCLAW/files
 ./nullclaw --config agent_config.json
 
 # Check if running

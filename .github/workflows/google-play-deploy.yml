@@ -55,7 +55,7 @@ jobs:
       env:
         KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
       run: |
-        echo $KEYSTORE_BASE64 | base64 -d > momclaw-release-key.jks
+        echo $KEYSTORE_BASE64 | base64 -d > MOMCLAW-release-key.jks
     
     - name: Create key.properties
       env:
@@ -67,7 +67,7 @@ jobs:
         storePassword=$STORE_PASSWORD
         keyPassword=$KEY_PASSWORD
         keyAlias=$KEY_ALIAS
-        storeFile=../momclaw-release-key.jks
+        storeFile=../MOMCLAW-release-key.jks
         EOF
     
     - name: Update version
@@ -95,5 +95,5 @@ jobs:
       if: always()
       run: |
         rm -f android/google-play-service-account.json
-        rm -f momclaw-release-key.jks
+        rm -f MOMCLAW-release-key.jks
         rm -f android/key.properties

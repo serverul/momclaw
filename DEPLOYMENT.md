@@ -1,6 +1,6 @@
-# MomClaw Deployment Guide
+# MOMCLAW Deployment Guide
 
-Ghid complet pentru deployment MomClaw pe Google Play Store și F-Droid.
+Ghid complet pentru deployment MOMCLAW pe Google Play Store și F-Droid.
 
 ---
 
@@ -53,7 +53,7 @@ Ghid complet pentru deployment MomClaw pe Google Play Store și F-Droid.
 
 1. **Create app** în Play Console
 2. Completează detaliile:
-   - **App name**: MomClaw - Offline AI Agent
+   - **App name**: MOMCLAW - Offline AI Agent
    - **Default language**: English
    - **Free or paid**: Free
    - **Category**: Productivity
@@ -103,7 +103,7 @@ fastlane --version
 #### 2.2 Setup Fastlane în proiect
 
 ```bash
-cd momclaw/android
+cd MOMCLAW/android
 
 # Inițializează Fastlane
 fastlane init
@@ -121,7 +121,7 @@ fastlane init
 **android/fastlane/Appfile:**
 
 ```ruby
-package_name("com.loa.momclaw")
+package_name("com.loa.MOMCLAW")
 
 # Google Play Service Account
 json_key_file("google-play-service-account.json")
@@ -288,7 +288,7 @@ android/fastlane/metadata/android/
 
 **title.txt:**
 ```
-MomClaw - Offline AI Agent
+MOMCLAW - Offline AI Agent
 ```
 
 **short_description.txt:**
@@ -298,7 +298,7 @@ AI assistant running 100% offline. Privacy-first, no cloud, no tracking.
 
 **full_description.txt:**
 ```
-MomClaw is a fully autonomous AI agent that runs entirely on your phone — zero cloud, zero tracking, 100% offline.
+MOMCLAW is a fully autonomous AI agent that runs entirely on your phone — zero cloud, zero tracking, 100% offline.
 
 🧠 POWERFUL FEATURES:
 
@@ -336,12 +336,12 @@ MomClaw is a fully autonomous AI agent that runs entirely on your phone — zero
 • 4GB+ RAM recommended
 • 3GB+ free storage for model
 
-Open source: https://github.com/serverul/momclaw
+Open source: https://github.com/serverul/MOMCLAW
 ```
 
 **changelogs/1000000.txt:**
 ```
-Initial release of MomClaw!
+Initial release of MOMCLAW!
 
 Features:
 • Chat UI with streaming responses
@@ -357,7 +357,7 @@ Features:
 #### 4.1 Manual deployment
 
 ```bash
-cd momclaw/android
+cd MOMCLAW/android
 
 # Internal Testing
 fastlane internal
@@ -414,7 +414,7 @@ F-Droid este un repository alternativ pentru aplicații Android open-source.
 - ✅ Build reproductibil
 - ✅ Cod sursă public
 
-MomClaw îndeplinește toate cerințele:
+MOMCLAW îndeplinește toate cerințele:
 - Apache 2.0 License
 - Open source pe GitHub
 - Fără servicii Google proprietare
@@ -452,14 +452,14 @@ gpg --full-generate-key
 # Select: (1) RSA and RSA
 # Key size: 4096
 # Expiration: 2y
-# Name: MomClaw Releases
-# Email: releases@momclaw.example.com
+# Name: MOMCLAW Releases
+# Email: releases@MOMCLAW.example.com
 
 # Listează keys
 gpg --list-secret-keys --keyid-format=long
 
 # Export public key
-gpg --armor --export YOUR_KEY_ID > momclaw-public-key.asc
+gpg --armor --export YOUR_KEY_ID > MOMCLAW-public-key.asc
 
 # Upload pe servers
 gpg --keyserver keyserver.ubuntu.com --send-keys YOUR_KEY_ID
@@ -472,13 +472,13 @@ F-Droid verifică semnăturile APK. Trebuie să semnezi APK-urile cu cheia ta:
 ```bash
 # Semnează APK
 jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-  -keystore momclaw-release-key.jks \
-  -signedjar momclaw-1.0.0-signed.apk \
-  momclaw-1.0.0-unsigned.apk \
-  momclaw
+  -keystore MOMCLAW-release-key.jks \
+  -signedjar MOMCLAW-1.0.0-signed.apk \
+  MOMCLAW-1.0.0-unsigned.apk \
+  MOMCLAW
 
 # Verifică semnătura
-jarsigner -verify -verbose -certs momclaw-1.0.0-signed.apk
+jarsigner -verify -verbose -certs MOMCLAW-1.0.0-signed.apk
 ```
 
 ### Step 3: Submit la F-Droid
@@ -490,7 +490,7 @@ Submit pentru includere în repository-ul oficial F-Droid:
 1. **Fork [fdroiddata](https://gitlab.com/fdroid/fdroiddata)**
 2. **Creează fișier metadata:**
 
-**metadata/com.loa.momclaw.yml:**
+**metadata/com.loa.MOMCLAW.yml:**
 
 ```yaml
 Categories:
@@ -500,22 +500,22 @@ Categories:
 License: Apache-2.0
 
 AuthorName: LinuxOnAsteroids
-AuthorEmail: momclaw@example.com
+AuthorEmail: MOMCLAW@example.com
 AuthorWebSite: https://github.com/serverul
 
-WebSite: https://github.com/serverul/momclaw
-SourceCode: https://github.com/serverul/momclaw
-IssueTracker: https://github.com/serverul/momclaw/issues
-Changelog: https://github.com/serverul/momclaw/blob/main/CHANGELOG.md
+WebSite: https://github.com/serverul/MOMCLAW
+SourceCode: https://github.com/serverul/MOMCLAW
+IssueTracker: https://github.com/serverul/MOMCLAW/issues
+Changelog: https://github.com/serverul/MOMCLAW/blob/main/CHANGELOG.md
 
 Donate: https://github.com/sponsors/serverul
 
-AutoName: MomClaw
+AutoName: MOMCLAW
 
 RequiresRoot: false
 
 RepoType: git
-Repo: https://github.com/serverul/momclaw.git
+Repo: https://github.com/serverul/MOMCLAW.git
 
 Builds:
   - versionName: '1.0.0'
@@ -540,11 +540,11 @@ CurrentVersionCode: 1000000
    ```bash
    git clone https://gitlab.com/YOUR_USERNAME/fdroiddata.git
    cd fdroiddata
-   git checkout -b add-momclaw
+   git checkout -b add-MOMCLAW
    # Add metadata file
-   git add metadata/com.loa.momclaw.yml
-   git commit -m "Add MomClaw"
-   git push origin add-momclaw
+   git add metadata/com.loa.MOMCLAW.yml
+   git commit -m "Add MOMCLAW"
+   git push origin add-MOMCLAW
    # Create merge request on GitLab
    ```
 
@@ -575,16 +575,16 @@ Mai rapid, dar utilizatorii trebuie să adauge repository-ul manual:
    
    **config.py:**
    ```python
-   repo_url = "https://fdroid.momclaw.example.com"
-   repo_name = "MomClaw Repository"
-   repo_description = "Official MomClaw releases"
+   repo_url = "https://fdroid.MOMCLAW.example.com"
+   repo_name = "MOMCLAW Repository"
+   repo_description = "Official MOMCLAW releases"
    
    archive_older = 5
-   repo_icon = "icons/momclaw.png"
+   repo_icon = "icons/MOMCLAW.png"
    
    # Signing
    keystore = "/path/to/keystore.jks"
-   repo_keyalias = "momclaw"
+   repo_keyalias = "MOMCLAW"
    keystorepass = "your_password"
    keypass = "your_password"
    ```
@@ -592,7 +592,7 @@ Mai rapid, dar utilizatorii trebuie să adauge repository-ul manual:
 3. **Adaugă APK-uri:**
    ```bash
    # Copiază APK-uri
-   cp momclaw-1.0.0.apk repo/
+   cp MOMCLAW-1.0.0.apk repo/
    
    # Update index
    fdroid update
@@ -606,7 +606,7 @@ Mai rapid, dar utilizatorii trebuie să adauge repository-ul manual:
 
 5. **Utilizatori adaugă repo:**
    - În F-Droid app: Settings → Repositories → Add
-   - URL: `https://fdroid.momclaw.example.com/repo?fingerprint=YOUR_FINGERPRINT`
+   - URL: `https://fdroid.MOMCLAW.example.com/repo?fingerprint=YOUR_FINGERPRINT`
 
 ### Step 4: Automation F-Droid
 
@@ -626,7 +626,7 @@ if [ -z "$VERSION" ]; then
   exit 1
 fi
 
-echo "🤖 Building MomClaw v$VERSION for F-Droid..."
+echo "🤖 Building MOMCLAW v$VERSION for F-Droid..."
 
 # Clean
 ./android/gradlew clean
@@ -638,19 +638,19 @@ echo "🤖 Building MomClaw v$VERSION for F-Droid..."
 
 # Sign APK
 jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-  -keystore momclaw-release-key.jks \
-  -signedjar momclaw-$VERSION-fdroid.apk \
+  -keystore MOMCLAW-release-key.jks \
+  -signedjar MOMCLAW-$VERSION-fdroid.apk \
   android/app/build/outputs/apk/release/app-release-unsigned.apk \
-  momclaw
+  MOMCLAW
 
 # Verify
-jarsigner -verify -verbose -certs momclaw-$VERSION-fdroid.apk
+jarsigner -verify -verbose -certs MOMCLAW-$VERSION-fdroid.apk
 
 # GPG sign
-gpg --armor --detach-sign momclaw-$VERSION-fdroid.apk
+gpg --armor --detach-sign MOMCLAW-$VERSION-fdroid.apk
 
-echo "✅ F-Droid build complete: momclaw-$VERSION-fdroid.apk"
-echo "📄 Signature: momclaw-$VERSION-fdroid.apk.asc"
+echo "✅ F-Droid build complete: MOMCLAW-$VERSION-fdroid.apk"
+echo "📄 Signature: MOMCLAW-$VERSION-fdroid.apk.asc"
 ```
 
 #### 4.2 GitHub Actions pentru F-Droid
@@ -696,17 +696,17 @@ jobs:
         VERSION=${VERSION%-fdroid}
         
         mv android/app/build/outputs/apk/release/app-release-unsigned.apk \
-           momclaw-$VERSION-unsigned.apk
+           MOMCLAW-$VERSION-unsigned.apk
         
-        gpg --armor --detach-sign momclaw-$VERSION-unsigned.apk
+        gpg --armor --detach-sign MOMCLAW-$VERSION-unsigned.apk
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: momclaw-fdroid
+        name: MOMCLAW-fdroid
         path: |
-          momclaw-*.apk
-          momclaw-*.apk.asc
+          MOMCLAW-*.apk
+          MOMCLAW-*.apk.asc
 ```
 
 ---
@@ -753,7 +753,7 @@ versionCode = 1000001  // nu 1000000
 #### Eroare: "APK is not signed"
 ```bash
 # Verifică keystore
-keytool -list -v -keystore momclaw-release-key.jks
+keytool -list -v -keystore MOMCLAW-release-key.jks
 
 # Resemnează
 jarsigner -verify -verbose -certs app-release.apk
@@ -763,7 +763,7 @@ jarsigner -verify -verbose -certs app-release.apk
 ```
 Adaugă URL la privacy policy în Play Console:
 Store presence → Store listing → Privacy policy
-https://github.com/serverul/momclaw/blob/main/PRIVACY_POLICY.md
+https://github.com/serverul/MOMCLAW/blob/main/PRIVACY_POLICY.md
 ```
 
 ### F-Droid
@@ -777,10 +777,10 @@ Elimină Google Play Services și alte librării proprietare.
 #### Eroare: "Signature verification failed"
 ```bash
 # Verifică GPG signature
-gpg --verify momclaw-1.0.0.apk.asc momclaw-1.0.0.apk
+gpg --verify MOMCLAW-1.0.0.apk.asc MOMCLAW-1.0.0.apk
 
 # Dacă e invalid, resemnează
-gpg --armor --detach-sign momclaw-1.0.0.apk
+gpg --armor --detach-sign MOMCLAW-1.0.0.apk
 ```
 
 #### Eroare: "Reproducible build failed"

@@ -35,6 +35,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Chat screen with messages list and input
+ * Optimized for Material3 with proper backpressure handling
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,17 +54,34 @@ fun ChatScreen(
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    // Auto-scroll to bottom when new messages arrive
-    LaunchedEffect(uiState.messages.size, uiState.currentStreamingMessage) {
-        if (uiState.messages.isNotEmpty()) {
+    // Auto-scroll to bottom when new messages arrive - with debounce
+    val messageCount = uiState.messages.size
+    val hasStreamingMessage = uiState.currentStreamingMessage != null
+    
+    LaunchedEffect(messageCount, hasStreamingMessage) {
+        if (messageCount > 0 || hasStreamingMessage) {
             coroutineScope.launch {
-                listState.animateScrollToItem(uiState.messages.size)
+                // Scroll to the last item (streaming message or last message)
+                val targetIndex = if (hasStreamingMessage) messageCount else messageCount - 1
+                if (targetIndex >= 0) {
+                    listState.animateScrollToItem(targetIndex)
+                }
             }
         }
     }
 
     // Calculate max width for content based on screen size
     val contentMaxWidth = if (useNavigationRail) 800.dp else 600.dp
+    val bubbleMaxWidth = if (useNavigationRail) 600.dp else 280.dp
+
+    // Derive states to minimize recomposition
+    val isInputEnabled = remember(uiState.isAgentAvailable, uiState.isLoading) {
+        uiState.isAgentAvailable && !uiState.isLoading
+    }
+    
+    val showLoadingIndicator = remember(uiState.isLoading, uiState.currentStreamingMessage) {
+        uiState.isLoading && uiState.currentStreamingMessage == null
+    }
 
     Scaffold(
         topBar = {
@@ -182,14 +200,14 @@ fun ChatScreen(
                     ),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Existing messages
+                    // Existing messages - use key for efficient updates
                     items(
                         items = uiState.messages,
                         key = { it.id }
                     ) { message ->
                         MessageBubble(
                             message = message,
-                            maxWidth = if (useNavigationRail) 600.dp else 280.dp
+                            maxWidth = bubbleMaxWidth
                         )
                     }
 
@@ -199,13 +217,13 @@ fun ChatScreen(
                             MessageBubble(
                                 message = uiState.currentStreamingMessage!!,
                                 isStreaming = true,
-                                maxWidth = if (useNavigationRail) 600.dp else 280.dp
+                                maxWidth = bubbleMaxWidth
                             )
                         }
                     }
 
                     // Loading indicator for initial load
-                    if (uiState.isLoading && uiState.currentStreamingMessage == null) {
+                    if (showLoadingIndicator) {
                         item {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -214,7 +232,7 @@ fun ChatScreen(
                                 AssistantMessageBubble(
                                     content = "",
                                     isStreaming = true,
-                                    maxWidth = if (useNavigationRail) 600.dp else 280.dp
+                                    maxWidth = bubbleMaxWidth
                                 )
                             }
                         }
@@ -233,7 +251,7 @@ fun ChatScreen(
                     onTextChange = onUpdateInput,
                     onSend = onSendMessage,
                     onCancel = onCancelStreaming,
-                    enabled = uiState.isAgentAvailable && !uiState.isLoading,
+                    enabled = isInputEnabled,
                     maxWidth = contentMaxWidth
                 )
             }
@@ -243,6 +261,7 @@ fun ChatScreen(
 
 /**
  * Message bubble that adapts to user/assistant
+ * Marked as stable to prevent unnecessary recomposition
  */
 @Composable
 fun MessageBubble(

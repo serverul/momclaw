@@ -3,15 +3,17 @@ package com.loa.momclaw.agent
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import com.loa.momclaw.agent.model.AgentConfig
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import mu.KotlinLogging
 import java.io.BufferedReader
 import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.concurrent.withLock
 
 private val logger = KotlinLogging.logger {}
 
@@ -21,18 +23,18 @@ private val logger = KotlinLogging.logger {}
  * Manages the lifecycle of the NullClaw Zig binary:
  * - Extract binary from assets (nullclaw-arm64, nullclaw-arm32, nullclaw-x86_64)
  * - Generate configuration file (nullclaw-config.json)
- * - Start/stop the agent process
+ * - Start/stop the agent process with proper timeouts
  * - Monitor process health
  * - Capture process output for debugging
  * 
  * Architecture:
  *   Android App → NullClawBridge → NullClaw Binary (Zig) → LiteRT Bridge (localhost:8080)
  * 
- * The NullClaw binary provides:
- * - Tool execution (shell, file operations)
- * - Memory management (SQLite)
- * - System prompt handling
- * - Conversation context
+ * IMPROVEMENTS:
+ * - Process startup timeouts with proper handling
+ * - Atomic state transitions with ReentrantLock
+ * - Proper resource cleanup for coroutines
+ * - Thread-safe process management
  */
 class NullClawBridge(private val context: Context) {
     
@@ -40,6 +42,11 @@ class NullClawBridge(private val context: Context) {
     private val configPath = AtomicReference<String?>(null)
     private val isSetup = AtomicBoolean(false)
     private val isRunning = AtomicBoolean(false)
+    private val stateLock = ReentrantLock()
+    
+    // Output reader job for proper cleanup
+    private var outputReaderJob: Job? = null
+    private val bridgeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     
     // Supported ABIs
     private val abiMapping = mapOf(
@@ -57,6 +64,12 @@ class NullClawBridge(private val context: Context) {
      * @return Result with setup status or error
      */
     suspend fun setup(config: AgentConfig): Result<Unit> = withContext(Dispatchers.IO) {
+        stateLock.withLock {
+            if (isSetup.get()) {
+                return@withContext Result.success(Unit)
+            }
+        }
+        
         try {
             logger.info { "Setting up NullClaw bridge..." }
             
@@ -84,7 +97,9 @@ class NullClawBridge(private val context: Context) {
             
             logger.info { "Config generated at: ${configFile.absolutePath}" }
             
-            isSetup.set(true)
+            stateLock.withLock {
+                isSetup.set(true)
+            }
             Result.success(Unit)
         } catch (e: Exception) {
             logger.error(e) { "Failed to setup NullClaw bridge" }
@@ -93,19 +108,21 @@ class NullClawBridge(private val context: Context) {
     }
     
     /**
-     * Start the NullClaw agent process.
+     * Start the NullClaw agent process with timeout handling.
      * setup() must be called first.
      * 
      * @return Result with start status or error
      */
     suspend fun start(): Result<Unit> = withContext(Dispatchers.IO) {
-        if (!isSetup.get()) {
-            return@withContext Result.failure(IllegalStateException("NullClaw not set up. Call setup() first."))
-        }
-        
-        if (isRunning.get()) {
-            logger.warn { "NullClaw already running" }
-            return@withContext Result.success(Unit)
+        stateLock.withLock {
+            if (!isSetup.get()) {
+                return@withContext Result.failure(IllegalStateException("NullClaw not set up. Call setup() first."))
+            }
+            
+            if (isRunning.get()) {
+                logger.warn { "NullClaw already running" }
+                return@withContext Result.success(Unit)
+            }
         }
         
         try {
@@ -136,20 +153,24 @@ class NullClawBridge(private val context: Context) {
             val process = processBuilder.start()
             processRef.set(process)
             
-            // Start output reader thread
-            startOutputReader(process)
+            // Start output reader coroutine (properly managed)
+            startOutputReaderCoroutine(process)
             
-            // Wait for startup (give process time to initialize)
-            Thread.sleep(STARTUP_DELAY_MS)
+            // Wait for startup with timeout
+            val startupSuccess = waitForProcessStartup(process)
             
-            if (process.isAlive) {
-                isRunning.set(true)
+            if (startupSuccess) {
+                stateLock.withLock {
+                    isRunning.set(true)
+                }
                 logger.info { "NullClaw agent started successfully (PID: ${getPid()})" }
                 Result.success(Unit)
             } else {
-                val exitCode = process.exitValue()
+                // Cleanup failed startup
+                cleanupProcess(process)
+                val exitCode = try { process.exitValue() } catch (e: Exception) { -1 }
                 logger.error { "NullClaw failed to start (exit code: $exitCode)" }
-                Result.failure(IOException("NullClaw process exited immediately with code $exitCode"))
+                Result.failure(IOException("NullClaw process failed to start within timeout (exit code: $exitCode)"))
             }
         } catch (e: Exception) {
             logger.error(e) { "Failed to start NullClaw agent" }
@@ -158,32 +179,110 @@ class NullClawBridge(private val context: Context) {
     }
     
     /**
-     * Stop the NullClaw agent process gracefully.
+     * Wait for process to start with proper timeout handling
+     */
+    private suspend fun waitForProcessStartup(process: Process): Boolean {
+        // Use a timeout for startup
+        return withTimeoutOrNull(STARTUP_TIMEOUT_MS) {
+            // Give process time to initialize
+            var elapsed = 0L
+            while (elapsed < STARTUP_TIMEOUT_MS) {
+                delay(STARTUP_CHECK_INTERVAL_MS)
+                elapsed += STARTUP_CHECK_INTERVAL_MS
+                
+                // Check if process is still alive
+                if (!process.isAlive) {
+                    return@withTimeoutOrNull false
+                }
+                
+                // Try health check after initial delay
+                if (elapsed >= MIN_STARTUP_DELAY_MS) {
+                    // Quick health check
+                    if (checkHealthQuick()) {
+                        return@withTimeoutOrNull true
+                    }
+                }
+            }
+            
+            // If still running after timeout, consider it started
+            process.isAlive
+        } ?: false
+    }
+    
+    /**
+     * Quick health check without full HTTP request
+     */
+    private fun checkHealthQuick(): Boolean {
+        return try {
+            val socket = java.net.Socket()
+            socket.connect(java.net.InetSocketAddress("localhost", 9090), 500)
+            socket.close()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+    
+    /**
+     * Stop the NullClaw agent process gracefully with proper cleanup.
      */
     fun stop() {
-        val process = processRef.getAndSet(null)
-        if (process != null) {
-            logger.info { "Stopping NullClaw agent..." }
+        stateLock.withLock {
+            val process = processRef.getAndSet(null)
+            isRunning.set(false)
             
-            try {
-                // Try graceful shutdown first
-                process.destroy()
-                
-                // Wait for process to terminate
-                Thread.sleep(1000)
-                
-                // Force kill if still running
-                if (process.isAlive) {
-                    logger.warn { "NullClaw didn't stop gracefully, forcing..." }
-                    process.destroyForcibly()
-                }
-            } catch (e: Exception) {
-                logger.error(e) { "Error stopping NullClaw" }
+            if (process != null) {
+                logger.info { "Stopping NullClaw agent..." }
+                cleanupProcess(process)
             }
+            
+            // Cancel output reader coroutine
+            outputReaderJob?.cancel()
+            outputReaderJob = null
         }
         
-        isRunning.set(false)
         logger.info { "NullClaw agent stopped" }
+    }
+    
+    /**
+     * Cleanup process resources properly
+     */
+    private fun cleanupProcess(process: Process) {
+        try {
+            // Try graceful shutdown first
+            process.destroy()
+            
+            // Wait for process to terminate with timeout
+            if (!process.waitFor(GRACEFUL_SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+                // Force kill if still running
+                logger.warn { "NullClaw didn't stop gracefully, forcing..." }
+                process.destroyForcibly()
+                process.waitFor(FORCE_SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            }
+            
+            // Close all streams
+            try {
+                process.inputStream?.close()
+                process.errorStream?.close()
+                process.outputStream?.close()
+            } catch (e: Exception) {
+                logger.debug { "Error closing process streams: ${e.message}" }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Error during process cleanup" }
+        }
+    }
+    
+    /**
+     * Cleanup all resources - call when destroying
+     */
+    fun cleanup() {
+        stop()
+        bridgeScope.cancel()
+        stateLock.withLock {
+            isSetup.set(false)
+            configPath.set(null)
+        }
     }
     
     /**
@@ -193,7 +292,9 @@ class NullClawBridge(private val context: Context) {
         val process = processRef.get() ?: return false
         val alive = process.isAlive
         if (!alive && isRunning.get()) {
-            isRunning.set(false)
+            stateLock.withLock {
+                isRunning.set(false)
+            }
             logger.warn { "NullClaw process died unexpectedly" }
         }
         return alive
@@ -403,29 +504,33 @@ class NullClawBridge(private val context: Context) {
     }
     
     /**
-     * Start a thread to read process output for debugging.
+     * Start a coroutine to read process output for debugging.
+     * Properly managed with structured concurrency.
      */
-    private fun startOutputReader(process: Process) {
-        Thread {
+    private fun startOutputReaderCoroutine(process: Process) {
+        outputReaderJob?.cancel()
+        outputReaderJob = bridgeScope.launch {
             try {
                 val reader = BufferedReader(InputStreamReader(process.inputStream))
                 var line: String?
                 while (reader.readLine().also { line = it } != null) {
                     logger.debug { "[NullClaw] $line" }
                 }
+            } catch (e: CancellationException) {
+                logger.debug { "Output reader cancelled" }
             } catch (e: Exception) {
                 if (isRunning.get()) {
                     logger.error(e) { "Error reading NullClaw output" }
                 }
             }
-        }.apply {
-            name = "NullClaw-OutputReader"
-            isDaemon = true
-            start()
         }
     }
     
     companion object {
-        private const val STARTUP_DELAY_MS = 2000L
+        private const val STARTUP_TIMEOUT_MS = 10_000L
+        private const val STARTUP_CHECK_INTERVAL_MS = 500L
+        private const val MIN_STARTUP_DELAY_MS = 2_000L
+        private const val GRACEFUL_SHUTDOWN_TIMEOUT_MS = 1_000L
+        private const val FORCE_SHUTDOWN_TIMEOUT_MS = 500L
     }
 }

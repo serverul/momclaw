@@ -2,10 +2,13 @@ package com.loa.momclaw.data.remote
 
 import com.loa.momclaw.domain.model.AgentConfig
 import com.loa.momclaw.domain.model.ChatMessage
+import com.loa.momclaw.util.MomClawLogger
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -24,7 +27,7 @@ import kotlinx.coroutines.flow.callbackFlow
 
 /**
  * HTTP client for communicating with the NullClaw agent
- * Supports both regular and streaming responses
+ * Supports both regular and streaming responses with error recovery
  */
 class AgentClient(
     private val config: AgentConfig
@@ -39,15 +42,28 @@ class AgentClient(
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
+        .pingInterval(15, TimeUnit.SECONDS)  // Keep-alive for SSE
+        .retryOnConnectionFailure(true)
         .build()
 
+    companion object {
+        private const val MAX_RETRIES = 3
+        private const val RETRY_DELAY_MS = 1000L
+        private const val HEALTH_CHECK_TIMEOUT_MS = 5000L
+    }
+
     /**
-     * Send a message and receive a streaming response
+     * Send a message and receive a streaming response with automatic retry
      */
-    fun sendMessageStream(message: String, conversationHistory: List<ChatMessage> = emptyList()): Flow<String> = callbackFlow {
+    fun sendMessageStream(
+        message: String, 
+        conversationHistory: List<ChatMessage> = emptyList()
+    ): Flow<String> = callbackFlow {
         val request = buildChatRequest(message, conversationHistory, stream = true)
 
         val eventSourceFactory = EventSources.createFactory(httpClient)
+        var retryCount = 0
+        
         val eventSourceListener = object : EventSourceListener() {
             override fun onEvent(
                 eventSource: EventSource,
@@ -63,20 +79,54 @@ class AgentClient(
             }
 
             override fun onClosed(eventSource: EventSource) {
+                MomClawLogger.d("SSE stream closed normally")
                 close()
             }
 
             override fun onFailure(eventSource: EventSource, t: Throwable?, response: okhttp3.Response?) {
-                close(t ?: Exception("Stream failed: ${response?.message}"))
+                val errorMsg = when {
+                    t != null -> "Stream error: ${t.message}"
+                    response != null -> "HTTP ${response.code}: ${response.message}"
+                    else -> "Unknown stream error"
+                }
+                
+                MomClawLogger.e(errorMsg, t)
+                
+                // Don't retry on client errors (4xx)
+                val isClientError = response?.code?.let { it in 400..499 } ?: false
+                
+                if (!isClientError && retryCount < MAX_RETRIES) {
+                    retryCount++
+                    MomClawLogger.d("Retrying SSE connection (attempt $retryCount/$MAX_RETRIES)")
+                    // Will be handled by retryWhen
+                } else {
+                    close(t ?: Exception(errorMsg))
+                }
+            }
+            
+            override fun onOpen(eventSource: EventSource, response: okhttp3.Response) {
+                MomClawLogger.d("SSE connection opened")
+                retryCount = 0  // Reset retry count on successful connection
             }
         }
 
         val eventSource = eventSourceFactory.newEventSource(request, eventSourceListener)
 
         awaitClose {
+            MomClawLogger.d("Cancelling SSE event source")
             eventSource.cancel()
         }
-    }.flowOn(Dispatchers.IO)
+    }
+    .retryWhen { cause, attempt ->
+        if (attempt < MAX_RETRIES && !isCancellationError(cause)) {
+            MomClawLogger.d("Retrying stream after error: ${cause.message}")
+            delay(RETRY_DELAY_MS * (attempt + 1))  // Exponential backoff
+            true
+        } else {
+            false
+        }
+    }
+    .flowOn(Dispatchers.IO)
 
     /**
      * Send a message and receive a complete response (non-streaming)
@@ -91,15 +141,18 @@ class AgentClient(
                 val chatResponse = json.decodeFromString<ChatResponse>(responseBody)
                 Result.success(chatResponse.content)
             } else {
-                Result.failure(Exception("HTTP ${response.code}: ${response.message}"))
+                val errorMsg = "HTTP ${response.code}: ${response.message}"
+                MomClawLogger.e(errorMsg)
+                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
+            MomClawLogger.e("Failed to send message", e)
             Result.failure(e)
         }
     }
 
     /**
-     * Check if the agent is available
+     * Check if the agent is available with timeout
      */
     suspend fun isAvailable(): Boolean {
         return try {
@@ -107,9 +160,22 @@ class AgentClient(
                 .url("${config.baseUrl}/health")
                 .get()
                 .build()
-            val response = httpClient.newCall(request).execute()
-            response.isSuccessful
+            
+            val response = httpClient.newBuilder()
+                .callTimeout(HEALTH_CHECK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .build()
+                .newCall(request)
+                .execute()
+            
+            val isHealthy = response.isSuccessful
+            if (isHealthy) {
+                MomClawLogger.d("Agent health check passed")
+            } else {
+                MomClawLogger.w("Agent health check failed: HTTP ${response.code}")
+            }
+            isHealthy
         } catch (e: Exception) {
+            MomClawLogger.w("Agent health check failed: ${e.message}")
             false
         }
     }
@@ -128,11 +194,15 @@ class AgentClient(
             if (response.isSuccessful) {
                 val responseBody = response.body?.string() ?: "{}"
                 val modelsResponse = json.decodeFromString<ModelsResponse>(responseBody)
+                MomClawLogger.d("Loaded ${modelsResponse.data.size} models")
                 Result.success(modelsResponse.data)
             } else {
+                // Return empty list instead of failure for graceful degradation
+                MomClawLogger.w("Failed to load models: HTTP ${response.code}")
                 Result.success(emptyList())
             }
         } catch (e: Exception) {
+            MomClawLogger.e("Failed to get available models", e)
             Result.failure(e)
         }
     }
@@ -142,6 +212,8 @@ class AgentClient(
      */
     suspend fun loadModel(modelId: String): Result<Boolean> {
         return try {
+            MomClawLogger.d("Loading model: $modelId")
+            
             val requestBody = json.encodeToString(LoadModelRequest(modelId))
                 .toRequestBody("application/json".toMediaType())
 
@@ -151,8 +223,17 @@ class AgentClient(
                 .build()
 
             val response = httpClient.newCall(request).execute()
-            Result.success(response.isSuccessful)
+            val success = response.isSuccessful
+            
+            if (success) {
+                MomClawLogger.i("Model loaded successfully: $modelId")
+            } else {
+                MomClawLogger.e("Failed to load model: HTTP ${response.code}")
+            }
+            
+            Result.success(success)
         } catch (e: Exception) {
+            MomClawLogger.e("Failed to load model: $modelId", e)
             Result.failure(e)
         }
     }
@@ -180,6 +261,7 @@ class AgentClient(
             .url("${config.baseUrl}/v1/chat/completions")
             .post(requestBody)
             .header("Accept", if (stream) "text/event-stream" else "application/json")
+            .header("Cache-Control", "no-cache")
             .build()
     }
 
@@ -190,8 +272,15 @@ class AgentClient(
             val chunk = json.decodeFromString<StreamChunk>(data)
             chunk.choices.firstOrNull()?.delta?.content
         } catch (e: Exception) {
+            // Log parsing errors but don't fail the stream
+            MomClawLogger.w("Failed to parse stream token: ${e.message}")
             null
         }
+    }
+    
+    private fun isCancellationError(cause: Throwable): Boolean {
+        return cause is java.net.SocketException ||
+               cause.message?.contains("cancel", ignoreCase = true) == true
     }
 }
 

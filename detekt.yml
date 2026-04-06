@@ -355,7 +355,7 @@ naming:
     ignoreOverridden: true
   InvalidPackageDeclaration:
     active: true
-    rootPackage: 'com.loa.momclaw'
+    rootPackage: 'com.loa.MOMCLAW'
     requireRootInDeclaration: true
   LambdaParameterNaming:
     active: false

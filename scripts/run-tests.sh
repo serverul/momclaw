@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# MomClaw Test Runner Script
+# MOMCLAW Test Runner Script
 # Runs all test suites
 
 set -e
@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}═══════════════════════════════════════${NC}"
-echo -e "${BLUE}MomClaw Test Suite${NC}"
+echo -e "${BLUE}MOMCLAW Test Suite${NC}"
 echo -e "${BLUE}═══════════════════════════════════════${NC}"
 echo
 
@@ -45,7 +45,7 @@ run_test() {
 
 # Check if in correct directory
 if [ ! -f "android/gradlew" ]; then
-    echo -e "${RED}Error: Run this script from momclaw root directory${NC}"
+    echo -e "${RED}Error: Run this script from MOMCLAW root directory${NC}"
     exit 1
 fi
 

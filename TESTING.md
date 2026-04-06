@@ -1,6 +1,6 @@
-# MomClAW Testing Guide
+# MOMCLAW Testing Guide
 
-Complete testing strategy for MomClAW integration, validation, and verification.
+Complete testing strategy for MOMCLAW integration, validation, and verification.
 
 ---
 
@@ -18,7 +18,7 @@ Complete testing strategy for MomClAW integration, validation, and verification.
 
 ## 🎯 Testing Strategy
 
-MomClAW uses a **multi-layer testing approach**:
+MOMCLAW uses a **multi-layer testing approach**:
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -49,7 +49,7 @@ MomClAW uses a **multi-layer testing approach**:
 
 ```bash
 # From project root
-cd /home/userul/.openclaw/workspace/momclaw
+cd /home/userul/.openclaw/workspace/MOMCLAW
 
 # Run all automated tests
 ./scripts/run-tests.sh
@@ -65,7 +65,7 @@ cd /home/userul/.openclaw/workspace/momclaw
 ./android/gradlew testDebugUnitTest
 
 # Specific test class
-./android/gradlew test --tests "com.loa.momclaw.ui.chat.ChatViewModelTest"
+./android/gradlew test --tests "com.loa.MOMCLAW.ui.chat.ChatViewModelTest"
 
 # With detailed output
 ./android/gradlew testDebugUnitTest --info
@@ -79,7 +79,7 @@ cd /home/userul/.openclaw/workspace/momclaw
 
 # Specific integration test
 ./android/gradlew connectedAndroidTest \
-  --tests "com.loa.momclaw.integration.ServiceLifecycleIntegrationTest"
+  --tests "com.loa.MOMCLAW.integration.ServiceLifecycleIntegrationTest"
 ```
 
 ### Static Analysis
@@ -128,7 +128,7 @@ cd /home/userul/.openclaw/workspace/momclaw
 
 **Test: Clean Uninstall**
 
-- [ ] Uninstall app: `adb uninstall com.loa.momclaw`
+- [ ] Uninstall app: `adb uninstall com.loa.MOMCLAW`
 - [ ] Verify all data removed
 - [ ] Reinstall and verify fresh state
 
@@ -171,7 +171,7 @@ cd /home/userul/.openclaw/workspace/momclaw
 - [ ] Start app and services
 - [ ] Open multiple other apps
 - [ ] Use `adb shell am kill-all` to simulate memory pressure
-- [ ] Return to MomClAW
+- [ ] Return to MOMCLAW
 - [ ] Services restart if killed
 - [ ] No data loss
 
@@ -400,7 +400,7 @@ cd /home/userul/.openclaw/workspace/momclaw
 **Test: Memory Usage**
 
 - [ ] Launch app
-- [ ] Use `adb shell dumpsys meminfo com.loa.momclaw`
+- [ ] Use `adb shell dumpsys meminfo com.loa.MOMCLAW`
 - [ ] Initial memory: <500MB
 - [ ] After 10 messages: <800MB
 - [   No memory leaks detected
@@ -574,7 +574,7 @@ fun testCompleteDataFlow() = runTest {
 #!/bin/bash
 # comprehensive-test.sh
 
-echo "=== MomClAW Comprehensive Test Suite ==="
+echo "=== MOMCLAW Comprehensive Test Suite ==="
 
 # Unit tests
 echo "1. Running unit tests..."

@@ -24,7 +24,7 @@ Un agent AI care rulează nativ pe telefonul Android — zero cloud, zero API ke
 │ UI (Kotlin + Compose)              │ AGENT│
 │ • Chat interface                   │      │
 │ • Model management                 │ Null │
-│ • Settings & config                │ Claw │
+│ • Settings & config                │ MOMCLAW │
 │ • Prompt Lab                       │ (Zig)│
 ├────────────────────────────────────┼──────┤
 │ System Access                      │      │
@@ -32,7 +32,7 @@ Un agent AI care rulează nativ pe telefonul Android — zero cloud, zero API ke
 │ • Camera • Location • Storage      │      │
 ├────────────────────────────────────┼──────┤
 │ llama.cpp                          │ Null │
-│ • GGUF inference                   │ Claw │
+│ • GGUF inference                   │ MOMCLAW │
 │ • Gemma 4E4B optimized             │ HTTP │
 │ • NNCPU + GPU delegate             │ API  │
 ├────────────────────────────────────┼──────┤
@@ -89,7 +89,7 @@ Icon-ul din status bar arată când agentul e activ și procesează ceva.
 ## 🗂️ Structura GitHub Repo
 
 ```
-momclaw/
+MOMCLAW/
 ├── android/           # App Kotlin + Compose
 │   ├── app/
 │   ├── core/          # llama.cpp JNI wrapper
@@ -111,7 +111,7 @@ momclaw/
 │   └── ISSUE_TEMPLATES/
 ├── README.md
 ├── LICENSE (Apache 2.0)
-└── momclaw-logo.png
+└── MOMCLAW-logo.png
 ```
 
 ## 🚀 Plan de Dezvoltare
@@ -166,7 +166,7 @@ o
 | Memory            | SQLite                       |
 | Build System      | Gradle + CMake + Zig build   |
 | CI/CD             | GitHub Actions               |
-| Package Name      | `com.loa.momclaw`        |
+| Package Name      | `com.loa.MOMCLAW`        |
 
 ## 💡 Decizii Tehnice
 
@@ -191,7 +191,7 @@ o
 
 ## 📋 Primii Pași
 
-1. **Create GitHub repo** → `serverul/momclaw`
+1. **Create GitHub repo** → `serverul/MOMCLAW`
 2. **Setup basic structure** → README + LICENSE + .gitignore
 3. **llama.cpp submodule** + Android CMake config
 4. **NullClaw fork** + `llamacpp.zig` provider

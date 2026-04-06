@@ -1,6 +1,6 @@
-# MomClaw Quick Start Guide
+# MOMCLAW Quick Start Guide
 
-Get MomClaw up and running in 5 minutes.
+Get MOMCLAW up and running in 5 minutes.
 
 ---
 
@@ -27,8 +27,8 @@ If any are missing, see [DOCUMENTATION.md](DOCUMENTATION.md#prerequisites).
 
 ```bash
 # Clone
-git clone https://github.com/serverul/momclaw.git
-cd momclaw
+git clone https://github.com/serverul/MOMCLAW.git
+cd MOMCLAW
 
 # Make scripts executable
 chmod +x scripts/*.sh android/gradlew
@@ -55,12 +55,12 @@ adb install android/app/build/outputs/apk/debug/app-debug.apk
 
 # Push to device
 adb push models/gemma-3-E4B-it.litertlm \
-    /sdcard/Android/data/com.loa.momclaw/files/models/
+    /sdcard/Android/data/com.loa.MOMCLAW/files/models/
 ```
 
 ### 4. Run!
 
-1. Open MomClaw on your device
+1. Open MOMCLAW on your device
 2. Grant necessary permissions
 3. Start chatting!
 
@@ -68,7 +68,7 @@ adb push models/gemma-3-E4B-it.litertlm \
 
 ## Using Android Studio
 
-1. **File → Open** → Select `momclaw/android`
+1. **File → Open** → Select `MOMCLAW/android`
 2. Wait for Gradle sync
 3. Select device/emulator
 4. Click **Run** (▶️)
@@ -116,7 +116,7 @@ export ANDROID_HOME=/path/to/android/sdk
 - Try manual download from [HuggingFace](https://huggingface.co/google/gemma-3-e4b-it)
 
 ### App crashes on launch
-- Check logcat: `adb logcat | grep -i momclaw`
+- Check logcat: `adb logcat | grep -i MOMCLAW`
 - Verify model is in correct location
 - Ensure device has 4GB+ RAM
 
@@ -127,8 +127,8 @@ export ANDROID_HOME=/path/to/android/sdk
 - Read [DOCUMENTATION.md](DOCUMENTATION.md) for full docs
 - See [DEVELOPMENT.md](DEVELOPMENT.md) for development guide
 - Check [DEPLOYMENT.md](DEPLOYMENT.md) for store deployment
-- Join [Discussions](https://github.com/serverul/momclaw/discussions) for help
+- Join [Discussions](https://github.com/serverul/MOMCLAW/discussions) for help
 
 ---
 
-**Questions?** Open an [Issue](https://github.com/serverul/momclaw/issues) or start a [Discussion](https://github.com/serverul/momclaw/discussions).
+**Questions?** Open an [Issue](https://github.com/serverul/MOMCLAW/issues) or start a [Discussion](https://github.com/serverul/MOMCLAW/discussions).

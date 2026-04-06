@@ -1,8 +1,8 @@
-# MomClaw Documentation & Build Configuration - Final Report
+# MOMCLAW Documentation & Build Configuration - Final Report
 
 ## Summary
 
-The MomClaw project has been analyzed and updated for deployment readiness. Key fixes applied:
+The MOMCLAW project has been analyzed and updated for deployment readiness. Key fixes applied:
 
 ### ✅ Issues Fixed:
 1. **compileSdk/minSdk mismatch**: Agent module now uses compileSdk=35, minSdk=28 (consistent with app/bridge)

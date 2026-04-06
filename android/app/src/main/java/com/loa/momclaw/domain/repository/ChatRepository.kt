@@ -7,25 +7,41 @@ import com.loa.momclaw.data.remote.AgentClient
 import com.loa.momclaw.domain.model.AgentConfig
 import com.loa.momclaw.domain.model.ChatMessage
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * Repository for managing chat data and agent communication
+ * 
+ * Performance optimized:
+ * - Batch database updates during streaming (not per-token)
+ * - Atomic state management with ReentrantLock
+ * - Proper resource cleanup
  */
 class ChatRepository(
     private val messageDao: MessageDao,
     private val agentClient: AgentClient,
     private val settingsPreferences: SettingsPreferences
 ) {
-    // Current conversation ID
+    // Current conversation ID with thread-safe access
     private var currentConversationId: String = UUID.randomUUID().toString()
+    private val conversationLock = ReentrantLock()
+    
+    // Streaming optimization: batch update settings
+    companion object {
+        private const val BATCH_UPDATE_INTERVAL_MS = 500L  // Update DB every 500ms max
+        private const val BATCH_UPDATE_TOKEN_COUNT = 10    // Or every 10 tokens
+    }
 
     /**
      * Get all messages for the current conversation
      */
     fun getMessages(): Flow<List<ChatMessage>> {
-        return messageDao.getMessagesForConversation(currentConversationId)
+        val convId = conversationLock.withLock { currentConversationId }
+        return messageDao.getMessagesForConversation(convId)
             .map { entities -> entities.map { it.toDomainModel() } }
     }
 
@@ -47,6 +63,8 @@ class ChatRepository(
      * Send a message to the agent and save to database
      */
     suspend fun sendMessage(content: String): Result<ChatMessage> {
+        val convId = conversationLock.withLock { currentConversationId }
+        
         // Create user message
         val userMessage = ChatMessage(
             content = content,
@@ -55,7 +73,7 @@ class ChatRepository(
         
         // Save user message
         messageDao.insertMessage(
-            MessageEntity.fromDomainModel(userMessage, currentConversationId)
+            MessageEntity.fromDomainModel(userMessage, convId)
         )
 
         // Get conversation history for context
@@ -73,7 +91,7 @@ class ChatRepository(
             
             // Save assistant message
             messageDao.insertMessage(
-                MessageEntity.fromDomainModel(assistantMessage, currentConversationId)
+                MessageEntity.fromDomainModel(assistantMessage, convId)
             )
             
             assistantMessage
@@ -82,76 +100,100 @@ class ChatRepository(
 
     /**
      * Send a message with streaming response
-     * Improved error handling: emits StreamState.Error on failures
+     * 
+     * PERFORMANCE FIX: Database is updated only at:
+     * 1. Start of stream (placeholder message)
+     * 2. Every batch interval OR token count (whichever comes first)
+     * 3. End of stream (final message)
+     * 
+     * NOT on every single token anymore.
      */
-    fun sendMessageStream(content: String): Flow<StreamState> {
-        return kotlinx.coroutines.flow.flow {
-            var assistantMessage: ChatMessage? = null
-            
-            try {
-                // Create and save user message
-                val userMessage = ChatMessage(
-                    content = content,
-                    isUser = true
-                )
-                messageDao.insertMessage(
-                    MessageEntity.fromDomainModel(userMessage, currentConversationId)
-                )
-                emit(StreamState.UserMessageSaved(userMessage))
+    fun sendMessageStream(content: String): Flow<StreamState> = flow {
+        var assistantMessage: ChatMessage? = null
+        var messageId: String? = null
+        var tokenCount = 0
+        var lastUpdateTime = 0L
+        val streamingContent = StringBuilder()
+        
+        val convId = conversationLock.withLock { currentConversationId }
+        
+        try {
+            // Create and save user message
+            val userMessage = ChatMessage(
+                content = content,
+                isUser = true
+            )
+            messageDao.insertMessage(
+                MessageEntity.fromDomainModel(userMessage, convId)
+            )
+            emit(StreamState.UserMessageSaved(userMessage))
 
-                // Create placeholder assistant message
-                assistantMessage = ChatMessage(
-                    content = "",
-                    isUser = false,
-                    isStreaming = true,
-                    isComplete = false
-                )
-                messageDao.insertMessage(
-                    MessageEntity.fromDomainModel(assistantMessage, currentConversationId)
-                )
-                emit(StreamState.StreamingStarted(assistantMessage))
+            // Create placeholder assistant message
+            assistantMessage = ChatMessage(
+                content = "",
+                isUser = false,
+                isStreaming = true,
+                isComplete = false
+            )
+            val entity = MessageEntity.fromDomainModel(assistantMessage, convId)
+            messageDao.insertMessage(entity)
+            messageId = entity.id
+            emit(StreamState.StreamingStarted(assistantMessage))
 
-                // Get conversation history
-                val history = getMessageHistory()
+            // Get conversation history
+            val history = getMessageHistory()
 
-                // Stream tokens
-                val streamingMessage = StringBuilder()
-                agentClient.sendMessageStream(content, history).collect { token ->
-                    streamingMessage.append(token)
-                    val updatedMessage = assistantMessage.copy(
-                        content = streamingMessage.toString()
-                    )
+            // Stream tokens with batched DB updates
+            agentClient.sendMessageStream(content, history).collect { token ->
+                streamingContent.append(token)
+                tokenCount++
+                
+                val updatedMessage = assistantMessage.copy(
+                    content = streamingContent.toString()
+                )
+                
+                // Emit token to UI immediately (no DB wait)
+                emit(StreamState.TokenReceived(updatedMessage, token))
+                
+                // Batch DB update - only on interval OR token count threshold
+                val now = System.currentTimeMillis()
+                val shouldUpdateDb = (now - lastUpdateTime >= BATCH_UPDATE_INTERVAL_MS) ||
+                                     (tokenCount % BATCH_UPDATE_TOKEN_COUNT == 0)
+                
+                if (shouldUpdateDb) {
                     messageDao.updateMessage(
-                        MessageEntity.fromDomainModel(updatedMessage, currentConversationId)
+                        MessageEntity.fromDomainModel(updatedMessage, convId).copy(id = messageId)
                     )
-                    emit(StreamState.TokenReceived(updatedMessage, token))
+                    lastUpdateTime = now
                 }
+            }
 
-                // Mark complete
-                val finalMessage = assistantMessage.copy(
-                    content = streamingMessage.toString(),
+            // Final update - mark complete
+            val finalMessage = assistantMessage.copy(
+                content = streamingContent.toString(),
+                isStreaming = false,
+                isComplete = true
+            )
+            messageDao.updateMessage(
+                MessageEntity.fromDomainModel(finalMessage, convId).copy(id = messageId)
+            )
+            emit(StreamState.StreamingComplete(finalMessage))
+            
+        } catch (e: Exception) {
+            // Handle error - update message if exists
+            assistantMessage?.let { msg ->
+                val errorMessage = msg.copy(
+                    content = streamingContent.toString().ifEmpty { "Error: ${e.message}" },
                     isStreaming = false,
                     isComplete = true
                 )
-                messageDao.updateMessage(
-                    MessageEntity.fromDomainModel(finalMessage, currentConversationId)
-                )
-                emit(StreamState.StreamingComplete(finalMessage))
-                
-            } catch (e: Exception) {
-                // Handle error - update message if exists
-                assistantMessage?.let { msg ->
-                    val errorMessage = msg.copy(
-                        content = "Error: ${e.message}",
-                        isStreaming = false,
-                        isComplete = true
-                    )
+                messageId?.let { id ->
                     messageDao.updateMessage(
-                        MessageEntity.fromDomainModel(errorMessage, currentConversationId)
+                        MessageEntity.fromDomainModel(errorMessage, convId).copy(id = id)
                     )
                 }
-                emit(StreamState.Error(e))
             }
+            emit(StreamState.Error(e))
         }
     }
 
@@ -159,7 +201,8 @@ class ChatRepository(
      * Get message history for context
      */
     private suspend fun getMessageHistory(): List<ChatMessage> {
-        return messageDao.getMessagesPaginated(currentConversationId, limit = 20, offset = 0)
+        val convId = conversationLock.withLock { currentConversationId }
+        return messageDao.getMessagesPaginated(convId, limit = 20, offset = 0)
             .map { it.toDomainModel() }
     }
 
@@ -167,24 +210,29 @@ class ChatRepository(
      * Clear current conversation
      */
     suspend fun clearConversation() {
-        messageDao.deleteConversation(currentConversationId)
+        val convId = conversationLock.withLock { currentConversationId }
+        messageDao.deleteConversation(convId)
     }
 
     /**
      * Start a new conversation
      */
     suspend fun startNewConversation(): String {
-        currentConversationId = UUID.randomUUID().toString()
-        settingsPreferences.setLastConversationId(currentConversationId)
-        return currentConversationId
+        return conversationLock.withLock {
+            currentConversationId = UUID.randomUUID().toString()
+            settingsPreferences.setLastConversationId(currentConversationId)
+            currentConversationId
+        }
     }
 
     /**
      * Switch to an existing conversation
      */
     suspend fun switchToConversation(conversationId: String) {
-        currentConversationId = conversationId
-        settingsPreferences.setLastConversationId(conversationId)
+        conversationLock.withLock {
+            currentConversationId = conversationId
+            settingsPreferences.setLastConversationId(conversationId)
+        }
     }
 
     /**
@@ -192,8 +240,10 @@ class ChatRepository(
      */
     suspend fun deleteConversation(conversationId: String) {
         messageDao.deleteConversation(conversationId)
-        if (conversationId == currentConversationId) {
-            currentConversationId = UUID.randomUUID().toString()
+        conversationLock.withLock {
+            if (conversationId == currentConversationId) {
+                currentConversationId = UUID.randomUUID().toString()
+            }
         }
     }
 
@@ -202,7 +252,9 @@ class ChatRepository(
      */
     suspend fun clearAllMessages() {
         messageDao.deleteAllMessages()
-        currentConversationId = UUID.randomUUID().toString()
+        conversationLock.withLock {
+            currentConversationId = UUID.randomUUID().toString()
+        }
     }
 
     /**
@@ -225,7 +277,7 @@ class ChatRepository(
     /**
      * Get current conversation ID
      */
-    fun getCurrentConversationId(): String = currentConversationId
+    fun getCurrentConversationId(): String = conversationLock.withLock { currentConversationId }
 }
 
 /**

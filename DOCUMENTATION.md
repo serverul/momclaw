@@ -1,4 +1,4 @@
-# MomClaw Documentation
+# MOMCLAW Documentation
 
 **Mobile Offline Model Agent — AI Agent 100% offline pe Android**
 
@@ -23,9 +23,9 @@
 
 ## Prezentare Generală
 
-### Ce este MomClaw?
+### Ce este MOMCLAW?
 
-MomClaw este un agent AI complet autonom care rulează pe Android — zero cloud, zero tracking, 100% offline.
+MOMCLAW este un agent AI complet autonom care rulează pe Android — zero cloud, zero tracking, 100% offline.
 
 ### Caracteristici Principale
 
@@ -79,7 +79,7 @@ MomClaw este un agent AI complet autonom care rulează pe Android — zero cloud
 ### Module Architecture
 
 ```
-momclaw/
+MOMCLAW/
 ├── app/                    # Main application
 │   ├── ui/                 # Compose UI screens
 │   ├── data/               # Data layer (Room, DataStore)
@@ -141,8 +141,8 @@ UI Update
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/serverul/momclaw.git
-cd momclaw
+git clone https://github.com/serverul/MOMCLAW.git
+cd MOMCLAW
 
 # 2. Setup Gradle wrapper (Unix/Linux/macOS)
 chmod +x android/gradlew
@@ -160,7 +160,7 @@ chmod +x android/gradlew
 ### Android Studio Setup
 
 1. Deschide Android Studio
-2. **File → Open** → Selectează folderul `momclaw/android`
+2. **File → Open** → Selectează folderul `MOMCLAW/android`
 3. Așteaptă Gradle sync (prima dată durează 5-10 min)
 4. Selectează un device/emulator (API 28+)
 5. Apasă **Run** (▶️) sau `Shift+F10`
@@ -173,7 +173,7 @@ chmod +x android/gradlew
 
 # Copiază pe device
 adb push models/gemma-3-E4B-it.litertlm \
-    /sdcard/Android/data/com.loa.momclaw/files/models/
+    /sdcard/Android/data/com.loa.MOMCLAW/files/models/
 ```
 
 ---
@@ -193,10 +193,10 @@ adb push models/gemma-3-E4B-it.litertlm \
 
 ```bash
 keytool -genkey -v \
-    -keystore momclaw-release-key.jks \
+    -keystore MOMCLAW-release-key.jks \
     -keyalg RSA -keysize 2048 \
     -validity 10000 \
-    -alias momclaw
+    -alias MOMCLAW
 ```
 
 **Important:**
@@ -211,8 +211,8 @@ Creează `android/key.properties`:
 ```properties
 storePassword=YOUR_STORE_PASSWORD
 keyPassword=YOUR_KEY_PASSWORD
-keyAlias=momclaw
-storeFile=../momclaw-release-key.jks
+keyAlias=MOMCLAW
+storeFile=../MOMCLAW-release-key.jks
 ```
 
 **⚠️ NU commite acest fișier!** Adaugă în `.gitignore`:
@@ -262,10 +262,10 @@ jarsigner -verify -verbose -certs \
 
 #### F-Droid
 
-MomClaw poate fi publicat pe F-Droid:
+MOMCLAW poate fi publicat pe F-Droid:
 
 1. Asigură-te că toate dependențele sunt FOSS
-2. Creează `metadata/com.loa.momclaw.yml`
+2. Creează `metadata/com.loa.MOMCLAW.yml`
 3. Submit merge request la fdroiddata
 
 ---
@@ -485,7 +485,7 @@ sdkmanager "ndk;25.2.9519653"
 
 2. **Model loaded:**
    ```bash
-   adb shell "ls -la /sdcard/Android/data/com.loa.momclaw/files/models/"
+   adb shell "ls -la /sdcard/Android/data/com.loa.MOMCLAW/files/models/"
    ```
 
 3. **Permissions în manifest:**
@@ -526,13 +526,13 @@ sdkmanager "ndk;25.2.9519653"
 
 1. **Verifică procesele:**
    ```bash
-   adb shell ps -A | grep momclaw
+   adb shell ps -A | grep MOMCLAW
    adb shell netstat -tulpn | grep 9090
    ```
 
 2. **Verifică log-urile:**
    ```bash
-   adb logcat -s MomClaw:* NullClaw:* LiteRT:*
+   adb logcat -s MOMCLAW:* NullClaw:* LiteRT:*
    ```
 
 3. **Restart agent:**
@@ -560,7 +560,7 @@ sdkmanager "ndk;25.2.9519653"
 
 3. **Service running:**
    ```bash
-   adb shell dumpsys activity services com.loa.momclaw
+   adb shell dumpsys activity services com.loa.MOMCLAW
    ```
 
 ### Performance Issues
@@ -825,9 +825,9 @@ git push origin v1.0.0
 
 ### Contact
 
-- **GitHub Issues:** [momclaw/issues](https://github.com/serverul/momclaw/issues)
-- **Discussions:** [momclaw/discussions](https://github.com/serverul/momclaw/discussions)
-- **Email:** support@momclaw.app
+- **GitHub Issues:** [MOMCLAW/issues](https://github.com/serverul/MOMCLAW/issues)
+- **Discussions:** [MOMCLAW/discussions](https://github.com/serverul/MOMCLAW/discussions)
+- **Email:** support@MOMCLAW.app
 
 ### Contribuții
 

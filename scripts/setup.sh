@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# setup.sh — Setup development environment for MomClaw
+# setup.sh — Setup development environment for MOMCLAW
 # Usage: ./setup.sh [--check] [--install]
 #
 # Checks prerequisites and optionally installs missing dependencies
@@ -55,7 +55,7 @@ if [ "$CHECK_ONLY" = false ] && [ "$INSTALL_MISSING" = false ]; then
     CHECK_ONLY=true
 fi
 
-echo -e "${BLUE}=== MomClaw Development Setup ===${NC}"
+echo -e "${BLUE}=== MOMCLAW Development Setup ===${NC}"
 echo ""
 
 # Track missing dependencies
@@ -198,7 +198,7 @@ echo ""
 if [ ${#MISSING[@]} -eq 0 ]; then
     echo -e "${GREEN}✅ All prerequisites met!${NC}"
     echo ""
-    echo "You're ready to build MomClaw!"
+    echo "You're ready to build MOMCLAW!"
     echo ""
     echo -e "${BLUE}Next steps:${NC}"
     echo "  1. Open project in Android Studio:"

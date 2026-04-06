@@ -1,4 +1,4 @@
-# MomClaw Screenshots
+# MOMCLAW Screenshots
 
 This directory contains screenshots for store listings and documentation.
 
@@ -73,7 +73,7 @@ Until real screenshots are available, create placeholder images:
 # Create placeholder images (requires ImageMagick)
 convert -size 1080x1920 xc:gray \
   -gravity center -pointsize 72 -fill white \
-  -annotate 0 "MomClaw\nChat Screen" \
+  -annotate 0 "MOMCLAW\nChat Screen" \
   phoneScreenshots/1_chat.png
 ```
 

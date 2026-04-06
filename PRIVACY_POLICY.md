@@ -1,4 +1,4 @@
-# MomClaw Privacy Policy
+# MOMCLAW Privacy Policy
 
 **Last Updated: April 6, 2026**
 
@@ -6,7 +6,7 @@
 
 ## Summary
 
-**MomClaw is designed from the ground up for privacy.** All AI processing happens locally on your device. Your data never leaves your phone unless you explicitly choose to enable external features.
+**MOMCLAW is designed from the ground up for privacy.** All AI processing happens locally on your device. Your data never leaves your phone unless you explicitly choose to enable external features.
 
 ---
 
@@ -14,7 +14,7 @@
 
 ### What We DO NOT Collect
 
-MomClaw does **NOT** collect, transmit, or store:
+MOMCLAW does **NOT** collect, transmit, or store:
 
 - ❌ Personal information
 - ❌ Chat messages or conversations
@@ -41,7 +41,7 @@ All of the following remain **100% on your device**:
 
 ### Local-First Architecture
 
-MomClaw uses **LiteRT-LM** for on-device AI inference:
+MOMCLAW uses **LiteRT-LM** for on-device AI inference:
 
 - AI model (Gemma 3 E4B-it) runs entirely on your device
 - No cloud API calls for core features
@@ -50,7 +50,7 @@ MomClaw uses **LiteRT-LM** for on-device AI inference:
 
 ### Model Data
 
-- **Model Location:** `/sdcard/Android/data/com.loa.momclaw/files/models/`
+- **Model Location:** `/sdcard/Android/data/com.loa.MOMCLAW/files/models/`
 - **Model Size:** ~2.5GB (downloaded once)
 - **Network:** No internet required for inference
 
@@ -58,20 +58,20 @@ MomClaw uses **LiteRT-LM** for on-device AI inference:
 
 ## 3. Network Features (Optional)
 
-MomClaw includes optional features that require network access:
+MOMCLAW includes optional features that require network access:
 
 ### Telegram Integration
 
 - **When Enabled:** Only if you configure Telegram bot token
 - **Data Sent:** Messages you send through Telegram to the bot
-- **Purpose:** Receive responses from your MomClaw instance
+- **Purpose:** Receive responses from your MOMCLAW instance
 - **Controlled By:** You (disabled by default)
 
 ### Discord Integration
 
 - **When Enabled:** Only if you configure Discord bot token
 - **Data Sent:** Messages you send through Discord to the bot
-- **Purpose:** Receive responses from your MomClaw instance
+- **Purpose:** Receive responses from your MOMCLAW instance
 - **Controlled By:** You (disabled by default)
 
 ### OpenClaw Sync
@@ -87,7 +87,7 @@ MomClaw includes optional features that require network access:
 
 ## 4. Permissions
 
-MomClaw requests the following Android permissions:
+MOMCLAW requests the following Android permissions:
 
 | Permission | Purpose | Required |
 |-----------|---------|----------|
@@ -104,9 +104,9 @@ MomClaw requests the following Android permissions:
 ### Local Database
 
 - **Technology:** Room Database (SQLite)
-- **Location:** `/data/data/com.loa.momclaw/databases/`
+- **Location:** `/data/data/com.loa.MOMCLAW/databases/`
 - **Encrypted:** No (stored in app-private storage)
-- **Accessible:** Only by MomClaw app
+- **Accessible:** Only by MOMCLAW app
 
 ### Data Retention
 
@@ -119,7 +119,7 @@ MomClaw requests the following Android permissions:
 You can delete your data at any time:
 
 1. **Delete Conversations:** In app → Settings → Clear Chat History
-2. **Delete All Data:** Android Settings → Apps → MomClaw → Clear Data
+2. **Delete All Data:** Android Settings → Apps → MOMCLAW → Clear Data
 3. **Uninstall:** Removes all app data automatically
 
 ---
@@ -136,7 +136,7 @@ You can delete your data at any time:
 
 ### Open Source Libraries
 
-MomClaw uses open-source libraries. See `LICENSE` and `NOTICE` files for details.
+MOMCLAW uses open-source libraries. See `LICENSE` and `NOTICE` files for details.
 
 ---
 
@@ -150,7 +150,7 @@ MomClaw uses open-source libraries. See `LICENSE` and `NOTICE` files for details
 
 ### Recommendations
 
-- Download MomClaw only from official sources
+- Download MOMCLAW only from official sources
 - Keep the app updated
 - Review permissions periodically
 - Use a secure screen lock
@@ -159,7 +159,7 @@ MomClaw uses open-source libraries. See `LICENSE` and `NOTICE` files for details
 
 ## 8. Children's Privacy
 
-MomClaw does not knowingly collect any data from anyone, including children under 13. Since we don't collect any data at all, our service is suitable for all ages.
+MOMCLAW does not knowingly collect any data from anyone, including children under 13. Since we don't collect any data at all, our service is suitable for all ages.
 
 ---
 
@@ -167,7 +167,7 @@ MomClaw does not knowingly collect any data from anyone, including children unde
 
 We may update this privacy policy from time to time. Changes will be:
 
-- Posted on GitHub: https://github.com/serverul/momclaw/blob/main/PRIVACY_POLICY.md
+- Posted on GitHub: https://github.com/serverul/MOMCLAW/blob/main/PRIVACY_POLICY.md
 - Announced in release notes
 - Dated at the top of this document
 
@@ -177,24 +177,24 @@ We may update this privacy policy from time to time. Changes will be:
 
 ### Questions or Concerns?
 
-- **GitHub Issues:** https://github.com/serverul/momclaw/issues
-- **GitHub Discussions:** https://github.com/serverul/momclaw/discussions
+- **GitHub Issues:** https://github.com/serverul/MOMCLAW/issues
+- **GitHub Discussions:** https://github.com/serverul/MOMCLAW/discussions
 - **Email:** privacy@example.com (TODO)
 
 ### Source Code
 
 The complete source code is available at:
-https://github.com/serverul/momclaw
+https://github.com/serverul/MOMCLAW
 
 ---
 
 ## 11. Open Source License
 
-MomClaw is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
+MOMCLAW is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
 
 ---
 
-**Your privacy is our priority.** MomClaw is built to keep your AI conversations private and on your device.
+**Your privacy is our priority.** MOMCLAW is built to keep your AI conversations private and on your device.
 
 ---
 

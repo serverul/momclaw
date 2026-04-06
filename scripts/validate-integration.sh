@@ -16,7 +16,7 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 echo -e "${CYAN}════════════════════════════════════════════════${NC}"
-echo -e "${CYAN}MomClAW Quick Integration Validation${NC}"
+echo -e "${CYAN}MOMCLAW Quick Integration Validation${NC}"
 echo -e "${CYAN}════════════════════════════════════════════════${NC}"
 echo
 
@@ -51,66 +51,66 @@ validate_content() {
 }
 
 echo -e "${YELLOW}▶ Validating Project Structure${NC}"
-validate_file "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" "StartupManager exists"
-validate_file "android/app/src/main/java/com/loa/momclaw/startup/StartupCoordinator.kt" "StartupCoordinator exists"
-validate_file "android/app/src/main/java/com/loa/momclaw/inference/InferenceService.kt" "InferenceService exists"
-validate_file "android/app/src/main/java/com/loa/momclaw/agent/AgentService.kt" "AgentService exists"
-validate_file "android/bridge/src/main/java/com/loa/momclaw/bridge/LiteRTBridge.kt" "LiteRTBridge exists"
-validate_file "android/agent/src/main/java/com/loa/momclaw/agent/NullClawBridge.kt" "NullClawBridge exists"
+validate_file "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" "StartupManager exists"
+validate_file "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupCoordinator.kt" "StartupCoordinator exists"
+validate_file "android/app/src/main/java/com/loa/MOMCLAW/inference/InferenceService.kt" "InferenceService exists"
+validate_file "android/app/src/main/java/com/loa/MOMCLAW/agent/AgentService.kt" "AgentService exists"
+validate_file "android/bridge/src/main/java/com/loa/MOMCLAW/bridge/LiteRTBridge.kt" "LiteRTBridge exists"
+validate_file "android/agent/src/main/java/com/loa/MOMCLAW/agent/NullClawBridge.kt" "NullClawBridge exists"
 
 echo
 echo -e "${YELLOW}▶ Validating Startup Sequence${NC}"
-validate_content "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" "InferenceService" "StartupManager references InferenceService"
-validate_content "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" "AgentService" "StartupManager references AgentService"
-validate_content "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" "waitForInferenceReady" "Inference readiness check implemented"
-validate_content "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" "waitForAgentReady" "Agent readiness check implemented"
-validate_content "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" "startForegroundService" "Services started as foreground"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" "InferenceService" "StartupManager references InferenceService"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" "AgentService" "StartupManager references AgentService"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" "waitForInferenceReady" "Inference readiness check implemented"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" "waitForAgentReady" "Agent readiness check implemented"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" "startForegroundService" "Services started as foreground"
 
 echo
 echo -e "${YELLOW}▶ Validating HTTP Communication${NC}"
-validate_content "android/bridge/src/main/java/com/loa/momclaw/bridge/LiteRTBridge.kt" "/health" "Health endpoint implemented"
-validate_content "android/bridge/src/main/java/com/loa/momclaw/bridge/LiteRTBridge.kt" "/v1/models" "Models endpoint implemented"
-validate_content "android/bridge/src/main/java/com/loa/momclaw/bridge/LiteRTBridge.kt" "/v1/chat/completions" "Chat completions endpoint implemented"
-validate_content "android/bridge/src/main/java/com/loa/momclaw/bridge/LiteRTBridge.kt" "EventStream\|respondTextWriter" "SSE streaming support"
-validate_content "android/app/src/main/java/com/loa/momclaw/data/remote/AgentClient.kt" "OkHttpClient" "HTTP client implemented"
+validate_content "android/bridge/src/main/java/com/loa/MOMCLAW/bridge/LiteRTBridge.kt" "/health" "Health endpoint implemented"
+validate_content "android/bridge/src/main/java/com/loa/MOMCLAW/bridge/LiteRTBridge.kt" "/v1/models" "Models endpoint implemented"
+validate_content "android/bridge/src/main/java/com/loa/MOMCLAW/bridge/LiteRTBridge.kt" "/v1/chat/completions" "Chat completions endpoint implemented"
+validate_content "android/bridge/src/main/java/com/loa/MOMCLAW/bridge/LiteRTBridge.kt" "EventStream\|respondTextWriter" "SSE streaming support"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/data/remote/AgentClient.kt" "OkHttpClient" "HTTP client implemented"
 
 echo
 echo -e "${YELLOW}▶ Validating Error Handling${NC}"
-validate_content "android/app/src/main/java/com/loa/momclaw/agent/AgentService.kt" "calculateBackoffDelay" "Exponential backoff implemented"
-validate_content "android/app/src/main/java/com/loa/momclaw/agent/AgentService.kt" "maxRestarts" "Max restart limit defined"
-validate_content "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" "try {" "Error handling present"
-validate_content "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" "catch (e: Exception)" "Exception handling present"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/agent/AgentService.kt" "calculateBackoffDelay" "Exponential backoff implemented"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/agent/AgentService.kt" "maxRestarts" "Max restart limit defined"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" "try {" "Error handling present"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" "catch (e: Exception)" "Exception handling present"
 
 echo
 echo -e "${YELLOW}▶ Validating Persistence${NC}"
-validate_file "android/app/src/main/java/com/loa/momclaw/data/local/database/MOMCLAWDatabase.kt" "Room database exists"
-validate_file "android/app/src/main/java/com/loa/momclaw/data/local/database/MessageDao.kt" "Message DAO exists"
-validate_content "android/app/src/main/java/com/loa/momclaw/data/local/database/MessageDao.kt" "@Dao" "DAO annotation present"
-validate_content "android/app/src/main/java/com/loa/momclaw/data/local/database/MessageDao.kt" "@Insert" "Insert operation defined"
-validate_content "android/app/src/main/java/com/loa/momclaw/data/local/database/MessageDao.kt" "@Query" "Query operations defined"
+validate_file "android/app/src/main/java/com/loa/MOMCLAW/data/local/database/MOMCLAWDatabase.kt" "Room database exists"
+validate_file "android/app/src/main/java/com/loa/MOMCLAW/data/local/database/MessageDao.kt" "Message DAO exists"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/data/local/database/MessageDao.kt" "@Dao" "DAO annotation present"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/data/local/database/MessageDao.kt" "@Insert" "Insert operation defined"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/data/local/database/MessageDao.kt" "@Query" "Query operations defined"
 
 echo
 echo -e "${YELLOW}▶ Validating Dependency Injection${NC}"
-validate_file "android/app/src/main/java/com/loa/momclaw/MOMCLAWApplication.kt" "Application class exists"
-validate_content "android/app/src/main/java/com/loa/momclaw/MOMCLAWApplication.kt" "@HiltAndroidApp" "Hilt application annotation"
-validate_content "android/app/src/main/java/com/loa/momclaw/MOMCLAWApplication.kt" "@Module" "Hilt module defined"
-validate_content "android/app/src/main/java/com/loa/momclaw/MOMCLAWApplication.kt" "@Provides" "Provider methods defined"
-validate_content "android/app/src/main/java/com/loa/momclaw/ui/chat/ChatViewModel.kt" "@HiltViewModel" "ViewModel uses Hilt"
+validate_file "android/app/src/main/java/com/loa/MOMCLAW/MOMCLAWApplication.kt" "Application class exists"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/MOMCLAWApplication.kt" "@HiltAndroidApp" "Hilt application annotation"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/MOMCLAWApplication.kt" "@Module" "Hilt module defined"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/MOMCLAWApplication.kt" "@Provides" "Provider methods defined"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/ui/chat/ChatViewModel.kt" "@HiltViewModel" "ViewModel uses Hilt"
 
 echo
 echo -e "${YELLOW}▶ Validating Test Coverage${NC}"
-validate_file "android/app/src/test/java/com/loa/momclaw/startup/StartupManagerTest.kt" "StartupManager test exists"
-validate_file "android/app/src/test/java/com/loa/momclaw/integration/ServiceLifecycleIntegrationTest.kt" "Service lifecycle test exists"
-validate_file "android/app/src/test/java/com/loa/momclaw/integration/OfflineFunctionalityTest.kt" "Offline functionality test exists"
-validate_file "android/bridge/src/test/kotlin/com/loa/momclaw/bridge/LiteRTBridgeTest.kt" "LiteRT bridge test exists"
-validate_file "android/agent/src/test/java/com/loa/momclaw/agent/NullClawBridgeTest.kt" "NullClaw bridge test exists"
+validate_file "android/app/src/test/java/com/loa/MOMCLAW/startup/StartupManagerTest.kt" "StartupManager test exists"
+validate_file "android/app/src/test/java/com/loa/MOMCLAW/integration/ServiceLifecycleIntegrationTest.kt" "Service lifecycle test exists"
+validate_file "android/app/src/test/java/com/loa/MOMCLAW/integration/OfflineFunctionalityTest.kt" "Offline functionality test exists"
+validate_file "android/bridge/src/test/kotlin/com/loa/MOMCLAW/bridge/LiteRTBridgeTest.kt" "LiteRT bridge test exists"
+validate_file "android/agent/src/test/java/com/loa/MOMCLAW/agent/NullClawBridgeTest.kt" "NullClaw bridge test exists"
 
 echo
 echo -e "${YELLOW}▶ Validating Streaming${NC}"
-validate_content "android/app/src/main/java/com/loa/momclaw/data/remote/AgentClient.kt" "EventSourceListener" "SSE streaming client"
-validate_content "android/app/src/main/java/com/loa/momclaw/domain/repository/ChatRepository.kt" "sendMessageStream" "Streaming repository method"
-validate_content "android/app/src/main/java/com/loa/momclaw/domain/repository/ChatRepository.kt" "StreamState" "Stream state sealed class"
-validate_content "android/app/src/main/java/com/loa/momclaw/ui/chat/ChatViewModel.kt" "StateFlow" "StateFlow for reactive UI"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/data/remote/AgentClient.kt" "EventSourceListener" "SSE streaming client"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/domain/repository/ChatRepository.kt" "sendMessageStream" "Streaming repository method"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/domain/repository/ChatRepository.kt" "StreamState" "Stream state sealed class"
+validate_content "android/app/src/main/java/com/loa/MOMCLAW/ui/chat/ChatViewModel.kt" "StateFlow" "StateFlow for reactive UI"
 
 echo
 echo -e "${CYAN}════════════════════════════════════════════════${NC}"

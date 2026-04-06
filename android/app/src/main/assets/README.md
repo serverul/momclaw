@@ -1,6 +1,6 @@
 # Android Assets
 
-This directory should contain the NullClaw binary for the MomClaw agent.
+This directory should contain the NullClaw binary for the MOMCLAW agent.
 
 ## Required Files
 

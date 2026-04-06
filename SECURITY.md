@@ -1,6 +1,6 @@
 # Security Policy
 
-**MomClaw** - Privacy-first offline AI agent
+**MOMCLAW** - Privacy-first offline AI agent
 
 ---
 
@@ -28,7 +28,7 @@ Instead, please:
 1. **Email:** security@example.com (TODO: Set up security email)
    
 2. **GitHub Security Advisory (Preferred):**
-   - Go to https://github.com/serverul/momclaw/security/advisories
+   - Go to https://github.com/serverul/MOMCLAW/security/advisories
    - Click "Report a vulnerability"
    - Fill in the details
 
@@ -143,7 +143,7 @@ Instead, please:
 
 ## Security Features
 
-MomClaw includes several security features:
+MOMCLAW includes several security features:
 
 ### Privacy-First Design
 
@@ -196,8 +196,8 @@ If you'd like to conduct a security audit, please contact us.
 ## Contact
 
 - **Security Issues:** security@example.com (TODO)
-- **General Issues:** https://github.com/serverul/momclaw/issues
-- **GitHub Security:** https://github.com/serverul/momclaw/security
+- **General Issues:** https://github.com/serverul/MOMCLAW/issues
+- **GitHub Security:** https://github.com/serverul/MOMCLAW/security
 
 ---
 

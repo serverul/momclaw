@@ -1,6 +1,6 @@
-# MomClaw Build Scripts
+# MOMCLAW Build Scripts
 
-Aceste scripturi automatizează build-ul, testarea și deployment-ul pentru MomClaw.
+Aceste scripturi automatizează build-ul, testarea și deployment-ul pentru MOMCLAW.
 
 ## 📁 Structura
 
@@ -41,15 +41,15 @@ scripts/
 # Build release APK + AAB
 ./scripts/ci-build.sh build:release 1.0.0
 # Output:
-#   - momclaw-1.0.0.apk
-#   - momclaw-1.0.0.aab
+#   - MOMCLAW-1.0.0.apk
+#   - MOMCLAW-1.0.0.aab
 #   - checksums .sha256
 
 # Build F-Droid APK (unsigned + GPG signed)
 ./scripts/ci-build.sh build:fdroid 1.0.0
 # Output:
-#   - momclaw-1.0.0-fdroid.apk
-#   - momclaw-1.0.0-fdroid.apk.asc
+#   - MOMCLAW-1.0.0-fdroid.apk
+#   - MOMCLAW-1.0.0-fdroid.apk.asc
 ```
 
 ### Test
@@ -158,7 +158,7 @@ scripts/
 
 3. **Test manual pe device**:
    ```bash
-   adb install momclaw-1.0.0.apk
+   adb install MOMCLAW-1.0.0.apk
    # Test features...
    ```
 
@@ -190,7 +190,7 @@ scripts/
 
 2. **Verifică signature**:
    ```bash
-   gpg --verify momclaw-1.0.0-fdroid.apk.asc
+   gpg --verify MOMCLAW-1.0.0-fdroid.apk.asc
    ```
 
 3. **Submit la F-Droid**:
@@ -216,8 +216,8 @@ scripts/
    ```properties
    storePassword=YOUR_PASSWORD
    keyPassword=YOUR_PASSWORD
-   keyAlias=momclaw
-   storeFile=../momclaw-release-key.jks
+   keyAlias=MOMCLAW
+   storeFile=../MOMCLAW-release-key.jks
    ```
 
 3. **Backup keystore-ul securizat!**
@@ -278,5 +278,5 @@ gpg --import your-key.asc
 
 Pentru probleme sau întrebări:
 1. Consultă documentația de mai sus
-2. Verifică [Issues](https://github.com/serverul/momclaw/issues)
-3. Întreabă pe [Discussions](https://github.com/serverul/momclaw/discussions)
+2. Verifică [Issues](https://github.com/serverul/MOMCLAW/issues)
+3. Întreabă pe [Discussions](https://github.com/serverul/MOMCLAW/discussions)

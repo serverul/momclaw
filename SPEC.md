@@ -3,8 +3,8 @@
 > **Versiune:** 1.0.0-mvp  
 > **Creat:** 2026-04-05  
 > **Status:** Implementation Ready  
-> **Package:** `com.loa.momclaw`  
-> **Repo:** https://github.com/serverul/momclaw
+> **Package:** `com.loa.MOMCLAW`  
+> **Repo:** https://github.com/serverul/MOMCLAW
 
 ---
 
@@ -22,7 +22,7 @@
 
 ## 🎯 Obiectiv
 
-**MomClaw** = Agent AI 100% offline pe Android
+**MOMCLAW** = Agent AI 100% offline pe Android
 
 **Ce face:**
 - Agent AI complet (NullClaw) cu tools + memory
@@ -224,7 +224,7 @@ class LiteRTBridge(private val context: Context) {
       "model": {
         "primary": "litert-bridge/gemma-4e4b"
       },
-      "system_prompt": "You are MomClaw, a helpful AI assistant running offline on this device."
+      "system_prompt": "You are MOMCLAW, a helpful AI assistant running offline on this device."
     }
   },
   "models": {
@@ -237,7 +237,7 @@ class LiteRTBridge(private val context: Context) {
   },
   "memory": {
     "backend": "sqlite",
-    "path": "/data/data/com.loa.momclaw/databases/agent.db"
+    "path": "/data/data/com.loa.MOMCLAW/databases/agent.db"
   },
   "tools": {
     "enabled": ["shell", "file_read", "file_write"]
@@ -274,7 +274,7 @@ class LiteRTBridge(private val context: Context) {
 ## 📂 Structura Proiect
 
 ```
-momclaw/
+MOMCLAW/
 ├── android/
 │   ├── app/                              # Main Android app
 │   │   ├── src/main/
@@ -381,8 +381,8 @@ momclaw/
 
 ```bash
 # Clone repo (already exists)
-git clone https://github.com/serverul/momclaw.git
-cd momclaw
+git clone https://github.com/serverul/MOMCLAW.git
+cd MOMCLAW
 
 # Add submodules
 git submodule add https://github.com/nullclaw/nullclaw.git native/nullclaw
@@ -413,7 +413,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MomClaw"
+rootProject.name = "MOMCLAW"
 include(":app")
 include(":bridge")
 include(":agent")
@@ -464,7 +464,7 @@ plugins {
 }
 
 android {
-    namespace = "com.loa.momclaw.bridge"
+    namespace = "com.loa.MOMCLAW.bridge"
     compileSdk = 34
     
     defaultConfig {
@@ -503,7 +503,7 @@ dependencies {
 **android/bridge/src/main/java/com/loa/momclaw/bridge/LiteRTBridge.kt:**
 
 ```kotlin
-package com.loa.momclaw.bridge
+package com.loa.MOMCLAW.bridge
 
 import android.content.Context
 import com.google.ai.edge.litert.LlmEngine
@@ -627,7 +627,7 @@ class LiteRTBridge(private val context: Context) {
 **android/agent/src/main/java/com/loa/momclaw/agent/NullClawBridge.kt:**
 
 ```kotlin
-package com.loa.momclaw.agent
+package com.loa.MOMCLAW.agent
 
 import android.content.Context
 import java.io.File
@@ -710,7 +710,7 @@ class NullClawBridge(private val context: Context) {
 }
 
 data class AgentConfig(
-    val systemPrompt: String = "You are MomClaw, a helpful AI assistant running offline.",
+    val systemPrompt: String = "You are MOMCLAW, a helpful AI assistant running offline.",
     val temperature: Float = 0.7f,
     val maxTokens: Int = 2048
 ) {
@@ -732,7 +732,7 @@ data class AgentConfig(
       },
       "memory": {
         "backend": "sqlite",
-        "path": "/data/data/com.loa.momclaw/databases/agent.db"
+        "path": "/data/data/com.loa.MOMCLAW/databases/agent.db"
       },
       "tools": {
         "enabled": ["shell", "file_read", "file_write"]
@@ -759,11 +759,11 @@ plugins {
 }
 
 android {
-    namespace = "com.loa.momclaw"
+    namespace = "com.loa.MOMCLAW"
     compileSdk = 34
     
     defaultConfig {
-        applicationId = "com.loa.momclaw"
+        applicationId = "com.loa.MOMCLAW"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -837,14 +837,14 @@ dependencies {
 **android/app/src/main/java/com/loa/momclaw/ui/chat/ChatViewModel.kt:**
 
 ```kotlin
-package com.loa.momclaw.ui.chat
+package com.loa.MOMCLAW.ui.chat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.loa.momclaw.data.remote.AgentClient
-import com.loa.momclaw.data.remote.MessageDto
-import com.loa.momclaw.domain.model.Message
-import com.loa.momclaw.domain.repository.ChatRepository
+import com.loa.MOMCLAW.data.remote.AgentClient
+import com.loa.MOMCLAW.data.remote.MessageDto
+import com.loa.MOMCLAW.domain.model.Message
+import com.loa.MOMCLAW.domain.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -965,7 +965,7 @@ class ChatViewModel @Inject constructor(
 **android/app/src/main/java/com/loa/momclaw/ui/chat/ChatScreen.kt:**
 
 ```kotlin
-package com.loa.momclaw.ui.chat
+package com.loa.MOMCLAW.ui.chat
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -1172,7 +1172,7 @@ echo "URL: $MODEL_URL"
 wget -c "$MODEL_URL" -O "$MODEL_NAME"
 
 echo "Download complete: $MODEL_NAME"
-echo "Copy to device: adb push $MODEL_NAME /sdcard/momclaw/models/"
+echo "Copy to device: adb push $MODEL_NAME /sdcard/MOMCLAW/models/"
 ```
 
 #### Step 5.2: Models Screen (UI pentru download)
@@ -1180,7 +1180,7 @@ echo "Copy to device: adb push $MODEL_NAME /sdcard/momclaw/models/"
 **android/app/src/main/java/com/loa/momclaw/ui/models/ModelsScreen.kt:**
 
 ```kotlin
-package com.loa.momclaw.ui.models
+package com.loa.MOMCLAW.ui.models
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -1287,11 +1287,11 @@ fun ModelCard(
 **android/app/src/main/java/com/loa/momclaw/MomClawApp.kt:**
 
 ```kotlin
-package com.loa.momclaw
+package com.loa.MOMCLAW
 
 import android.app.Application
-import com.loa.momclaw.agent.NullClawBridge
-import com.loa.momclaw.bridge.LiteRTBridge
+import com.loa.MOMCLAW.agent.NullClawBridge
+import com.loa.MOMCLAW.bridge.LiteRTBridge
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -1411,7 +1411,7 @@ class MomClawApp : Application() {
 1. **Un pas la un timp** — nu sări la următorul fără să testezi
 2. **Commit des** — pași mici, mesaje clare
 3. **Testează pe device real** — emulatorul nu e suficient
-4. **Loghează erorile** — folosește `adb logcat | grep MomClaw`
+4. **Loghează erorile** — folosește `adb logcat | grep MOMCLAW`
 5. **Întreabă când te blochezi** — nu ghici
 
 ### Dacă te blochezi
@@ -1442,7 +1442,7 @@ class MomClawApp : Application() {
 
 ---
 
-**Acesta este spec-ul FINAL pentru MomClaw v1.0.0-mvp (Hybrid Architecture).**
+**Acesta este spec-ul FINAL pentru MOMCLAW v1.0.0-mvp (Hybrid Architecture).**
 
 ---
 

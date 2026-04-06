@@ -1,4 +1,4 @@
-# MomClaw Production Checklist
+# MOMCLAW Production Checklist
 
 **Single-source checklist for production releases**
 
@@ -72,7 +72,7 @@ make validate
 
 ### Keystore
 
-- [ ] Keystore exists: `momclaw-release-key.jks`
+- [ ] Keystore exists: `MOMCLAW-release-key.jks`
 - [ ] Keystore backed up securely (offline, encrypted)
 - [ ] Keystore password accessible to team
 - [ ] `key.properties` created in `android/` directory
@@ -82,7 +82,7 @@ make validate
 - [ ] `KEYSTORE_BASE64` - Base64-encoded keystore
 - [ ] `STORE_PASSWORD` - Keystore password
 - [ ] `KEY_PASSWORD` - Key password
-- [ ] `KEY_ALIAS` - Key alias (e.g., "momclaw")
+- [ ] `KEY_ALIAS` - Key alias (e.g., "MOMCLAW")
 
 ### Optional Secrets (for Play Store)
 
@@ -189,7 +189,7 @@ make deploy-internal
 - [ ] Build signed AAB
 - [ ] AAB uploaded to Play Console
 - [ ] Store listing reviewed:
-  - [ ] Title: "MomClaw - Offline AI Agent"
+  - [ ] Title: "MOMCLAW - Offline AI Agent"
   - [ ] Short description
   - [ ] Full description
   - [ ] Screenshots (all sizes)
@@ -333,14 +333,14 @@ v1.1.0-rc.1  - Release candidate
 ### External Resources
 
 - [Google Play Console](https://play.google.com/console)
-- [GitHub Releases](https://github.com/serverul/momclaw/releases)
+- [GitHub Releases](https://github.com/serverul/MOMCLAW/releases)
 - [Fastlane Docs](https://docs.fastlane.tools)
 - [F-Droid Manual](https://f-droid.org/en/docs/)
 
 ### Support
 
-- **Issues**: [GitHub Issues](https://github.com/serverul/momclaw/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/serverul/momclaw/discussions)
+- **Issues**: [GitHub Issues](https://github.com/serverul/MOMCLAW/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/serverul/MOMCLAW/discussions)
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest a new feature for MomClaw
+about: Suggest a new feature for MOMCLAW
 title: '[FEATURE] '
 labels: 'enhancement, needs-triage'
 assignees: ''
@@ -41,7 +41,7 @@ Add any other context or screenshots about the feature request here.
 ## 🎭 Priority
 
 How important is this feature to you?
-- [ ] Critical - I can't use MomClaw without this
+- [ ] Critical - I can't use MOMCLAW without this
 - [ ] High - Would significantly improve my experience
 - [ ] Medium - Nice to have
 - [ ] Low - Minor enhancement

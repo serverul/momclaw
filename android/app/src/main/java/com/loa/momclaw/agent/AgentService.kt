@@ -14,14 +14,13 @@ import androidx.lifecycle.lifecycleScope
 import com.loa.momclaw.MainActivity
 import com.loa.momclaw.R
 import com.loa.momclaw.domain.model.AgentConfig
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import mu.KotlinLogging
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.math.min
 import kotlin.math.pow
 
@@ -32,6 +31,12 @@ private val logger = KotlinLogging.logger {}
  * 
  * Starts when: user opens app, agent is enabled in settings.
  * Stops when: user stops it, app is killed, or agent crashes.
+ * 
+ * IMPROVEMENTS:
+ * - Atomic state transitions with ReentrantLock
+ * - Proper resource cleanup for coroutines
+ * - Process startup timeouts
+ * - Structured concurrency
  * 
  * Responsibilities:
  * - Extract and setup NullClaw binary from assets
@@ -53,13 +58,25 @@ class AgentService : LifecycleService() {
         const val KEY_TEMPERATURE = "temperature"
         const val KEY_MAX_TOKENS = "max_tokens"
         
-        private val _state = MutableStateFlow(AgentState.Idle)
+        // Timeout constants
+        private const val STARTUP_TIMEOUT_MS = 15_000L
+        private const val SHUTDOWN_TIMEOUT_MS = 5_000L
+        private const val HEALTH_CHECK_INTERVAL_MS = 5_000L
+        
+        private val stateLock = ReentrantLock()
+        private val _state = MutableStateFlow<AgentState>(AgentState.Idle)
         val state: StateFlow<AgentState> = _state.asStateFlow()
+        
+        fun getStateSnapshot(): AgentState = stateLock.withLock { _state.value }
     }
     
     private var bridge: NullClawBridge? = null
     private var restartCount = 0
     private val maxRestarts = 3
+    
+    // Managed coroutine scopes
+    private var healthMonitorJob: Job? = null
+    private var serviceScope: CoroutineScope? = null
     
     // Exponential backoff configuration
     private val initialDelayMs = 1000L
@@ -71,9 +88,48 @@ class AgentService : LifecycleService() {
         return min(delay.toLong(), maxDelayMs)
     }
     
+    /**
+     * Atomic state transition helper
+     */
+    private fun transitionState(newState: AgentState) {
+        stateLock.withLock {
+            val oldState = _state.value
+            logger.debug { "AgentService state transition: $oldState -> $newState" }
+            _state.value = newState
+        }
+    }
+    
+    /**
+     * Atomic state transition with validation
+     */
+    private fun transitionStateIf(expected: AgentState, newState: AgentState): Boolean {
+        return stateLock.withLock {
+            if (_state.value == expected) {
+                logger.debug { "AgentService state transition: $expected -> $newState" }
+                _state.value = newState
+                true
+            } else {
+                logger.warn { "State transition rejected: expected $expected, got ${_state.value}" }
+                false
+            }
+        }
+    }
+    
     override fun onBind(intent: Intent?): IBinder? {
         super.onBind(intent)
         return null
+    }
+    
+    override fun onCreate() {
+        super.onCreate()
+        serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        logger.info { "AgentService created" }
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        cleanup()
+        logger.info { "AgentService destroyed" }
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -99,14 +155,25 @@ class AgentService : LifecycleService() {
     }
     
     private fun startAgent(systemPrompt: String?, temperature: Float?, maxTokens: Int?) {
-        lifecycleScope.launch {
+        serviceScope?.launch {
+            // Already running check
+            if (_state.value is AgentState.Running) {
+                logger.warn { "Agent already running" }
+                return@launch
+            }
+            
+            // Atomic transition
+            if (!transitionStateIf(AgentState.Idle, AgentState.SettingUp) &&
+                !(_state.value is AgentState.Error)) {
+                logger.error { "Cannot start agent from state: ${_state.value}" }
+                return@launch
+            }
+            
             try {
-                _state.value = AgentState.SettingUp
-                
                 bridge = NullClawBridge(this@AgentService)
                 
                 val config = AgentConfig(
-                    systemPrompt = systemPrompt ?: "You are MomClaw, a helpful AI assistant running offline on this device.",
+                    systemPrompt = systemPrompt ?: "You are MOMCLAW, a helpful AI assistant running offline on this device.",
                     temperature = temperature ?: 0.7f,
                     maxTokens = maxTokens ?: 2048,
                     modelPrimary = "litert-bridge/gemma-4e4b",
@@ -116,37 +183,59 @@ class AgentService : LifecycleService() {
                 )
                 
                 updateNotification("Extracting binary...")
-                val setupResult = withContext(Dispatchers.Default) {
+                
+                // Setup with timeout
+                val setupResult = withTimeoutOrNull(STARTUP_TIMEOUT_MS) {
                     bridge?.setup(config)
                 }
                 
-                if (setupResult?.isFailure == true) {
-                    _state.value = AgentState.Error("Setup failed: ${setupResult.exceptionOrNull()?.message}")
+                if (setupResult == null) {
+                    transitionState(AgentState.Error("Setup timeout after ${STARTUP_TIMEOUT_MS/1000}s"))
+                    updateNotification("Setup timeout")
+                    return@launch
+                }
+                
+                if (setupResult.isFailure) {
+                    transitionState(AgentState.Error("Setup failed: ${setupResult.exceptionOrNull()?.message}"))
                     updateNotification("Setup failed")
                     return@launch
                 }
                 
-                _state.value = AgentState.Starting
-                
+                transitionState(AgentState.Starting)
                 updateNotification("Starting agent process...")
-                val startResult = withContext(Dispatchers.Default) {
+                
+                // Start with timeout
+                val startResult = withTimeoutOrNull(STARTUP_TIMEOUT_MS) {
                     bridge?.start()
                 }
                 
-                if (startResult?.isSuccess == true) {
-                    _state.value = AgentState.Running
+                if (startResult == null) {
+                    transitionState(AgentState.Error("Start timeout after ${STARTUP_TIMEOUT_MS/1000}s"))
+                    updateNotification("Start timeout")
+                    cleanupOnError()
+                    return@launch
+                }
+                
+                if (startResult.isSuccess) {
+                    transitionState(AgentState.Running)
                     updateNotification("Agent running (PID: ${bridge?.getPid()})")
                     logger.info { "AgentService: NullClaw started successfully" }
                     restartCount = 0
                     startHealthMonitor()
                 } else {
-                    _state.value = AgentState.Error("Start failed: ${startResult?.exceptionOrNull()?.message}")
+                    transitionState(AgentState.Error("Start failed: ${startResult.exceptionOrNull()?.message}"))
                     updateNotification("Agent failed to start")
+                    cleanupOnError()
                 }
+            } catch (e: CancellationException) {
+                logger.warn { "Agent startup cancelled" }
+                transitionState(AgentState.Error("Startup cancelled"))
+                cleanupOnError()
             } catch (e: Exception) {
-                _state.value = AgentState.Error("Failed to start agent: ${e.message}")
+                transitionState(AgentState.Error("Failed to start agent: ${e.message}"))
                 updateNotification("Error: ${e.message}")
                 logger.error(e) { "Failed to start AgentService" }
+                cleanupOnError()
             }
         }
     }
@@ -155,9 +244,10 @@ class AgentService : LifecycleService() {
      * Health monitor with exponential backoff retry
      */
     private fun startHealthMonitor() {
-        lifecycleScope.launch {
+        healthMonitorJob?.cancel()
+        healthMonitorJob = serviceScope?.launch {
             while (_state.value is AgentState.Running) {
-                delay(5000) // Check every 5 seconds
+                delay(HEALTH_CHECK_INTERVAL_MS)
                 
                 val isRunning = bridge?.isRunning() ?: false
                 if (!isRunning) {
@@ -166,27 +256,30 @@ class AgentService : LifecycleService() {
                         val delayMs = calculateBackoffDelay()
                         
                         logger.warn { "Agent died, restarting in ${delayMs}ms (${restartCount}/${maxRestarts})..." }
-                        _state.value = AgentState.Restarting(restartCount, maxRestarts)
+                        transitionState(AgentState.Restarting(restartCount, maxRestarts))
                         updateNotification("Restarting agent in ${delayMs/1000}s (${restartCount}/$maxRestarts)...")
                         
                         // Exponential backoff delay
                         delay(delayMs)
                         
-                        val startResult = withContext(Dispatchers.Default) {
+                        val startResult = withTimeoutOrNull(STARTUP_TIMEOUT_MS) {
                             bridge?.start()
                         }
                         
                         if (startResult?.isSuccess != true) {
-                            _state.value = AgentState.Error("Agent crashed after $restartCount restarts")
+                            transitionState(AgentState.Error("Agent crashed after $restartCount restarts"))
                             updateNotification("Agent crashed")
+                            cleanupOnError()
+                            break
                         } else {
                             // Reset backoff on successful restart
-                            _state.value = AgentState.Running
+                            transitionState(AgentState.Running)
                             updateNotification("Agent running (PID: ${bridge?.getPid()})")
                         }
                     } else {
-                        _state.value = AgentState.Error("Agent crashed after $maxRestarts restart attempts")
+                        transitionState(AgentState.Error("Agent crashed after $maxRestarts restart attempts"))
                         updateNotification("Agent crashed permanently")
+                        cleanupOnError()
                         break
                     }
                 }
@@ -194,18 +287,45 @@ class AgentService : LifecycleService() {
         }
     }
     
+    private fun cleanupOnError() {
+        bridge?.cleanup()
+        bridge = null
+    }
+    
     private fun stopAgent() {
-        lifecycleScope.launch {
+        serviceScope?.launch {
             try {
-                bridge?.stop()
+                healthMonitorJob?.cancel()
+                healthMonitorJob = null
+                
+                withTimeoutOrNull(SHUTDOWN_TIMEOUT_MS) {
+                    bridge?.stop()
+                }
+                
+                bridge?.cleanup()
                 bridge = null
-                _state.value = AgentState.Idle
+                restartCount = 0
+                transitionState(AgentState.Idle)
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             } catch (e: Exception) {
                 logger.error(e) { "Error stopping AgentService" }
             }
         }
+    }
+    
+    /**
+     * Full cleanup - cancel all coroutines and release resources
+     */
+    private fun cleanup() {
+        healthMonitorJob?.cancel()
+        healthMonitorJob = null
+        
+        bridge?.cleanup()
+        bridge = null
+        
+        serviceScope?.cancel()
+        serviceScope = null
     }
     
     private fun buildNotification(text: String): Notification {

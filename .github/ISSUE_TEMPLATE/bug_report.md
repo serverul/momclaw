@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug in MomClaw
+about: Report a bug in MOMCLAW
 title: '[BUG] '
 labels: 'bug, needs-triage'
 assignees: ''
@@ -27,7 +27,7 @@ A clear and concise description of what actually happened.
 
 ## 📱 Environment
 
-- **MomClaw Version:** [e.g., 1.0.0]
+- **MOMCLAW Version:** [e.g., 1.0.0]
 - **Android Version:** [e.g., 14]
 - **Device:** [e.g., Pixel 8 Pro]
 - **RAM:** [e.g., 12GB]

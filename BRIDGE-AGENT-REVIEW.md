@@ -1,4 +1,4 @@
-# MomClAW Bridge/Agent Modules Review Report
+# MOMCLAW Bridge/Agent Modules Review Report
 
 **Date:** 2026-04-06
 **Reviewer:** Clawdiu (Subagent)
@@ -8,7 +8,7 @@
 
 ## Summary
 
-Reviewed the MomClAW project bridge and agent modules for completeness and functionality. Found and fixed several issues related to:
+Reviewed the MOMCLAW project bridge and agent modules for completeness and functionality. Found and fixed several issues related to:
 1. Missing `modelPath` property in AgentConfig
 2. Duplicate AgentConfig definitions across modules
 3. SSE writer implementation improvements
@@ -248,7 +248,7 @@ All required interfaces are properly defined:
 
 ## 10. Conclusion
 
-The MomClAW bridge and agent modules are **architecturally complete and properly implemented**. The main blocking factors are external dependencies:
+The MOMCLAW bridge and agent modules are **architecturally complete and properly implemented**. The main blocking factors are external dependencies:
 
 1. **LiteRT-LM SDK** - Pending Google release
 2. **NullClaw Binary** - Requires build or download

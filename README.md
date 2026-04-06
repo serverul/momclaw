@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/icon.png" alt="MomClaw Logo" width="120" height="120">
+  <img src="assets/icon.png" alt="MOMCLAW Logo" width="120" height="120">
 </p>
 
-<h1 align="center">MomClaw 🐾</h1>
+<h1 align="center">MOMCLAW 🐾</h1>
 
 <p align="center">
   <strong>Mobile Offline Model Agent — AI Agent 100% offline pe Android</strong>
@@ -17,11 +17,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/serverul/momclaw/releases">
-    <img src="https://img.shields.io/github/v/release/serverul/momclaw?include_prereleases" alt="Release">
+  <a href="https://github.com/serverul/MOMCLAW/releases">
+    <img src="https://img.shields.io/github/v/release/serverul/MOMCLAW?include_prereleases" alt="Release">
   </a>
-  <a href="https://github.com/serverul/momclaw/actions">
-    <img src="https://github.com/serverul/momclaw/workflows/CI/badge.svg" alt="CI Status">
+  <a href="https://github.com/serverul/MOMCLAW/actions">
+    <img src="https://github.com/serverul/MOMCLAW/workflows/CI/badge.svg" alt="CI Status">
   </a>
   <a href="https://opensource.org/licenses/Apache-2.0">
     <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License">
@@ -90,8 +90,8 @@ Un agent AI complet autonom care rulează pe telefon — zero cloud, zero tracki
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/serverul/momclaw.git
-cd momclaw
+git clone https://github.com/serverul/MOMCLAW.git
+cd MOMCLAW
 
 # 2. Build debug APK
 chmod +x android/gradlew
@@ -103,12 +103,12 @@ adb install android/app/build/outputs/apk/debug/app-debug.apk
 # 4. Download model (~2.5GB)
 ./scripts/download-model.sh ./models
 adb push models/gemma-3-E4B-it.litertlm \
-    /sdcard/Android/data/com.loa.momclaw/files/models/
+    /sdcard/Android/data/com.loa.MOMCLAW/files/models/
 ```
 
 ### Android Studio
 
-1. **File → Open** → Selectează `momclaw/android`
+1. **File → Open** → Selectează `MOMCLAW/android`
 2. Așteaptă Gradle sync (5-10 min prima dată)
 3. Selectează device/emulator (API 28+)
 4. Apasă **Run** (▶️) sau `Shift+F10`
@@ -225,16 +225,16 @@ Use the main CI/CD script:
 cat > android/key.properties << EOF
 storePassword=YOUR_PASSWORD
 keyPassword=YOUR_PASSWORD
-keyAlias=momclaw
-storeFile=../momclaw-release-key.jks
+keyAlias=MOMCLAW
+storeFile=../MOMCLAW-release-key.jks
 EOF
 
 # 3. Build release
 ./scripts/ci-build.sh build:release 1.0.0
 
 # Output:
-# APK: momclaw-1.0.0.apk
-# AAB: momclaw-1.0.0.aab
+# APK: MOMCLAW-1.0.0.apk
+# AAB: MOMCLAW-1.0.0.aab
 ```
 
 ### Deployment Platforms
@@ -301,9 +301,9 @@ Acest proiect este licențiat sub Apache License 2.0 - vezi [LICENSE](LICENSE) p
 
 ## 📞 Contact & Support
 
-- **GitHub Issues:** [momclaw/issues](https://github.com/serverul/momclaw/issues)
-- **Discussions:** [momclaw/discussions](https://github.com/serverul/momclaw/discussions)
-- **Email:** support@momclaw.app
+- **GitHub Issues:** [MOMCLAW/issues](https://github.com/serverul/MOMCLAW/issues)
+- **Discussions:** [MOMCLAW/discussions](https://github.com/serverul/MOMCLAW/discussions)
+- **Email:** support@MOMCLAW.app
 
 ---
 

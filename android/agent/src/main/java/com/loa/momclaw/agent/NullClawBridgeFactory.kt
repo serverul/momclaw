@@ -5,14 +5,19 @@ import com.loa.momclaw.agent.model.AgentConfig
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import mu.KotlinLogging
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 private val logger = KotlinLogging.logger {}
 
 /**
  * Singleton factory for managing NullClaw Bridge instances.
  * 
- * Ensures only one bridge instance exists at a time,
- * handles lazy initialization, and provides thread-safe access.
+ * Features:
+ * - Thread-safe singleton pattern
+ * - Proper resource cleanup on reset
+ * - Atomic state transitions
+ * - Lifecycle management
  */
 object NullClawBridgeFactory {
     
@@ -20,6 +25,10 @@ object NullClawBridgeFactory {
     private var instance: NullClawBridge? = null
     
     private val mutex = Mutex()
+    private val stateLock = ReentrantLock()
+    
+    @Volatile
+    private var isInitialized = false
     
     /**
      * Get or create the NullClaw Bridge instance.
@@ -29,6 +38,7 @@ object NullClawBridgeFactory {
         return instance ?: mutex.withLock {
             instance ?: NullClawBridge(context.applicationContext).also {
                 instance = it
+                isInitialized = true
                 logger.info { "NullClawBridge instance created" }
             }
         }
@@ -37,16 +47,20 @@ object NullClawBridgeFactory {
     /**
      * Get existing instance or null if not created.
      */
-    fun getInstanceOrNull(): NullClawBridge? = instance
+    fun getInstanceOrNull(): NullClawBridge? = stateLock.withLock { instance }
     
     /**
-     * Reset the factory (for testing).
+     * Reset the factory (for testing or cleanup).
      * Stops any running instance and clears the singleton.
      */
     suspend fun reset() {
         mutex.withLock {
-            instance?.stop()
+            instance?.let { bridge ->
+                logger.info { "Stopping NullClawBridge instance..." }
+                bridge.cleanup()  // Use full cleanup instead of just stop()
+            }
             instance = null
+            isInitialized = false
             logger.info { "NullClawBridgeFactory reset" }
         }
     }
@@ -55,7 +69,34 @@ object NullClawBridgeFactory {
      * Check if a bridge instance exists and is running.
      */
     fun isRunning(): Boolean {
-        return instance?.isRunning() ?: false
+        return stateLock.withLock {
+            instance?.isRunning() ?: false
+        }
+    }
+    
+    /**
+     * Check if factory has been initialized.
+     */
+    fun isInitialized(): Boolean = stateLock.withLock { isInitialized }
+    
+    /**
+     * Stop the current instance without clearing it.
+     */
+    fun stopInstance() {
+        stateLock.withLock {
+            instance?.stop()
+        }
+    }
+    
+    /**
+     * Perform full cleanup of the current instance.
+     */
+    fun cleanupInstance() {
+        stateLock.withLock {
+            instance?.cleanup()
+            instance = null
+            isInitialized = false
+        }
     }
 }
 

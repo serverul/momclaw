@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# MomClAW Integration Test Script
+# MOMCLAW Integration Test Script
 # Runs comprehensive integration tests and validates startup sequence
 
 set -e
@@ -18,7 +18,7 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 echo -e "${CYAN}════════════════════════════════════════════════${NC}"
-echo -e "${CYAN}MomClAW Integration & Validation Test Suite${NC}"
+echo -e "${CYAN}MOMCLAW Integration & Validation Test Suite${NC}"
 echo -e "${CYAN}════════════════════════════════════════════════${NC}"
 echo
 
@@ -104,11 +104,11 @@ check_file() {
     fi
 }
 
-check_file "android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" "StartupManager"
-check_file "android/app/src/main/java/com/loa/momclaw/inference/InferenceService.kt" "InferenceService"
-check_file "android/app/src/main/java/com/loa/momclaw/agent/AgentService.kt" "AgentService"
-check_file "android/bridge/src/main/java/com/loa/momclaw/bridge/LiteRTBridge.kt" "LiteRTBridge"
-check_file "android/agent/src/main/java/com/loa/momclaw/agent/NullClawBridge.kt" "NullClawBridge"
+check_file "android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" "StartupManager"
+check_file "android/app/src/main/java/com/loa/MOMCLAW/inference/InferenceService.kt" "InferenceService"
+check_file "android/app/src/main/java/com/loa/MOMCLAW/agent/AgentService.kt" "AgentService"
+check_file "android/bridge/src/main/java/com/loa/MOMCLAW/bridge/LiteRTBridge.kt" "LiteRTBridge"
+check_file "android/agent/src/main/java/com/loa/MOMCLAW/agent/NullClawBridge.kt" "NullClawBridge"
 
 echo
 echo -e "${BLUE}▶ Validating Test Coverage${NC}"
@@ -125,13 +125,13 @@ check_test() {
     fi
 }
 
-check_test "android/app/src/test/java/com/loa/momclaw/startup/StartupManagerTest.kt" "StartupManager"
-check_test "android/app/src/test/java/com/loa/momclaw/ui/chat/ChatViewModelTest.kt" "ChatViewModel"
-check_test "android/app/src/test/java/com/loa/momclaw/integration/ServiceLifecycleIntegrationTest.kt" "Service Lifecycle"
-check_test "android/app/src/test/java/com/loa/momclaw/integration/OfflineFunctionalityTest.kt" "Offline Functionality"
-check_test "android/app/src/test/java/com/loa/momclaw/integration/ChatFlowIntegrationTest.kt" "Chat Flow"
-check_test "android/app/src/test/java/com/loa/momclaw/integration/LiteRTBridgeIntegrationTest.kt" "LiteRT Bridge"
-check_test "android/app/src/test/java/com/loa/momclaw/integration/NullClawBridgeIntegrationTest.kt" "NullClaw Bridge"
+check_test "android/app/src/test/java/com/loa/MOMCLAW/startup/StartupManagerTest.kt" "StartupManager"
+check_test "android/app/src/test/java/com/loa/MOMCLAW/ui/chat/ChatViewModelTest.kt" "ChatViewModel"
+check_test "android/app/src/test/java/com/loa/MOMCLAW/integration/ServiceLifecycleIntegrationTest.kt" "Service Lifecycle"
+check_test "android/app/src/test/java/com/loa/MOMCLAW/integration/OfflineFunctionalityTest.kt" "Offline Functionality"
+check_test "android/app/src/test/java/com/loa/MOMCLAW/integration/ChatFlowIntegrationTest.kt" "Chat Flow"
+check_test "android/app/src/test/java/com/loa/MOMCLAW/integration/LiteRTBridgeIntegrationTest.kt" "LiteRT Bridge"
+check_test "android/app/src/test/java/com/loa/MOMCLAW/integration/NullClawBridgeIntegrationTest.kt" "NullClaw Bridge"
 
 echo
 echo -e "${BLUE}▶ Running Unit Tests${NC}"
@@ -185,30 +185,30 @@ echo -e "${BLUE}▶ Validating Architecture${NC}"
 echo
 
 # Check for proper service dependencies
-if grep -q "InferenceService" "$PROJECT_ROOT/android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" && \
-   grep -q "AgentService" "$PROJECT_ROOT/android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt"; then
+if grep -q "InferenceService" "$PROJECT_ROOT/android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" && \
+   grep -q "AgentService" "$PROJECT_ROOT/android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt"; then
     log_test "StartupManager references both services" "PASS"
 else
     log_test "StartupManager references both services" "FAIL" "Missing service references"
 fi
 
 # Check for proper error handling
-if grep -q "try {" "$PROJECT_ROOT/android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt" && \
-   grep -q "catch (e: Exception)" "$PROJECT_ROOT/android/app/src/main/java/com/loa/momclaw/startup/StartupManager.kt"; then
+if grep -q "try {" "$PROJECT_ROOT/android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt" && \
+   grep -q "catch (e: Exception)" "$PROJECT_ROOT/android/app/src/main/java/com/loa/MOMCLAW/startup/StartupManager.kt"; then
     log_test "Error handling in StartupManager" "PASS"
 else
     log_test "Error handling in StartupManager" "WARN" "Consider adding try-catch blocks"
 fi
 
 # Check for exponential backoff in AgentService
-if grep -q "calculateBackoffDelay" "$PROJECT_ROOT/android/app/src/main/java/com/loa/momclaw/agent/AgentService.kt"; then
+if grep -q "calculateBackoffDelay" "$PROJECT_ROOT/android/app/src/main/java/com/loa/MOMCLAW/agent/AgentService.kt"; then
     log_test "Exponential backoff in AgentService" "PASS"
 else
     log_test "Exponential backoff in AgentService" "FAIL" "Missing retry logic"
 fi
 
 # Check for thread safety
-if grep -q "@Synchronized\|AtomicReference\|ReentrantLock" "$PROJECT_ROOT/android/agent/src/main/java/com/loa/momclaw/agent/NullClawBridge.kt"; then
+if grep -q "@Synchronized\|AtomicReference\|ReentrantLock" "$PROJECT_ROOT/android/agent/src/main/java/com/loa/MOMCLAW/agent/NullClawBridge.kt"; then
     log_test "Thread safety in NullClawBridge" "PASS"
 else
     log_test "Thread safety in NullClawBridge" "WARN" "Consider adding thread safety"
@@ -229,14 +229,14 @@ echo -e "${BLUE}▶ Checking Offline Functionality${NC}"
 echo
 
 # Verify offline tests exist
-if grep -q "offline\|Offline" "$PROJECT_ROOT/android/app/src/test/java/com/loa/momclaw/integration/OfflineFunctionalityTest.kt"; then
+if grep -q "offline\|Offline" "$PROJECT_ROOT/android/app/src/test/java/com/loa/MOMCLAW/integration/OfflineFunctionalityTest.kt"; then
     log_test "Offline functionality tests" "PASS"
 else
     log_test "Offline functionality tests" "FAIL" "Missing offline tests"
 fi
 
 # Check for network fallback logic
-if grep -q "isAvailable\|isAgentAvailable" "$PROJECT_ROOT/android/app/src/main/java/com/loa/momclaw/domain/repository/ChatRepository.kt"; then
+if grep -q "isAvailable\|isAgentAvailable" "$PROJECT_ROOT/android/app/src/main/java/com/loa/MOMCLAW/domain/repository/ChatRepository.kt"; then
     log_test "Network availability checks" "PASS"
 else
     log_test "Network availability checks" "WARN" "Add network state checks"

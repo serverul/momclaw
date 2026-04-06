@@ -43,12 +43,12 @@ class NullClawBridgeTest {
         
         // Setup mock files directory
         whenever(mockContext.filesDir).thenReturn(mockFilesDir)
-        whenever(mockFilesDir.absolutePath).thenReturn("/tmp/test-momclaw")
+        whenever(mockFilesDir.absolutePath).thenReturn("/tmp/test-MOMCLAW")
         whenever(mockContext.applicationInfo).thenReturn(mockApplicationInfo)
         whenever(mockApplicationInfo.flags).thenReturn(ApplicationInfo.FLAG_DEBUGGABLE)
         
         // Create test directory
-        File("/tmp/test-momclaw").mkdirs()
+        File("/tmp/test-MOMCLAW").mkdirs()
         
         bridge = NullClawBridge(mockContext)
     }
@@ -57,7 +57,7 @@ class NullClawBridgeTest {
     fun tearDown() {
         closeable.close()
         bridge.stop()
-        File("/tmp/test-momclaw").deleteRecursively()
+        File("/tmp/test-MOMCLAW").deleteRecursively()
     }
 
     @Test

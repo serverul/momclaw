@@ -1,6 +1,6 @@
 # GitHub Secrets Setup Guide
 
-This guide explains how to configure GitHub Secrets for MomClaw CI/CD workflows.
+This guide explains how to configure GitHub Secrets for MOMCLAW CI/CD workflows.
 
 ---
 
@@ -16,8 +16,8 @@ Your signing keystore encoded as base64.
 
 **Generate:**
 ```bash
-# From momclaw root directory
-base64 -w 0 momclaw-release-key.jks > keystore_base64.txt
+# From MOMCLAW root directory
+base64 -w 0 MOMCLAW-release-key.jks > keystore_base64.txt
 
 # Copy the content
 cat keystore_base64.txt
@@ -54,7 +54,7 @@ The alias of your signing key.
 
 **Add to GitHub:**
 1. Name: `KEY_ALIAS`
-2. Value: `momclaw` (or your chosen alias)
+2. Value: `MOMCLAW` (or your chosen alias)
 3. Click "Add secret"
 
 ---
@@ -72,7 +72,7 @@ JSON key for Google Play Console API access.
 2. Select or create a project
 3. Navigate to IAM & Admin → Service Accounts
 4. Click "Create Service Account"
-5. Enter name: "MomClaw Play Console"
+5. Enter name: "MOMCLAW Play Console"
 6. Add roles:
    - Service Account User
    - Android Management API User
@@ -200,7 +200,7 @@ gh auth login
 gh secret set KEYSTORE_BASE64 < keystore_base64.txt
 gh secret set STORE_PASSWORD -b"YOUR_PASSWORD"
 gh secret set KEY_PASSWORD -b"YOUR_PASSWORD"
-gh secret set KEY_ALIAS -b"momclaw"
+gh secret set KEY_ALIAS -b"MOMCLAW"
 gh secret set GOOGLE_PLAY_SERVICE_ACCOUNT < service-account.json
 gh secret set GPG_PRIVATE_KEY < gpg_private_key.asc
 ```

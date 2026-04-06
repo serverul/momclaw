@@ -1,6 +1,6 @@
-# Contributing to MomClaw
+# Contributing to MOMCLAW
 
-🎉 Welcome! We're excited that you want to contribute to MomClaw.
+🎉 Welcome! We're excited that you want to contribute to MOMCLAW.
 
 ## Table of Contents
 
@@ -29,11 +29,11 @@ This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.
 # 1. Fork the repository on GitHub
 
 # 2. Clone your fork
-git clone https://github.com/YOUR_USERNAME/momclaw.git
-cd momclaw
+git clone https://github.com/YOUR_USERNAME/MOMCLAW.git
+cd MOMCLAW
 
 # 3. Add upstream remote
-git remote add upstream https://github.com/serverul/momclaw.git
+git remote add upstream https://github.com/serverul/MOMCLAW.git
 
 # 4. Fetch upstream changes
 git fetch upstream
@@ -64,7 +64,7 @@ git push origin main
 
 ```bash
 # 1. Open project in Android Studio
-# File → Open → Select momclaw/android
+# File → Open → Select MOMCLAW/android
 
 # 2. Wait for Gradle sync (5-10 minutes first time)
 
@@ -159,7 +159,7 @@ We follow the official [Kotlin Coding Conventions](https://kotlinlang.org/docs/c
 ### Code Organization
 
 ```
-com.loa.momclaw/
+com.loa.MOMCLAW/
 ├── data/              # Data layer
 │   ├── local/         # Room, DataStore
 │   ├── remote/        # API clients
@@ -400,7 +400,7 @@ If applicable
 **Environment**
 - Device: [e.g., Pixel 6]
 - OS: [e.g., Android 14]
-- MomClaw version: [e.g., 1.0.0]
+- MOMCLAW version: [e.g., 1.0.0]
 
 **Additional Context**
 Any other relevant info
@@ -426,15 +426,15 @@ Any other context, screenshots, etc.
 
 ## Questions?
 
-- **GitHub Discussions:** [momclaw/discussions](https://github.com/serverul/momclaw/discussions)
-- **Issues:** [momclaw/issues](https://github.com/serverul/momclaw/issues)
+- **GitHub Discussions:** [MOMCLAW/discussions](https://github.com/serverul/MOMCLAW/discussions)
+- **Issues:** [MOMCLAW/issues](https://github.com/serverul/MOMCLAW/issues)
 - **Email:** contact@example.com
 
 ---
 
 ## License
 
-By contributing to MomClaw, you agree that your contributions will be licensed under the Apache License 2.0.
+By contributing to MOMCLAW, you agree that your contributions will be licensed under the Apache License 2.0.
 
 ---
 

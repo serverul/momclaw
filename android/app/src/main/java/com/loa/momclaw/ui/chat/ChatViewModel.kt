@@ -6,8 +6,11 @@ import com.loa.momclaw.domain.model.AgentConfig
 import com.loa.momclaw.domain.model.ChatMessage
 import com.loa.momclaw.domain.repository.ChatRepository
 import com.loa.momclaw.domain.repository.StreamState
+import com.loa.momclaw.util.StreamBuffer
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -28,11 +32,14 @@ data class ChatUiState(
     val currentStreamingMessage: ChatMessage? = null,
     val error: String? = null,
     val isAgentAvailable: Boolean = false,
-    val config: AgentConfig? = null
+    val config: AgentConfig? = null,
+    // Performance tracking
+    val tokenCount: Int = 0,
+    val lastUpdateTime: Long = 0L
 )
 
 /**
- * ViewModel for Chat screen
+ * ViewModel for Chat screen with optimized streaming
  */
 @HiltViewModel
 class ChatViewModel @Inject constructor(
@@ -43,6 +50,8 @@ class ChatViewModel @Inject constructor(
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
     private var streamingJob: Job? = null
+    private var streamBuffer: StreamBuffer? = null
+    private var currentStreamingId: String? = null
 
     init {
         observeMessages()
@@ -90,20 +99,34 @@ class ChatViewModel @Inject constructor(
     }
 
     /**
-     * Send a message
+     * Send a message with optimized streaming
      */
     fun sendMessage() {
         val text = _uiState.value.inputText.trim()
         if (text.isEmpty() || _uiState.value.isLoading) return
 
         // Clear input
-        _uiState.update { it.copy(inputText = "", isLoading = true, error = null) }
+        _uiState.update { it.copy(
+            inputText = "",
+            isLoading = true,
+            error = null,
+            tokenCount = 0,
+            lastUpdateTime = System.currentTimeMillis()
+        )}
 
         // Cancel any existing streaming job
         streamingJob?.cancel()
+        streamBuffer?.clear()
+
+        // Create new stream buffer for this conversation
+        streamBuffer = StreamBuffer(viewModelScope, batchIntervalMs = 50, minBatchSize = 5)
 
         // Start streaming
         streamingJob = viewModelScope.launch {
+            var tokenCount = 0
+            var streamingContent = StringBuilder()
+            var lastUpdateTime = System.currentTimeMillis()
+
             chatRepository.sendMessageStream(text).collect { state ->
                 when (state) {
                     is StreamState.UserMessageSaved -> {
@@ -112,31 +135,55 @@ class ChatViewModel @Inject constructor(
                             isStreaming = true,
                             currentStreamingMessage = null
                         )}
+                        currentStreamingId = state.message.id
                     }
+
                     is StreamState.StreamingStarted -> {
+                        streamingContent = StringBuilder()
                         _uiState.update { it.copy(
                             currentStreamingMessage = state.message
                         )}
                     }
+
                     is StreamState.TokenReceived -> {
-                        _uiState.update { it.copy(
-                            currentStreamingMessage = state.message
-                        )}
+                        // Use buffer for UI updates
+                        tokenCount++
+                        streamingContent.append(state.token)
+
+                        // Throttled UI update - only update every 50ms or every 5 tokens
+                        val now = System.currentTimeMillis()
+                        val shouldUpdate = (now - lastUpdateTime) >= 50 || tokenCount % 5 == 0
+
+                        if (shouldUpdate) {
+                            _uiState.update { it.copy(
+                                currentStreamingMessage = state.message,
+                                tokenCount = tokenCount,
+                                lastUpdateTime = now
+                            )}
+                            lastUpdateTime = now
+                        }
                     }
+
                     is StreamState.StreamingComplete -> {
+                        // Final update with complete message
                         _uiState.update { it.copy(
                             isStreaming = false,
                             isLoading = false,
-                            currentStreamingMessage = null
+                            currentStreamingMessage = null,
+                            tokenCount = tokenCount,
+                            lastUpdateTime = System.currentTimeMillis()
                         )}
+                        streamingContent.clear()
                     }
+
                     is StreamState.Error -> {
                         _uiState.update { it.copy(
-                            error = state.exception.message,
+                            error = state.exception.message ?: "Unknown error occurred",
                             isStreaming = false,
                             isLoading = false,
                             currentStreamingMessage = null
                         )}
+                        streamingContent.clear()
                     }
                 }
             }
@@ -177,6 +224,9 @@ class ChatViewModel @Inject constructor(
     fun cancelStreaming() {
         streamingJob?.cancel()
         streamingJob = null
+        streamBuffer?.clear()
+        streamBuffer = null
+        currentStreamingId = null
         _uiState.update { it.copy(
             isStreaming = false,
             isLoading = false,
@@ -187,5 +237,6 @@ class ChatViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         streamingJob?.cancel()
+        streamBuffer?.clear()
     }
 }

@@ -1,6 +1,6 @@
-# MomClAW Integration Testing - Subagent Report
+# MOMCLAW Integration Testing - Subagent Report
 
-**Task:** Perform MomClAW integration and testing  
+**Task:** Perform MOMCLAW integration and testing  
 **Date:** 2026-04-06 02:12 UTC  
 **Status:** ✅ **COMPLETE** - Integration validated via static analysis
 
@@ -200,7 +200,7 @@ The following are required to build and run tests:
 
 2. **Run Automated Tests** (Once prerequisites installed)
    ```bash
-   cd /home/userul/.openclaw/workspace/momclaw
+   cd /home/userul/.openclaw/workspace/MOMCLAW
    ./scripts/run-integration-tests.sh
    ```
 
@@ -435,7 +435,7 @@ Sequence: 1s → 2s → 4s → 8s → 16s → 30s (capped)
 
 **Task Status:** ✅ **COMPLETE**
 
-The MomClAW integration has been thoroughly validated through comprehensive static code analysis. All 10 objectives have been completed:
+The MOMCLAW integration has been thoroughly validated through comprehensive static code analysis. All 10 objectives have been completed:
 
 1. ✅ Startup sequence validated (StartupManager → InferenceService → AgentService)
 2. ✅ HTTP communication tested (LiteRT Bridge API, AgentClient)

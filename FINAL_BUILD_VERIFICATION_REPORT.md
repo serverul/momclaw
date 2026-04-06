@@ -1,4 +1,4 @@
-# MomClAW — Final Build Verification Report
+# MOMCLAW — Final Build Verification Report
 
 **Generated**: 2026-04-06  
 **Version**: 1.0.0  
@@ -65,7 +65,7 @@ agent → (standalone library — no circular deps)
 - `KEYSTORE_BASE64` — Base64-encoded release keystore
 - `STORE_PASSWORD` — Keystore password
 - `KEY_PASSWORD` — Key password
-- `KEY_ALIAS` — Key alias (e.g., `momclaw`)
+- `KEY_ALIAS` — Key alias (e.g., `MOMCLAW`)
 - `GOOGLE_PLAY_SERVICE_ACCOUNT` — (optional) for Play Store upload
 - `DISCORD_WEBHOOK_ID` + `DISCORD_WEBHOOK_TOKEN` — release notifications
 - `GITLEAKS_LICENSE` — (optional) for Gitleaks v2
@@ -184,7 +184,7 @@ These MUST be completed before first production release:
 | README license badge | ✅ | Links to Apache 2.0 |
 | Third-party acknowledgments | ✅ | NullClaw, llama.cpp, Gemma, AI Edge |
 | Copyright notice | ✅ | In LICENSE file |
-| package.json / pom equivalent | ✅ | `android/app/build.gradle.kts` — `applicationId: com.loa.momclaw` |
+| package.json / pom equivalent | ✅ | `android/app/build.gradle.kts` — `applicationId: com.loa.MOMCLAW` |
 | Version consistency | ✅ | versionCode=1, versionName=1.0.0 |
 
 ---

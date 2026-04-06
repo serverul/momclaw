@@ -1,4 +1,4 @@
-# MomClaw Production Readiness Checklist
+# MOMCLAW Production Readiness Checklist
 
 **Status**: ✅ Ready for Production  
 **Date**: 2026-04-06  
@@ -172,9 +172,9 @@ make deploy-github VERSION=1.0.0
 make build-fdroid VERSION=1.0.0
 
 # Output:
-# - momclaw-1.0.0-fdroid.apk
-# - momclaw-1.0.0-fdroid.apk.asc
-# - momclaw-1.0.0-fdroid.apk.sha256
+# - MOMCLAW-1.0.0-fdroid.apk
+# - MOMCLAW-1.0.0-fdroid.apk.asc
+# - MOMCLAW-1.0.0-fdroid.apk.sha256
 ```
 
 ---
@@ -239,15 +239,15 @@ make build-fdroid VERSION=1.0.0
 - [GitHub Actions Docs](https://docs.github.com/en/actions)
 
 ### Community
-- [GitHub Issues](https://github.com/serverul/momclaw/issues)
-- [GitHub Discussions](https://github.com/serverul/momclaw/discussions)
-- Email: support@momclaw.app
+- [GitHub Issues](https://github.com/serverul/MOMCLAW/issues)
+- [GitHub Discussions](https://github.com/serverul/MOMCLAW/discussions)
+- Email: support@MOMCLAW.app
 
 ---
 
 ## ✨ Summary
 
-MomClaw is **production-ready** with comprehensive documentation, automated CI/CD pipelines, and deployment automation for both Google Play Store and F-Droid.
+MOMCLAW is **production-ready** with comprehensive documentation, automated CI/CD pipelines, and deployment automation for both Google Play Store and F-Droid.
 
 All critical components are in place:
 - ✅ Build system configured and tested
