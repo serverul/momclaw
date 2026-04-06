@@ -54,22 +54,28 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Build Debug APK
-        run: ./android/gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --no-daemon
+        working-directory: android
 
       - name: Build Release APK
-        run: ./android/gradlew assembleRelease --no-daemon
+        run: ./gradlew assembleRelease --no-daemon
+        working-directory: android
 
       - name: Build AAB
-        run: ./android/gradlew bundleRelease --no-daemon
+        run: ./gradlew bundleRelease --no-daemon
+        working-directory: android
 
       - name: Run Unit Tests
-        run: ./android/gradlew testDebugUnitTest --no-daemon
+        run: ./gradlew testDebugUnitTest --no-daemon
+        working-directory: android
 
       - name: Run Lint
-        run: ./android/gradlew lintDebug --no-daemon
+        run: ./gradlew lintDebug --no-daemon
+        working-directory: android
 
       - name: Run Detekt
-        run: ./android/gradlew detekt --no-daemon
+        run: ./gradlew detekt --no-daemon
+        working-directory: android
 
       - name: Upload Debug APK
         if: success()
