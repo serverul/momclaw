@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.loa.MOMCLAW.bridge"
+    namespace = "com.loa.momclaw.bridge"
     compileSdk = 35
 
     defaultConfig {

@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.loa.MOMCLAW.agent"
+    namespace = "com.loa.momclaw.agent"
     compileSdk = 35
     
     defaultConfig {
