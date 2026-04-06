@@ -30,7 +30,8 @@ class SSEWriter(
         call.respondTextWriter(contentType = ContentType.Text.EventStream) {
             flow.collect { response ->
                 onEvent(response)
-                writeEvent(response)
+                val eventData = json.encodeToString(response)
+                write("data: $eventData\n\n")
                 flush()
             }
             

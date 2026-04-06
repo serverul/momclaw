@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.loa.momclaw.domain.model.ChatMessage
 import kotlinx.coroutines.launch
 
@@ -46,7 +47,8 @@ fun ChatScreen(
     onClearConversation: () -> Unit,
     onNewConversation: () -> Unit,
     onRetry: () -> Unit,
-    onCancelStreaming: () -> Unit
+    onCancelStreaming: () -> Unit,
+    useNavigationRail: Boolean = false
 ) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -59,6 +61,9 @@ fun ChatScreen(
             }
         }
     }
+
+    // Calculate max width for content based on screen size
+    val contentMaxWidth = if (useNavigationRail) 800.dp else 600.dp
 
     Scaffold(
         topBar = {
@@ -79,11 +84,14 @@ fun ChatScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
+                    // Only show back button if using navigation rail (tablet)
+                    if (useNavigationRail) {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
                     }
                 },
                 actions = {
@@ -154,58 +162,81 @@ fun ChatScreen(
                 }
             }
 
-            // Messages list
-            LazyColumn(
-                state = listState,
+            // Messages list - centered on larger screens
+            Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                contentAlignment = Alignment.TopCenter
             ) {
-                // Existing messages
-                items(
-                    items = uiState.messages,
-                    key = { it.id }
-                ) { message ->
-                    MessageBubble(message = message)
-                }
-
-                // Currently streaming message
-                if (uiState.currentStreamingMessage != null) {
-                    item {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .widthIn(max = contentMaxWidth)
+                        .fillMaxWidth(),
+                    contentPadding = PaddingValues(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 16.dp,
+                        bottom = 8.dp
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Existing messages
+                    items(
+                        items = uiState.messages,
+                        key = { it.id }
+                    ) { message ->
                         MessageBubble(
-                            message = uiState.currentStreamingMessage!!,
-                            isStreaming = true
+                            message = message,
+                            maxWidth = if (useNavigationRail) 600.dp else 280.dp
                         )
                     }
-                }
 
-                // Loading indicator for initial load
-                if (uiState.isLoading && uiState.currentStreamingMessage == null) {
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            AssistantMessageBubble(
-                                content = "",
-                                isStreaming = true
+                    // Currently streaming message
+                    if (uiState.currentStreamingMessage != null) {
+                        item {
+                            MessageBubble(
+                                message = uiState.currentStreamingMessage!!,
+                                isStreaming = true,
+                                maxWidth = if (useNavigationRail) 600.dp else 280.dp
                             )
+                        }
+                    }
+
+                    // Loading indicator for initial load
+                    if (uiState.isLoading && uiState.currentStreamingMessage == null) {
+                        item {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Start
+                            ) {
+                                AssistantMessageBubble(
+                                    content = "",
+                                    isStreaming = true,
+                                    maxWidth = if (useNavigationRail) 600.dp else 280.dp
+                                )
+                            }
                         }
                     }
                 }
             }
 
-            // Input area
-            MessageInput(
-                text = uiState.inputText,
-                isStreaming = uiState.isStreaming,
-                onTextChange = onUpdateInput,
-                onSend = onSendMessage,
-                onCancel = onCancelStreaming,
-                enabled = uiState.isAgentAvailable && !uiState.isLoading
-            )
+            // Input area - centered on larger screens
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                MessageInput(
+                    text = uiState.inputText,
+                    isStreaming = uiState.isStreaming,
+                    onTextChange = onUpdateInput,
+                    onSend = onSendMessage,
+                    onCancel = onCancelStreaming,
+                    enabled = uiState.isAgentAvailable && !uiState.isLoading,
+                    maxWidth = contentMaxWidth
+                )
+            }
         }
     }
 }
@@ -216,7 +247,8 @@ fun ChatScreen(
 @Composable
 fun MessageBubble(
     message: ChatMessage,
-    isStreaming: Boolean = false
+    isStreaming: Boolean = false,
+    maxWidth: androidx.compose.ui.unit.Dp = 280.dp
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -227,11 +259,12 @@ fun MessageBubble(
         }
     ) {
         if (message.isUser) {
-            UserMessageBubble(content = message.content)
+            UserMessageBubble(content = message.content, maxWidth = maxWidth)
         } else {
             AssistantMessageBubble(
                 content = message.content,
-                isStreaming = isStreaming
+                isStreaming = isStreaming,
+                maxWidth = maxWidth
             )
         }
     }
@@ -241,7 +274,10 @@ fun MessageBubble(
  * User message bubble (right-aligned, primary color)
  */
 @Composable
-fun UserMessageBubble(content: String) {
+fun UserMessageBubble(
+    content: String,
+    maxWidth: androidx.compose.ui.unit.Dp = 280.dp
+) {
     Surface(
         shape = RoundedCornerShape(
             topStart = 16.dp,
@@ -250,7 +286,7 @@ fun UserMessageBubble(content: String) {
             bottomEnd = 16.dp
         ),
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.widthIn(max = 280.dp)
+        modifier = Modifier.widthIn(max = maxWidth)
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
@@ -258,7 +294,8 @@ fun UserMessageBubble(content: String) {
             Text(
                 text = content,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onPrimary
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontSize = 16.sp
             )
         }
     }
@@ -270,7 +307,8 @@ fun UserMessageBubble(content: String) {
 @Composable
 fun AssistantMessageBubble(
     content: String,
-    isStreaming: Boolean = false
+    isStreaming: Boolean = false,
+    maxWidth: androidx.compose.ui.unit.Dp = 280.dp
 ) {
     Surface(
         shape = RoundedCornerShape(
@@ -280,7 +318,7 @@ fun AssistantMessageBubble(
             bottomEnd = 16.dp
         ),
         color = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = Modifier.widthIn(max = 320.dp)
+        modifier = Modifier.widthIn(max = maxWidth)
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
@@ -301,7 +339,8 @@ fun AssistantMessageBubble(
                 Text(
                     text = content,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 16.sp
                 )
                 if (isStreaming) {
                     // Blinking streaming cursor
@@ -395,6 +434,7 @@ fun MessageInput(
     onSend: () -> Unit,
     onCancel: () -> Unit,
     enabled: Boolean,
+    maxWidth: androidx.compose.ui.unit.Dp = 600.dp,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -405,6 +445,7 @@ fun MessageInput(
         Row(
             modifier = Modifier
                 .padding(16.dp)
+                .widthIn(max = maxWidth)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)

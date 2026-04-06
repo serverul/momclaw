@@ -86,6 +86,9 @@ dependencies {
 
     // Logback (for Ktor logging)
     implementation("ch.qos.logback:logback-classic:1.4.14")
+    
+    // Kotlin Logging
+    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
 
     // Testing - Unit Tests
     testImplementation("junit:junit:4.13.2")

@@ -13,8 +13,6 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.loa.momclaw.MainActivity
 import com.loa.momclaw.R
-package com.loa.momclaw.agent
-
 import com.loa.momclaw.domain.model.AgentConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

@@ -40,7 +40,7 @@ android {
     }
     
     androidResources {
-        generateLocaleConfig = true
+        // generateLocaleConfig = true  // Disabled: requires resources.properties file
     }
     
     signingConfigs {
@@ -148,6 +148,9 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
     
+    // Material3 Window Size Class for responsive design
+    implementation("androidx.compose.material3:material3-window-size-class-android:1.3.1")
+    
     // Hilt Dependency Injection
     implementation("com.google.dagger:hilt-android:2.52")
     kapt("com.google.dagger:hilt-compiler:2.52")
@@ -156,6 +159,12 @@ dependencies {
     // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+    
+    // Lifecycle Service (for foreground services with lifecycle awareness)
+    implementation("androidx.lifecycle:lifecycle-service:2.8.7")
+    
+    // Kotlin Logging
+    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
     
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.8.3")

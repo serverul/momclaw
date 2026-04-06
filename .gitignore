@@ -47,6 +47,16 @@ api_keys.properties
 *.pem
 *.p12
 
+# Signing
+key.properties
+momclaw-release-key.jks
+*.jks
+*.keystore
+
+# Service accounts
+google-play-service-account.json
+*-service-account.json
+
 # OS files
 .DS_Store
 Thumbs.db

@@ -1,133 +1,263 @@
 package com.loa.momclaw.agent
 
-import com.loa.momclaw.domain.model.AgentConfig
-import org.json.JSONObject
-import java.io.File
+import com.loa.momclaw.agent.model.AgentConfig
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import mu.KotlinLogging
+
+private val logger = KotlinLogging.logger {}
 
 /**
- * Generates configuration files for NullClaw agent
+ * Configuration Generator for NullClaw Agent
+ * 
+ * Generates JSON configuration files compatible with NullClaw's config format.
+ * Supports all NullClaw configuration options including:
+ * - Model providers (custom HTTP, OpenAI-compatible)
+ * - Memory backends (SQLite)
+ * - Tools (shell, file operations)
+ * - Gateway settings (local binding, port)
+ * - Inference parameters
+ * - Channel configurations
  */
 object ConfigGenerator {
     
-    /**
-     * Generate a config file from AgentConfig
-     * @param config The agent configuration
-     * @param outputFile The file to write the config to
-     * @return Result containing the file path or error
-     */
-    fun generateConfigFile(config: AgentConfig, outputFile: File): Result<File> {
-        return try {
-            val jsonContent = buildJsonConfig(config)
-            
-            // Validate JSON is well-formed
-            JSONObject(jsonContent) // This will throw if invalid
-            
-            outputFile.parentFile?.mkdirs()
-            outputFile.writeText(jsonContent)
-            Result.success(outputFile)
-        } catch (e: Exception) {
-            Result.failure(ConfigGenerationException("Failed to generate config: ${e.message}", e))
-        }
+    private val json = Json {
+        prettyPrint = true
+        ignoreUnknownKeys = true
+        encodeDefaults = true
     }
     
     /**
-     * Build JSON config string from AgentConfig
+     * Generate a complete NullClaw configuration from AgentConfig.
      */
-    private fun buildJsonConfig(config: AgentConfig): String {
-        return """
-        {
-          "agents": {
-            "defaults": {
-              "model": {
-                "primary": "${escapeJson(config.modelPrimary)}"
-              },
-              "system_prompt": ${escapeJson(config.systemPrompt)},
-              "temperature": ${config.temperature},
-              "max_tokens": ${config.maxTokens}
-            }
-          },
-          "models": {
-            "providers": {
-              "litert-bridge": {
-                "type": "custom",
-                "base_url": "${escapeJson(config.baseUrl)}"
-              }
-            }
-          },
-          "memory": {
-            "backend": "${escapeJson(config.memoryBackend)}",
-            "path": "${escapeJson(config.memoryPath)}"
-          }
-        }
-        """.trimIndent()
-    }
-    
-    /**
-     * Generate a minimal default config
-     */
-    fun generateDefaultConfig(outputFile: File): Result<File> {
-        return generateConfigFile(AgentConfig.DEFAULT, outputFile)
-    }
-    
-    /**
-     * Parse existing config file to AgentConfig
-     */
-    fun parseConfigFile(configFile: File): Result<AgentConfig> {
-        return try {
-            val json = JSONObject(configFile.readText())
-            val agents = json.getJSONObject("agents").getJSONObject("defaults")
-            val model = agents.getJSONObject("model")
-            val memory = json.getJSONObject("memory")
-            val providers = json.getJSONObject("models").getJSONObject("providers")
-                .getJSONObject("litert-bridge")
-            
-            Result.success(
-                AgentConfig(
-                    systemPrompt = agents.getString("system_prompt"),
-                    temperature = agents.getDouble("temperature").toFloat(),
-                    maxTokens = agents.getInt("max_tokens"),
-                    modelPrimary = model.getString("primary"),
-                    baseUrl = providers.getString("base_url"),
-                    memoryBackend = memory.getString("backend"),
-                    memoryPath = memory.getString("path")
+    fun generate(config: AgentConfig): String {
+        val nullClawConfig = NullClawConfig(
+            agents = AgentsConfig(
+                defaults = AgentDefaults(
+                    model = ModelConfig(primary = config.modelPrimary),
+                    systemPrompt = config.systemPrompt
                 )
+            ),
+            models = ModelsConfig(
+                providers = mapOf(
+                    "litert-bridge" to ProviderConfig(
+                        type = "custom",
+                        baseUrl = config.baseUrl,
+                        apiFormat = "openai"
+                    )
+                )
+            ),
+            memory = MemoryConfig(
+                backend = config.memoryBackend,
+                path = config.memoryPath
+            ),
+            tools = ToolsConfig(
+                enabled = listOf("shell", "file_read", "file_write"),
+                shell = ShellConfig(
+                    allowedCommands = listOf("ls", "cat", "echo", "pwd", "date", "grep", "head", "tail"),
+                    timeoutMs = 5000
+                )
+            ),
+            gateway = GatewayConfig(
+                mode = "local",
+                bind = "loopback",
+                port = 9090
+            ),
+            inference = InferenceConfig(
+                temperature = config.temperature.toDouble(),
+                maxTokens = config.maxTokens,
+                topP = 0.95,
+                topK = 40
             )
-        } catch (e: Exception) {
-            Result.failure(ConfigGenerationException("Failed to parse config: ${e.message}", e))
-        }
+        )
+        
+        return json.encodeToString(nullClawConfig)
     }
     
     /**
-     * Merge partial config updates with existing config
+     * Generate a minimal configuration for LiteRT-only mode (no tools).
      */
-    fun mergeConfig(
-        existing: AgentConfig,
-        systemPrompt: String? = null,
-        temperature: Float? = null,
-        maxTokens: Int? = null,
-        modelPrimary: String? = null,
-        baseUrl: String? = null
-    ): AgentConfig {
-        return existing.copy(
-            systemPrompt = systemPrompt ?: existing.systemPrompt,
-            temperature = temperature ?: existing.temperature,
-            maxTokens = maxTokens ?: existing.maxTokens,
-            modelPrimary = modelPrimary ?: existing.modelPrimary,
-            baseUrl = baseUrl ?: existing.baseUrl
+    fun generateMinimal(config: AgentConfig): String {
+        val nullClawConfig = NullClawConfig(
+            agents = AgentsConfig(
+                defaults = AgentDefaults(
+                    model = ModelConfig(primary = config.modelPrimary),
+                    systemPrompt = config.systemPrompt
+                )
+            ),
+            models = ModelsConfig(
+                providers = mapOf(
+                    "litert-bridge" to ProviderConfig(
+                        type = "custom",
+                        baseUrl = config.baseUrl,
+                        apiFormat = "openai"
+                    )
+                )
+            ),
+            memory = null,  // No persistent memory in minimal mode
+            tools = null,   // No tools in minimal mode
+            gateway = GatewayConfig(
+                mode = "local",
+                bind = "loopback",
+                port = 9090
+            ),
+            inference = InferenceConfig(
+                temperature = config.temperature.toDouble(),
+                maxTokens = config.maxTokens
+            )
         )
+        
+        return json.encodeToString(nullClawConfig)
+    }
+    
+    /**
+     * Generate configuration with custom tools.
+     */
+    fun generateWithTools(
+        config: AgentConfig,
+        enabledTools: List<String>,
+        allowedShellCommands: List<String> = emptyList()
+    ): String {
+        val nullClawConfig = NullClawConfig(
+            agents = AgentsConfig(
+                defaults = AgentDefaults(
+                    model = ModelConfig(primary = config.modelPrimary),
+                    systemPrompt = config.systemPrompt
+                )
+            ),
+            models = ModelsConfig(
+                providers = mapOf(
+                    "litert-bridge" to ProviderConfig(
+                        type = "custom",
+                        baseUrl = config.baseUrl,
+                        apiFormat = "openai"
+                    )
+                )
+            ),
+            memory = MemoryConfig(
+                backend = config.memoryBackend,
+                path = config.memoryPath
+            ),
+            tools = ToolsConfig(
+                enabled = enabledTools,
+                shell = if ("shell" in enabledTools) {
+                    ShellConfig(
+                        allowedCommands = allowedShellCommands.ifEmpty {
+                            listOf("ls", "cat", "echo", "pwd", "date")
+                        },
+                        timeoutMs = 5000
+                    )
+                } else null
+            ),
+            gateway = GatewayConfig(
+                mode = "local",
+                bind = "loopback",
+                port = 9090
+            ),
+            inference = InferenceConfig(
+                temperature = config.temperature.toDouble(),
+                maxTokens = config.maxTokens
+            )
+        )
+        
+        return json.encodeToString(nullClawConfig)
+    }
+    
+    /**
+     * Generate configuration for channel integration (Telegram, Discord).
+     * Note: Channels are post-MVP feature.
+     */
+    fun generateWithChannels(
+        config: AgentConfig,
+        channels: Map<String, ChannelConfig>
+    ): String {
+        val baseConfig = generate(config)
+        val baseObj = json.decodeFromString<NullClawConfig>(baseConfig)
+        
+        return json.encodeToString(baseObj.copy(
+            channels = channels
+        ))
     }
 }
 
-class ConfigGenerationException(message: String, cause: Throwable? = null) : Exception(message, cause)
+// ==================== Data Classes ====================
 
-/**
- * Escape string for JSON
- */
-private fun escapeJson(str: String): String {
-    return "\"" + str
-        .replace("\\", "\\\\")
-        .replace("\"", "\\\"")
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
-        .replace("\t", "\\t") + "\""
-}
+@Serializable
+data class NullClawConfig(
+    val agents: AgentsConfig,
+    val models: ModelsConfig,
+    val memory: MemoryConfig? = null,
+    val tools: ToolsConfig? = null,
+    val gateway: GatewayConfig = GatewayConfig(),
+    val inference: InferenceConfig = InferenceConfig(),
+    val channels: Map<String, ChannelConfig>? = null
+)
+
+@Serializable
+data class AgentsConfig(
+    val defaults: AgentDefaults
+)
+
+@Serializable
+data class AgentDefaults(
+    val model: ModelConfig,
+    val systemPrompt: String
+)
+
+@Serializable
+data class ModelConfig(
+    val primary: String
+)
+
+@Serializable
+data class ModelsConfig(
+    val providers: Map<String, ProviderConfig>
+)
+
+@Serializable
+data class ProviderConfig(
+    val type: String,
+    val baseUrl: String,
+    val apiFormat: String = "openai"
+)
+
+@Serializable
+data class MemoryConfig(
+    val backend: String = "sqlite",
+    val path: String
+)
+
+@Serializable
+data class ToolsConfig(
+    val enabled: List<String>,
+    val shell: ShellConfig? = null
+)
+
+@Serializable
+data class ShellConfig(
+    val allowedCommands: List<String>,
+    val timeoutMs: Int = 5000
+)
+
+@Serializable
+data class GatewayConfig(
+    val mode: String = "local",
+    val bind: String = "loopback",
+    val port: Int = 9090
+)
+
+@Serializable
+data class InferenceConfig(
+    val temperature: Double = 0.7,
+    val maxTokens: Int = 2048,
+    val topP: Double = 0.95,
+    val topK: Int = 40
+)
+
+@Serializable
+data class ChannelConfig(
+    val enabled: Boolean = true,
+    val token: String? = null,
+    val options: Map<String, String>? = null
+)

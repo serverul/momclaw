@@ -119,12 +119,20 @@ adb push models/gemma-3-E4B-it.litertlm \
 
 | Documentație | Descriere |
 |-------------|-----------|
+| [README.md](README.md) | **Acest fișier** - Overview și quick start |
+| [QUICKSTART.md](QUICKSTART.md) | **5-minute setup guide** - Get running quickly |
 | [DOCUMENTATION.md](DOCUMENTATION.md) | **Documentație completă** - setup, deployment, API, troubleshooting |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | **Deployment guide** - Google Play Store și F-Droid |
 | [BUILD.md](BUILD.md) | Build instructions detaliate |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Developer guide și arhitectură |
+| [TESTING.md](TESTING.md) | Testing strategy și checklists |
+| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Release checklist pentru deployment |
 | [SPEC.md](SPEC.md) | Specificații tehnice complete |
 | [MOMCLAW-PLAN.md](MOMCLAW-PLAN.md) | Roadmap și planuri viitoare |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Ghid pentru contribuitori |
+| [SECURITY.md](SECURITY.md) | Politica de securitate |
+| [PRIVACY_POLICY.md](PRIVACY_POLICY.md) | Politica de confidențialitate |
+| [CHANGELOG.md](CHANGELOG.md) | Istoricul versiunilor |
 
 ### API Documentation
 
@@ -293,7 +301,7 @@ Acest proiect este licențiat sub Apache License 2.0 - vezi [LICENSE](LICENSE) p
 
 - **GitHub Issues:** [momclaw/issues](https://github.com/serverul/momclaw/issues)
 - **Discussions:** [momclaw/discussions](https://github.com/serverul/momclaw/discussions)
-- **Email:** momclaw@example.com (TODO)
+- **Email:** support@momclaw.app
 
 ---
 

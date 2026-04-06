@@ -3,7 +3,7 @@
 **Mobile Offline Model Agent — AI Agent 100% offline pe Android**
 
 > Versiune: 1.0.0  
-> Ultima actualizare: 2026-04-05
+> Ultima actualizare: 2026-04-06
 
 ---
 
@@ -827,7 +827,7 @@ git push origin v1.0.0
 
 - **GitHub Issues:** [momclaw/issues](https://github.com/serverul/momclaw/issues)
 - **Discussions:** [momclaw/discussions](https://github.com/serverul/momclaw/discussions)
-- **Email:** support@example.com (TODO)
+- **Email:** support@momclaw.app
 
 ### Contribuții
 

@@ -13,6 +13,32 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
+ * UI State for Models screen
+ */
+data class ModelsUiState(
+    val models: List<ModelItem> = emptyList(),
+    val isLoading: Boolean = false,
+    val isDownloading: Boolean = false,
+    val downloadingModelId: String? = null,
+    val downloadProgress: Float = 0f,
+    val loadingModelId: String? = null,
+    val error: String? = null
+)
+
+/**
+ * Model item for display
+ */
+data class ModelItem(
+    val id: String,
+    val name: String,
+    val size: String,
+    val downloaded: Boolean = false,
+    val loaded: Boolean = false,
+    val downloading: Boolean = false,
+    val loading: Boolean = false
+)
+
+/**
  * ViewModel for Models screen
  */
 @HiltViewModel
@@ -68,6 +94,8 @@ class ModelsViewModel @Inject constructor(
 
     /**
      * Download a model
+     * Note: In production, this would integrate with HuggingFace download
+     * For now, we mark as downloaded immediately since models are pre-bundled
      */
     fun downloadModel(modelId: String) {
         viewModelScope.launch {
@@ -79,8 +107,7 @@ class ModelsViewModel @Inject constructor(
                 )
             }
             
-            // Simulate download progress (in real app, this would be a real download)
-            // For now, just mark as downloaded
+            // Mark model as downloading
             _uiState.update { state ->
                 val updatedModels = state.models.map { model ->
                     if (model.id == modelId) {
@@ -92,10 +119,11 @@ class ModelsViewModel @Inject constructor(
                 state.copy(models = updatedModels)
             }
 
-            // Simulate progress
-            repeat(10) { i ->
-                kotlinx.coroutines.delay(200)
-                _uiState.update { it.copy(downloadProgress = (i + 1) / 10f) }
+            // In production, this would download from HuggingFace
+            // For bundled models, we simulate a short delay to show UI feedback
+            repeat(5) { i ->
+                kotlinx.coroutines.delay(100)
+                _uiState.update { it.copy(downloadProgress = (i + 1) / 5f) }
             }
 
             // Mark as complete

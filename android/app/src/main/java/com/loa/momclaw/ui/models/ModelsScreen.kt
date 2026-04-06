@@ -8,6 +8,9 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -23,35 +26,12 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-
-/**
- * UI State for Models screen
- */
-data class ModelsUiState(
-    val models: List<ModelItem> = emptyList(),
-    val isLoading: Boolean = false,
-    val isDownloading: Boolean = false,
-    val downloadingModelId: String? = null,
-    val downloadProgress: Float = 0f,
-    val loadingModelId: String? = null,
-    val error: String? = null
-)
-
-/**
- * Model item for display
- */
-data class ModelItem(
-    val id: String,
-    val name: String,
-    val size: String,
-    val downloaded: Boolean = false,
-    val loaded: Boolean = false,
-    val downloading: Boolean = false,
-    val loading: Boolean = false
-)
+import androidx.compose.ui.unit.sp
 
 /**
  * Models management screen
+ * 
+ * Note: ModelsUiState and ModelItem are defined in ModelsViewModel.kt
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,12 +42,22 @@ fun ModelsScreen(
     onLoadModel: (String) -> Unit,
     onDeleteModel: (String) -> Unit,
     onRefresh: () -> Unit,
-    onRetry: () -> Unit
+    onRetry: () -> Unit,
+    useNavigationRail: Boolean = false
 ) {
+    // Use grid layout for larger screens
+    val useGridLayout = useNavigationRail
+    val gridColumns = if (useGridLayout) 2 else 1
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Models") },
+                title = { 
+                    Text(
+                        "Models",
+                        fontSize = 20.sp
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -83,7 +73,10 @@ fun ModelsScreen(
                             contentDescription = "Refresh"
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         }
     ) { paddingValues ->
@@ -124,44 +117,10 @@ fun ModelsScreen(
 
             // Download progress indicator
             if (uiState.isDownloading && uiState.downloadingModelId != null) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.primaryContainer
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            CircularProgressIndicator(
-                                progress = { uiState.downloadProgress },
-                                modifier = Modifier.size(32.dp),
-                                strokeWidth = 3.dp
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column {
-                                Text(
-                                    text = "Downloading ${uiState.downloadingModelId}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                                Text(
-                                    text = "${(uiState.downloadProgress * 100).toInt()}%",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LinearProgressIndicator(
-                            progress = { uiState.downloadProgress },
-                            modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
+                DownloadProgressIndicator(
+                    modelId = uiState.downloadingModelId!!,
+                    progress = uiState.downloadProgress
+                )
             }
 
             // Loading indicator
@@ -186,65 +145,148 @@ fun ModelsScreen(
 
             // Empty state
             if (!uiState.isLoading && uiState.models.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Inventory,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "No models available",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Pull models from HuggingFace to get started",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
-                        OutlinedButton(onClick = onRefresh) {
-                            Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Refresh")
-                        }
-                    }
-                }
+                EmptyModelsState(onRefresh = onRefresh)
             }
 
             // Models list
             if (uiState.models.isNotEmpty()) {
-                LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(
-                        items = uiState.models,
-                        key = { it.id }
-                    ) { model ->
-                        ModelCard(
-                            model = model,
-                            onDownload = { onDownloadModel(model.id) },
-                            onLoad = { onLoadModel(model.id) },
-                            onDelete = { onDeleteModel(model.id) },
-                            isDownloading = uiState.downloadingModelId == model.id && uiState.isDownloading,
-                            isLoading = uiState.loadingModelId == model.id
-                        )
+                if (useGridLayout) {
+                    // Grid layout for tablets
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        contentPadding = PaddingValues(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(
+                            items = uiState.models,
+                            key = { it.id }
+                        ) { model ->
+                            ModelCard(
+                                model = model,
+                                onDownload = { onDownloadModel(model.id) },
+                                onLoad = { onLoadModel(model.id) },
+                                onDelete = { onDeleteModel(model.id) },
+                                isDownloading = uiState.downloadingModelId == model.id && uiState.isDownloading,
+                                isLoading = uiState.loadingModelId == model.id,
+                                compactMode = true
+                            )
+                        }
+                    }
+                } else {
+                    // List layout for phones
+                    LazyColumn(
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(
+                            items = uiState.models,
+                            key = { it.id }
+                        ) { model ->
+                            ModelCard(
+                                model = model,
+                                onDownload = { onDownloadModel(model.id) },
+                                onLoad = { onLoadModel(model.id) },
+                                onDelete = { onDeleteModel(model.id) },
+                                isDownloading = uiState.downloadingModelId == model.id && uiState.isDownloading,
+                                isLoading = uiState.loadingModelId == model.id,
+                                compactMode = false
+                            )
+                        }
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Download progress indicator
+ */
+@Composable
+private fun DownloadProgressIndicator(
+    modelId: String,
+    progress: Float
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.primaryContainer
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CircularProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier.size(32.dp),
+                    strokeWidth = 3.dp
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = "Downloading $modelId",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Text(
+                        text = "${(progress * 100).toInt()}%",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+/**
+ * Empty state when no models are available
+ */
+@Composable
+private fun EmptyModelsState(onRefresh: () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Default.Inventory,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "No models available",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Pull models from HuggingFace to get started",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            OutlinedButton(onClick = onRefresh) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Refresh")
             }
         }
     }
@@ -261,6 +303,7 @@ fun ModelCard(
     onDelete: () -> Unit,
     isDownloading: Boolean,
     isLoading: Boolean,
+    compactMode: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "rotation")
@@ -276,159 +319,318 @@ fun ModelCard(
     ElevatedCard(
         modifier = modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Status icon
-            Box(
+        if (compactMode) {
+            // Compact layout for grid view (tablets)
+            Column(
                 modifier = Modifier
-                    .size(48.dp)
-                    .background(
-                        when {
-                            model.loaded -> MaterialTheme.colorScheme.primaryContainer
-                            model.downloaded -> MaterialTheme.colorScheme.secondaryContainer
-                            else -> MaterialTheme.colorScheme.surfaceVariant
-                        },
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                when {
-                    isLoading || isDownloading -> {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(24.dp)
-                                .rotate(if (isLoading) rotation else 0f),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    model.loaded -> {
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    model.downloaded -> {
-                        Icon(
-                            imageVector = Icons.Default.DownloadDone,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp),
-                            tint = MaterialTheme.colorScheme.secondary
-                        )
-                    }
-                    else -> {
-                        Icon(
-                            imageVector = Icons.Default.CloudDownload,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                // Status icon
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            when {
+                                model.loaded -> MaterialTheme.colorScheme.primaryContainer
+                                model.downloaded -> MaterialTheme.colorScheme.secondaryContainer
+                                else -> MaterialTheme.colorScheme.surfaceVariant
+                            },
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    when {
+                        isLoading || isDownloading -> {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .rotate(if (isLoading) rotation else 0f),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        model.loaded -> {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        model.downloaded -> {
+                            Icon(
+                                imageVector = Icons.Default.DownloadDone,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                        else -> {
+                            Icon(
+                                imageVector = Icons.Default.CloudDownload,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            // Model info
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+                // Model name
                 Text(
                     text = model.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
+                
                 Spacer(modifier = Modifier.height(4.dp))
+                
+                // Size and status
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
                         text = model.size,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
                     if (model.loaded) {
+                        Spacer(modifier = Modifier.width(8.dp))
                         SuggestionChip(
                             onClick = {},
-                            label = { Text("Active") },
-                            modifier = Modifier.height(24.dp)
+                            label = { Text("Active", fontSize = 10.sp) },
+                            modifier = Modifier.height(20.dp)
                         )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Action buttons
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (!model.downloaded) {
+                        FilledTonalButton(
+                            onClick = onDownload,
+                            enabled = !isDownloading,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            if (isDownloading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Download,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Download", fontSize = 12.sp)
+                            }
+                        }
+                    } else if (!model.loaded) {
+                        OutlinedButton(
+                            onClick = onLoad,
+                            enabled = !isLoading,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            if (isLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.PlayArrow,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Load", fontSize = 12.sp)
+                            }
+                        }
+                    }
+
+                    if (model.downloaded && !model.loaded) {
+                        IconButton(
+                            onClick = onDelete
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
                 }
             }
-
-            // Action buttons
+        } else {
+            // Full layout for list view (phones)
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                if (!model.downloaded) {
-                    // Download button
-                    FilledTonalButton(
-                        onClick = onDownload,
-                        enabled = !isDownloading
-                    ) {
-                        if (isDownloading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
+                // Status icon
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            when {
+                                model.loaded -> MaterialTheme.colorScheme.primaryContainer
+                                model.downloaded -> MaterialTheme.colorScheme.secondaryContainer
+                                else -> MaterialTheme.colorScheme.surfaceVariant
+                            },
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    when {
+                        isLoading || isDownloading -> {
                             Icon(
-                                imageVector = Icons.Default.Download,
+                                imageVector = Icons.Default.Refresh,
                                 contentDescription = null,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .rotate(if (isLoading) rotation else 0f),
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Download")
-                    }
-                } else if (!model.loaded) {
-                    // Load button
-                    OutlinedButton(
-                        onClick = onLoad,
-                        enabled = !isLoading
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
+                        model.loaded -> {
                             Icon(
-                                imageVector = Icons.Default.PlayArrow,
+                                imageVector = Icons.Default.CheckCircle,
                                 contentDescription = null,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Load")
+                        model.downloaded -> {
+                            Icon(
+                                imageVector = Icons.Default.DownloadDone,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                        else -> {
+                            Icon(
+                                imageVector = Icons.Default.CloudDownload,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
 
-                if (model.downloaded) {
-                    // Delete button
-                    IconButton(
-                        onClick = onDelete,
-                        enabled = !model.loaded
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Model info
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = model.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete",
-                            tint = if (model.loaded) {
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                            } else {
-                                MaterialTheme.colorScheme.error
-                            }
+                        Text(
+                            text = model.size,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        if (model.loaded) {
+                            SuggestionChip(
+                                onClick = {},
+                                label = { Text("Active") },
+                                modifier = Modifier.height(24.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Action buttons
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (!model.downloaded) {
+                        // Download button
+                        FilledTonalButton(
+                            onClick = onDownload,
+                            enabled = !isDownloading
+                        ) {
+                            if (isDownloading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Download,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Download")
+                        }
+                    } else if (!model.loaded) {
+                        // Load button
+                        OutlinedButton(
+                            onClick = onLoad,
+                            enabled = !isLoading
+                        ) {
+                            if (isLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.PlayArrow,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Load")
+                        }
+                    }
+
+                    if (model.downloaded) {
+                        // Delete button
+                        IconButton(
+                            onClick = onDelete,
+                            enabled = !model.loaded
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete",
+                                tint = if (model.loaded) {
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                                } else {
+                                    MaterialTheme.colorScheme.error
+                                }
+                            )
+                        }
                     }
                 }
             }

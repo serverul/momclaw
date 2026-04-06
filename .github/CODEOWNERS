@@ -1,0 +1,43 @@
+# CODEOWNERS - MomClaw
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything
+* @serverul
+
+# Android app code
+/android/app/ @serverul
+
+# Bridge module
+/android/bridge/ @serverul
+
+# Agent module
+/android/agent/ @serverul
+
+# Native code
+/native/ @serverul
+
+# Build configuration
+/build.gradle.kts @serverul
+/android/build.gradle.kts @serverul
+/android/app/build.gradle.kts @serverul
+/android/bridge/build.gradle.kts @serverul
+/android/agent/build.gradle.kts @serverul
+/gradle.properties @serverul
+
+# CI/CD workflows
+/.github/workflows/ @serverul
+/scripts/ @serverul
+
+# Documentation
+/README.md @serverul
+/DOCUMENTATION.md @serverul
+/DEPLOYMENT.md @serverul
+/DEVELOPMENT.md @serverul
+/SPEC.md @serverul
+
+# Security
+/SECURITY.md @serverul
+/detekt.yml @serverul
+
+# Store metadata
+/android/fastlane/ @serverul

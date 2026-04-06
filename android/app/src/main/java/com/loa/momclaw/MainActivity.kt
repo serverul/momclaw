@@ -7,6 +7,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
@@ -28,16 +30,19 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
     
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             // Get settings ViewModel to access dark theme preference
-            // Using the defaultViewModelFactory from Hilt
             val settingsViewModel: SettingsViewModel = viewModel(
                 factory = viewModelFactory
             )
             val settingsState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+            
+            // Calculate window size class for responsive design
+            val windowSizeClass = calculateWindowSizeClass(this)
             
             MOMCLAWTheme(
                 darkTheme = settingsState.darkTheme,
@@ -48,7 +53,10 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
-                    NavGraph(navController = navController)
+                    NavGraph(
+                        navController = navController,
+                        widthSizeClass = windowSizeClass.widthSizeClass
+                    )
                 }
             }
         }
