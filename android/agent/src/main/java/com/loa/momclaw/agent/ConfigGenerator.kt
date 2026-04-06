@@ -4,9 +4,8 @@ import com.loa.momclaw.agent.model.AgentConfig
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import io.github.oshai.kotlinlogging.KotlinLogging
 
-private val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger
 
 /**
  * Configuration Generator for NullClaw Agent

@@ -7,7 +7,6 @@ import com.loa.momclaw.agent.model.AgentConfig
 import com.loa.momclaw.agent.monitoring.AgentMonitor
 import com.loa.momclaw.agent.monitoring.ProcessLifecycleListener
 import kotlinx.coroutines.*
-import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.BufferedReader
 import java.io.File
 import java.io.IOException
@@ -18,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.withLock
 
-private val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger
 
 /**
  * NullClaw Bridge — Binary wrapper for NullClaw agent process

@@ -7,11 +7,10 @@ import com.loa.momclaw.agent.monitoring.AgentMonitor
 import com.loa.momclaw.agent.monitoring.ProcessLifecycleListener
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-private val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger
 
 /**
  * Singleton factory for managing NullClaw Bridge instances.
