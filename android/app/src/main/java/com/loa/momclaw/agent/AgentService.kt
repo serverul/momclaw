@@ -84,8 +84,11 @@ class AgentService : LifecycleService() {
     private val backoffMultiplier = 2.0
     
     private fun calculateBackoffDelay(): Long {
-        val delay = initialDelayMs * backoffMultiplier.pow(restartCount)
-        return min(delay.toLong(), maxDelayMs)
+        val baseDelay = initialDelayMs * backoffMultiplier.pow(restartCount)
+        val delay = min(baseDelay.toLong(), maxDelayMs)
+        // Add jitter (±10%) to prevent thundering herd
+        val jitter = (Math.random() * 0.2 - 0.1) * delay
+        return max(100L, (delay + jitter.toLong()))
     }
     
     /**

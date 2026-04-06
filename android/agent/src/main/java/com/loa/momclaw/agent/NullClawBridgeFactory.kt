@@ -195,7 +195,7 @@ object NullClawBridgeModule {
     /**
      * Provide ConfigGenerator instance.
      */
-    fun provideConfigGenerator(): ConfigGenerator.Type = ConfigGenerator
+    fun provideConfigGenerator(): ConfigGenerator = ConfigGenerator
     
     /**
      * Provide default AgentConfig.
