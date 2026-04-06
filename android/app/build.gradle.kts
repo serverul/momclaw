@@ -18,7 +18,7 @@ if (keyPropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.loa.MOMCLAW"
+    namespace = "com.loa.momclaw"
     compileSdk = 35
 
     defaultConfig {
@@ -141,29 +141,6 @@ android {
             "ExtraTranslation",
             "ObsoleteLintCustomCheck"
         )
-    }
-}
-
-// Configure version code for APK splits
-android.applicationVariants.all {
-    outputs.all {
-        val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
-        val abi = output.filters.firstOrNull { it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI }?.identifier
-        
-        // Assign unique version code per ABI
-        // Base: MAJOR*10000 + MINOR*100 + PATCH
-        // ABI suffix: 0=universal, 1=arm64, 2=armeabi, 3=x86, 4=x86_64
-        val baseVersionCode = android.defaultConfig.versionCode ?: 1
-        val abiSuffix = when (abi) {
-            "arm64-v8a" -> 1
-            "armeabi-v7a" -> 2
-            "x86" -> 3
-            "x86_64" -> 4
-            null -> 0  // Universal
-            else -> 0
-        }
-        
-        output.versionCodeOverride = baseVersionCode * 10 + abiSuffix
     }
 }
 
