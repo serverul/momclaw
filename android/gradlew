@@ -24,8 +24,7 @@ APP_HOME=$( cd "${APP_HOME:-./}" && pwd -P ) || exit
 APP_NAME="Gradle"
 APP_BASE_NAME=${0##*/}
 
-# Add default JVM options here
-DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
+# JVM options are set directly in the command line below
 
 # Use the maximum available, or set MAX_FD != -1 to use that value.
 MAX_FD=maximum
@@ -71,6 +70,5 @@ else
 fi
 
 # Collect all arguments for the java command
-eval set -- $DEFAULT_JVM_OPTS
-
-exec "$JAVACMD" "$@" -classpath "$CLASSPATH" org.gradle.wrapper.GradleWrapperMain "$@"
+# The JVM opts go to java, then classpath, then main class, then user args
+exec "$JAVACMD" -Xmx64m -Xms64m -classpath "$CLASSPATH" org.gradle.wrapper.GradleWrapperMain "$@"

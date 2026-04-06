@@ -1,14 +1,9 @@
-#!/usr/bin/env bash
-# run-tests.sh — Comprehensive test suite for MomClaw
-# Usage: ./run-tests.sh [--unit] [--instrumented] [--lint] [--coverage] [--all]
-#
-# Runs all tests and validation checks
-#
-set -euo pipefail
+#!/bin/bash
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-ANDROID_DIR="$PROJECT_ROOT/android"
+# MomClaw Test Runner Script
+# Runs all test suites
+
+set -e
 
 # Colors
 RED='\033[0;31m'
@@ -17,200 +12,102 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Flags
-RUN_UNIT=false
-RUN_INSTRUMENTED=false
-RUN_LINT=false
-RUN_COVERAGE=false
-RUN_ALL=false
+echo -e "${BLUE}═══════════════════════════════════════${NC}"
+echo -e "${BLUE}MomClaw Test Suite${NC}"
+echo -e "${BLUE}═══════════════════════════════════════${NC}"
+echo
 
-# Parse arguments
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --unit)
-            RUN_UNIT=true
-            shift
-            ;;
-        --instrumented)
-            RUN_INSTRUMENTED=true
-            shift
-            ;;
-        --lint)
-            RUN_LINT=true
-            shift
-            ;;
-        --coverage)
-            RUN_COVERAGE=true
-            shift
-            ;;
-        --all)
-            RUN_ALL=true
-            shift
-            ;;
-        -h|--help)
-            echo "Usage: $0 [OPTIONS]"
-            echo ""
-            echo "Options:"
-            echo "  --unit          Run unit tests"
-            echo "  --instrumented  Run instrumented tests (requires device/emulator)"
-            echo "  --lint          Run lint checks"
-            echo "  --coverage      Run tests with coverage report"
-            echo "  --all           Run all tests and checks"
-            echo "  -h, --help      Show this help message"
-            echo ""
-            echo "Examples:"
-            echo "  $0 --unit              # Run only unit tests"
-            echo "  $0 --lint              # Run only lint checks"
-            echo "  $0 --all               # Run everything"
-            echo "  $0 --coverage --unit   # Run unit tests with coverage"
-            exit 0
-            ;;
-        *)
-            echo -e "${RED}Unknown option: $1${NC}"
-            exit 1
-            ;;
-    esac
-done
+TOTAL_TESTS=0
+PASSED_TESTS=0
+FAILED_TESTS=0
 
-# Default to all if no flags specified
-if [ "$RUN_UNIT" = false ] && [ "$RUN_INSTRUMENTED" = false ] && [ "$RUN_LINT" = false ] && [ "$RUN_COVERAGE" = false ]; then
-    RUN_ALL=true
-fi
-
-if [ "$RUN_ALL" = true ]; then
-    RUN_UNIT=true
-    RUN_INSTRUMENTED=false  # Skip instrumented by default (requires device)
-    RUN_LINT=true
-    RUN_COVERAGE=false
-fi
-
-cd "$ANDROID_DIR"
-
-echo -e "${BLUE}=== MomClaw Test Suite ===${NC}"
-echo ""
-
-# Ensure gradlew is executable
-if [ ! -x "gradlew" ]; then
-    echo -e "${YELLOW}Making gradlew executable...${NC}"
-    chmod +x gradlew
-fi
-
-# Function to run unit tests
-run_unit_tests() {
-    echo -e "${BLUE}=== Running Unit Tests ===${NC}"
+# Function to run test and track results
+run_test() {
+    local name=$1
+    local command=$2
     
-    if [ "$RUN_COVERAGE" = true ]; then
-        ./gradlew testDebugUnitTestCoverage
+    echo -e "${YELLOW}Running: $name${NC}"
+    echo
+    
+    if eval $command; then
+        echo -e "${GREEN}✓ $name passed${NC}"
+        PASSED_TESTS=$((PASSED_TESTS + 1))
     else
-        ./gradlew testDebugUnitTest
+        echo -e "${RED}✗ $name failed${NC}"
+        FAILED_TESTS=$((FAILED_TESTS + 1))
     fi
     
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✅ Unit tests passed${NC}"
-        
-        if [ "$RUN_COVERAGE" = true ]; then
-            echo ""
-            echo -e "${BLUE}Coverage Report:${NC}"
-            echo "  file://$PWD/app/build/reports/coverage/test/debug/index.html"
-        fi
-    else
-        echo -e "${RED}❌ Unit tests failed${NC}"
-        exit 1
-    fi
-    echo ""
+    TOTAL_TESTS=$((TOTAL_TESTS + 1))
+    echo
+    echo -e "${BLUE}─────────────────────────────────────${NC}"
+    echo
 }
 
-# Function to run instrumented tests
-run_instrumented_tests() {
-    echo -e "${BLUE}=== Running Instrumented Tests ===${NC}"
-    echo -e "${YELLOW}Requires connected device or emulator${NC}"
-    
-    # Check for connected devices
-    DEVICES=$(adb devices | grep -v "List of devices" | grep -c "device")
-    if [ "$DEVICES" -eq 0 ]; then
-        echo -e "${RED}❌ No devices connected${NC}"
-        echo "Connect a device or start an emulator first"
-        exit 1
-    fi
-    
-    ./gradlew connectedAndroidTest
-    
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✅ Instrumented tests passed${NC}"
-    else
-        echo -e "${RED}❌ Instrumented tests failed${NC}"
-        exit 1
-    fi
-    echo ""
-}
-
-# Function to run lint checks
-run_lint_checks() {
-    echo -e "${BLUE}=== Running Lint Checks ===${NC}"
-    
-    # Android Lint
-    echo "Running Android Lint..."
-    ./gradlew lintDebug
-    
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}❌ Android Lint failed${NC}"
-        echo "Report: file://$PWD/app/build/reports/lint-results-debug.html"
-        exit 1
-    fi
-    echo -e "${GREEN}✅ Android Lint passed${NC}"
-    
-    # Detekt (if configured)
-    if grep -q "detekt" build.gradle.kts; then
-        echo ""
-        echo "Running Detekt..."
-        ./gradlew detekt
-        
-        if [ $? -ne 0 ]; then
-            echo -e "${RED}❌ Detekt failed${NC}"
-            echo "Report: file://$PWD/build/reports/detekt/detekt.html"
-            exit 1
-        fi
-        echo -e "${GREEN}✅ Detekt passed${NC}"
-    fi
-    
-    echo ""
-}
-
-# Run tests based on flags
-if [ "$RUN_UNIT" = true ]; then
-    run_unit_tests
+# Check if in correct directory
+if [ ! -f "android/gradlew" ]; then
+    echo -e "${RED}Error: Run this script from momclaw root directory${NC}"
+    exit 1
 fi
 
-if [ "$RUN_INSTRUMENTED" = true ]; then
-    run_instrumented_tests
+# Make gradlew executable
+chmod +x android/gradlew
+
+# Unit Tests
+echo -e "${BLUE}Unit Tests${NC}"
+echo -e "${BLUE}═══════════════════════════════════════${NC}"
+run_test "Unit Tests (Debug)" "./android/gradlew testDebugUnitTest --info"
+
+# Instrumented Tests (if device connected)
+echo -e "${BLUE}Instrumented Tests${NC}"
+echo -e "${BLUE}═══════════════════════════════════════${NC}"
+
+# Check if device is connected
+if adb devices | grep -q "device$"; then
+    echo -e "${GREEN}Android device connected${NC}"
+    run_test "Instrumented Tests" "./android/gradlew connectedAndroidTest"
+else
+    echo -e "${YELLOW}No Android device connected - skipping instrumented tests${NC}"
+    echo -e "${YELLOW}Connect a device or start an emulator to run instrumented tests${NC}"
 fi
 
-if [ "$RUN_LINT" = true ]; then
-    run_lint_checks
+# Lint
+echo -e "${BLUE}Static Analysis${NC}"
+echo -e "${BLUE}═══════════════════════════════════════${NC}"
+run_test "Android Lint" "./android/gradlew lintDebug"
+
+# Detekt (Kotlin static analysis)
+if [ -f "detekt.yml" ]; then
+    run_test "Detekt (Kotlin Analysis)" "./android/gradlew detekt"
+else
+    echo -e "${YELLOW}detekt.yml not found - skipping Detekt${NC}"
 fi
 
-echo -e "${GREEN}=== All Tests Passed! ===${NC}"
-echo ""
+# Coverage Report (optional)
+if [ "$1" == "--coverage" ]; then
+    echo -e "${BLUE}Coverage Report${NC}"
+    echo -e "${BLUE}═══════════════════════════════════════${NC}"
+    run_test "Code Coverage" "./android/gradlew testDebugUnitTestCoverage"
+    
+    if [ -f "android/app/build/reports/coverage/test/debug/index.html" ]; then
+        echo -e "${GREEN}Coverage report generated${NC}"
+        echo "Location: android/app/build/reports/coverage/test/debug/index.html"
+    fi
+fi
 
 # Summary
-echo -e "${BLUE}Test Summary:${NC}"
-if [ "$RUN_UNIT" = true ]; then
-    echo "  ✅ Unit tests"
-fi
-if [ "$RUN_INSTRUMENTED" = true ]; then
-    echo "  ✅ Instrumented tests"
-fi
-if [ "$RUN_LINT" = true ]; then
-    echo "  ✅ Lint checks"
-fi
-if [ "$RUN_COVERAGE" = true ]; then
-    echo "  ✅ Coverage report generated"
-fi
+echo -e "${BLUE}═══════════════════════════════════════${NC}"
+echo -e "${BLUE}Test Summary${NC}"
+echo -e "${BLUE}═══════════════════════════════════════${NC}"
+echo
+echo -e "Total:   ${BLUE}$TOTAL_TESTS${NC}"
+echo -e "Passed:  ${GREEN}$PASSED_TESTS${NC}"
+echo -e "Failed:  ${RED}$FAILED_TESTS${NC}"
+echo
 
-echo ""
-echo -e "${BLUE}Reports:${NC}"
-echo "  Unit tests:   $ANDROID_DIR/app/build/test-results/testDebugUnitTest/"
-echo "  Lint:         $ANDROID_DIR/app/build/reports/lint-results-debug.html"
-if [ "$RUN_COVERAGE" = true ]; then
-    echo "  Coverage:     $ANDROID_DIR/app/build/reports/coverage/test/debug/index.html"
+if [ $FAILED_TESTS -eq 0 ]; then
+    echo -e "${GREEN}✓ All tests passed!${NC}"
+    exit 0
+else
+    echo -e "${RED}✗ Some tests failed${NC}"
+    exit 1
 fi

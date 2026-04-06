@@ -1,0 +1,39 @@
+MomClaw is a fully autonomous AI agent that runs entirely on your phone — zero cloud, zero tracking, 100% offline.
+
+🧠 POWERFUL FEATURES:
+
+• Conversații inteligente - Advanced reasoning with Gemma 3 E4B-it
+• Tool calls native - Shell, file operations, web search
+• Memorie persistentă - SQLite database with full conversation history
+• Canale externe - Telegram and Discord integration (coming soon)
+• OpenClaw Sync - Sincronizare cu instanță principală OpenClaw (coming soon)
+• Privacy-first - All data stays on device
+
+🔒 PRIVACY BY DESIGN:
+
+• All model inferences happen directly on your device
+• No internet required for core features
+• Your prompts, images, and data never leave your phone
+• Open source and auditable
+
+⚡ PERFORMANCE:
+
+• Optimized for mobile with LiteRT-LM
+• GPU acceleration when available
+• Dark theme with Material You design
+• Efficient memory management
+
+🎯 USE CASES:
+
+• Personal assistant without privacy concerns
+• Offline AI when no internet available
+• Development and experimentation with local LLMs
+• Learning about on-device AI
+
+📱 REQUIREMENTS:
+
+• Android 9.0 (API 28) or higher
+• 4GB+ RAM recommended
+• 3GB+ free storage for model
+
+Open source: https://github.com/serverul/momclaw

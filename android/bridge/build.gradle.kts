@@ -53,8 +53,9 @@ android {
 }
 
 dependencies {
-    // LiteRT-LM (Google AI Edge)
-    implementation("com.google.ai.edge:litert-lm:1.0.0")
+    // LiteRT-LM (Google AI Edge) — not yet in public Maven repos
+    // TODO: Replace with actual dependency once published (expected: com.google.ai.edge:litert-lm)
+    // compileOnly("com.google.ai.edge:litert-lm:1.0.0")
     
     // Ktor Server (Netty)
     val ktorVersion = "2.3.8"
@@ -63,7 +64,10 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-server-cors:$ktorVersion")
-    implementation("io.ktor:ktor-server-sse:$ktorVersion")
+    // NOTE: ktor-server-sse only exists starting Ktor 3.0.0
+    // For Ktor 2.x, use call.response.respondOutputStream with EventStream content type
+    // TODO: Either upgrade to Ktor 3.x or remove this dep
+    // implementation("io.ktor:ktor-server-sse:3.4.2")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
 
     // Ktor Client

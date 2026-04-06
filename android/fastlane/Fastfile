@@ -1,0 +1,194 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+
+default_platform(:android)
+
+platform :android do
+  
+  # ═══════════════════════════════════════════
+  # BUILD LANES
+  # ═══════════════════════════════════════════
+  
+  desc "Build release AAB"
+  lane :build_aab do
+    gradle(task: "clean bundleRelease")
+  end
+  
+  desc "Build release APK"
+  lane :build_apk do
+    gradle(task: "clean assembleRelease")
+  end
+  
+  # ═══════════════════════════════════════════
+  # UPLOAD LANES
+  # ═══════════════════════════════════════════
+  
+  desc "Build and upload to Google Play Internal Testing"
+  lane :internal do
+    gradle(task: "clean bundleRelease")
+    
+    upload_to_play_store(
+      track: 'internal',
+      aab: 'app/build/outputs/bundle/release/app-release.aab',
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false
+    )
+  end
+  
+  desc "Build and upload to Google Play Alpha"
+  lane :alpha do
+    gradle(task: "clean bundleRelease")
+    
+    upload_to_play_store(
+      track: 'alpha',
+      aab: 'app/build/outputs/bundle/release/app-release.aab',
+      skip_upload_metadata: false
+    )
+  end
+  
+  desc "Build and upload to Google Play Beta"
+  lane :beta do
+    gradle(task: "clean bundleRelease")
+    
+    upload_to_play_store(
+      track: 'beta',
+      aab: 'app/build/outputs/bundle/release/app-release.aab',
+      skip_upload_metadata: false
+    )
+  end
+  
+  desc "Build and upload to Google Play Production"
+  lane :production do
+    gradle(task: "clean bundleRelease")
+    
+    upload_to_play_store(
+      track: 'production',
+      aab: 'app/build/outputs/bundle/release/app-release.aab',
+      skip_upload_metadata: false
+    )
+  end
+  
+  # ═══════════════════════════════════════════
+  # PROMOTION LANES
+  # ═══════════════════════════════════════════
+  
+  desc "Promote from Internal to Alpha"
+  lane :promote_internal_to_alpha do
+    promote_to_play_store(
+      track: 'internal',
+      track_promote_to: 'alpha'
+    )
+  end
+  
+  desc "Promote from Alpha to Beta"
+  lane :promote_alpha_to_beta do
+    promote_to_play_store(
+      track: 'alpha',
+      track_promote_to: 'beta'
+    )
+  end
+  
+  desc "Promote from Beta to Production"
+  lane :promote_beta_to_production do
+    promote_to_play_store(
+      track: 'beta',
+      track_promote_to: 'production'
+    )
+  end
+  
+  # ═══════════════════════════════════════════
+  # METADATA LANES
+  # ═══════════════════════════════════════════
+  
+  desc "Update store listing metadata only"
+  lane :update_metadata do
+    upload_to_play_store(
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_images: false,
+      skip_upload_screenshots: false
+    )
+  end
+  
+  desc "Download existing metadata from Google Play"
+  lane :download_metadata do
+    download_metadata_from_play_store()
+  end
+  
+  # ═══════════════════════════════════════════
+  # UTILITY LANES
+  # ═══════════════════════════════════════════
+  
+  desc "Run tests before release"
+  lane :test do
+    gradle(task: "testDebugUnitTest")
+    gradle(task: "lintDebug")
+  end
+  
+  desc "Complete release workflow"
+  lane :release do |options|
+    # Extract version from options or prompt
+    version = options[:version]
+    
+    if version.nil?
+      puts "Error: Version not specified"
+      puts "Usage: fastlane release version:1.0.1"
+      next
+    end
+    
+    puts "🚀 Starting release v#{version}"
+    
+    # Run tests
+    puts "📋 Running tests..."
+    gradle(task: "testDebugUnitTest")
+    gradle(task: "lintDebug")
+    
+    # Build release
+    puts "🔨 Building release AAB..."
+    gradle(task: "clean bundleRelease")
+    
+    # Upload to Internal Testing
+    puts "📤 Uploading to Google Play Internal..."
+    upload_to_play_store(
+      track: 'internal',
+      aab: 'app/build/outputs/bundle/release/app-release.aab'
+    )
+    
+    puts "✅ Release v#{version} complete!"
+    puts "Check Google Play Console: https://play.google.com/console"
+  end
+  
+  desc "Create GitHub release with APK and AAB"
+  lane :github_release do |options|
+    version = options[:version]
+    
+    if version.nil?
+      puts "Error: Version not specified"
+      next
+    end
+    
+    # Build artifacts
+    gradle(task: "clean assembleRelease bundleRelease")
+    
+    # Copy to root
+    FileUtils.cp(
+      'app/build/outputs/apk/release/app-release.apk',
+      "../momclaw-#{version}.apk"
+    )
+    FileUtils.cp(
+      'app/build/outputs/bundle/release/app-release.aab',
+      "../momclaw-#{version}.aab"
+    )
+    
+    # Create GitHub release
+    sh("cd .. && gh release create v#{version} " \
+       "momclaw-#{version}.apk " \
+       "momclaw-#{version}.aab " \
+       "--title 'MomClaw v#{version}' " \
+       "--notes-file CHANGELOG.md")
+    
+    puts "✅ GitHub release created: https://github.com/serverul/momclaw/releases/tag/v#{version}"
+  end
+  
+end

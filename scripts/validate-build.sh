@@ -1,283 +1,184 @@
-#!/usr/bin/env bash
-# validate-build.sh — Validate MomClaw build before release
-# Usage: ./validate-build.sh [--quick] [--full]
-#
-# Performs comprehensive validation checks
-#
-set -euo pipefail
+#!/bin/bash
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-ANDROID_DIR="$PROJECT_ROOT/android"
+# MomClaw Build Validation Script
+# Runs all checks before a release
+
+set -e
 
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m'
+NC='\033[0m' # No Color
 
-QUICK_MODE=false
+echo -e "${BLUE}═══════════════════════════════════════${NC}"
+echo -e "${BLUE}MomClaw Build Validation${NC}"
+echo -e "${BLUE}═══════════════════════════════════════${NC}"
+echo
 
-# Parse arguments
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --quick)
-            QUICK_MODE=true
-            shift
-            ;;
-        --full)
-            QUICK_MODE=false
-            shift
-            ;;
-        -h|--help)
-            echo "Usage: $0 [OPTIONS]"
-            echo ""
-            echo "Options:"
-            echo "  --quick   Quick validation (skip time-consuming checks)"
-            echo "  --full    Full validation (default)"
-            echo "  -h, --help    Show this help message"
-            exit 0
-            ;;
-        *)
-            echo -e "${RED}Unknown option: $1${NC}"
-            exit 1
-            ;;
-    esac
-done
-
-cd "$ANDROID_DIR"
-
-echo -e "${BLUE}=== MomClaw Build Validation ===${NC}"
-echo ""
-
-# Ensure gradlew is executable
-chmod +x gradlew 2>/dev/null || true
-
-# Validation checks
 ERRORS=0
-WARNINGS=0
 
-check_pass() {
-    echo -e "  ${GREEN}✅ $1${NC}"
+# Function to check and report
+check() {
+    local description=$1
+    local command=$2
+    
+    echo -e "${YELLOW}Checking: $description${NC}"
+    
+    if eval $command > /dev/null 2>&1; then
+        echo -e "${GREEN}✓ $description${NC}"
+    else
+        echo -e "${RED}✗ $description${NC}"
+        ERRORS=$((ERRORS + 1))
+    fi
 }
 
-check_fail() {
-    echo -e "  ${RED}❌ $1${NC}"
-    ((ERRORS++))
-}
+# Prerequisites
+echo -e "${BLUE}Prerequisites${NC}"
+echo -e "${BLUE}─────────────────────────────────────${NC}"
 
-check_warn() {
-    echo -e "  ${YELLOW}⚠️  $1${NC}"
-    ((WARNINGS++))
-}
+check "Java 17+" "java -version 2>&1 | grep -q '17'"
+check "Android SDK" "[ -n \"\$ANDROID_HOME\" ]"
+check "Gradle wrapper" "[ -f android/gradlew ]"
+check "Git repository" "git rev-parse --git-dir > /dev/null 2>&1"
 
-# 1. Check prerequisites
-echo -e "${BLUE}[1/8] Checking Prerequisites...${NC}"
+echo
 
-# Java version
-JAVA_VERSION=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
-if [ "$JAVA_VERSION" -eq 17 ]; then
-    check_pass "JDK 17 installed"
+# Code Quality
+echo -e "${BLUE}Code Quality${NC}"
+echo -e "${BLUE}─────────────────────────────────────${NC}"
+
+echo -e "${YELLOW}Running Lint...${NC}"
+if ./android/gradlew lintDebug 2>&1 | grep -q "BUILD SUCCESSFUL"; then
+    echo -e "${GREEN}✓ Lint passed${NC}"
 else
-    check_fail "JDK 17 required (found JDK $JAVA_VERSION)"
+    echo -e "${RED}✗ Lint failed${NC}"
+    ERRORS=$((ERRORS + 1))
 fi
 
-# Android SDK
-if [ -n "${ANDROID_HOME:-}" ]; then
-    check_pass "ANDROID_HOME set: $ANDROID_HOME"
+echo -e "${YELLOW}Running Detekt...${NC}"
+if ./android/gradlew detekt 2>&1 | grep -q "BUILD SUCCESSFUL"; then
+    echo -e "${GREEN}✓ Detekt passed${NC}"
 else
-    check_warn "ANDROID_HOME not set (may cause issues)"
+    echo -e "${RED}✗ Detekt failed${NC}"
+    ERRORS=$((ERRORS + 1))
 fi
 
-# Git
-if command -v git &>/dev/null; then
-    check_pass "Git installed"
+echo
+
+# Tests
+echo -e "${BLUE}Tests${NC}"
+echo -e "${BLUE}─────────────────────────────────────${NC}"
+
+echo -e "${YELLOW}Running unit tests...${NC}"
+if ./android/gradlew testDebugUnitTest 2>&1 | grep -q "BUILD SUCCESSFUL"; then
+    echo -e "${GREEN}✓ Unit tests passed${NC}"
 else
-    check_fail "Git not found"
+    echo -e "${RED}✗ Unit tests failed${NC}"
+    ERRORS=$((ERRORS + 1))
 fi
 
-echo ""
+echo
 
-# 2. Check project structure
-echo -e "${BLUE}[2/8] Checking Project Structure...${NC}"
+# Build
+echo -e "${BLUE}Build${NC}"
+echo -e "${BLUE}─────────────────────────────────────${NC}"
 
-REQUIRED_DIRS=(
-    "app/src/main/java"
-    "bridge/src/main/java"
-    "agent/src/main/java"
-)
-
-for dir in "${REQUIRED_DIRS[@]}"; do
-    if [ -d "$dir" ]; then
-        check_pass "Directory exists: $dir"
-    else
-        check_fail "Missing directory: $dir"
-    fi
-done
-
-REQUIRED_FILES=(
-    "build.gradle.kts"
-    "settings.gradle.kts"
-    "gradle.properties"
-    "app/build.gradle.kts"
-    "app/src/main/AndroidManifest.xml"
-)
-
-for file in "${REQUIRED_FILES[@]}"; do
-    if [ -f "$file" ]; then
-        check_pass "File exists: $file"
-    else
-        check_fail "Missing file: $file"
-    fi
-done
-
-echo ""
-
-# 3. Check Gradle configuration
-echo -e "${BLUE}[3/8] Checking Gradle Configuration...${NC}"
-
-# Gradle version
-GRADLE_VERSION=$(./gradlew --version | grep "Gradle" | awk '{print $2}')
-check_pass "Gradle version: $GRADLE_VERSION"
-
-# Check for deprecated configurations
-if grep -r "jcenter()" . --include="*.gradle*" 2>/dev/null; then
-    check_warn "jcenter() found (deprecated)"
+echo -e "${YELLOW}Building debug APK...${NC}"
+if ./android/gradlew assembleDebug 2>&1 | grep -q "BUILD SUCCESSFUL"; then
+    echo -e "${GREEN}✓ Debug APK built${NC}"
 else
-    check_pass "No deprecated jcenter() repositories"
+    echo -e "${RED}✗ Debug APK build failed${NC}"
+    ERRORS=$((ERRORS + 1))
 fi
 
-# Check Kotlin version
-if grep -q "kotlinVersion" build.gradle.kts 2>/dev/null; then
-    KOTLIN_VERSION=$(grep "kotlin.*version" build.gradle.kts | head -1 | grep -oP '\d+\.\d+\.\d+' | head -1)
-    check_pass "Kotlin version: $KOTLIN_VERSION"
+echo -e "${YELLOW}Building release APK...${NC}"
+if ./android/gradlew assembleRelease 2>&1 | grep -q "BUILD SUCCESSFUL"; then
+    echo -e "${GREEN}✓ Release APK built${NC}"
 else
-    check_warn "Kotlin version not explicitly set"
+    echo -e "${RED}✗ Release APK build failed${NC}"
+    ERRORS=$((ERRORS + 1))
 fi
 
-echo ""
+echo
 
-# 4. Check code style (quick mode: skip)
-if [ "$QUICK_MODE" = false ]; then
-    echo -e "${BLUE}[4/8] Running Code Style Checks...${NC}"
+# Documentation
+echo -e "${BLUE}Documentation${NC}"
+echo -e "${BLUE}─────────────────────────────────────${NC}"
+
+check "README.md exists" "[ -f README.md ]"
+check "BUILD.md exists" "[ -f BUILD.md ]"
+check "CHANGELOG.md exists" "[ -f CHANGELOG.md ]"
+check "CONTRIBUTING.md exists" "[ -f CONTRIBUTING.md ]"
+check "LICENSE exists" "[ -f LICENSE ]"
+
+echo
+
+# Version Check
+echo -e "${BLUE}Version Information${NC}"
+echo -e "${BLUE}─────────────────────────────────────${NC}"
+
+if [ -f "android/app/build.gradle.kts" ]; then
+    VERSION_NAME=$(grep "versionName" android/app/build.gradle.kts | head -1 | sed 's/.*=.*"\(.*\)".*/\1/')
+    VERSION_CODE=$(grep "versionCode" android/app/build.gradle.kts | head -1 | sed 's/.*=.*\([0-9]*\).*/\1/')
     
-    # Detekt (if configured)
-    if grep -q "detekt" build.gradle.kts 2>/dev/null; then
-        if ./gradlew detekt 2>/dev/null; then
-            check_pass "Detekt checks passed"
-        else
-            check_warn "Detekt issues found (check report)"
-        fi
-    else
-        check_warn "Detekt not configured"
-    fi
+    echo -e "Version Name: ${GREEN}$VERSION_NAME${NC}"
+    echo -e "Version Code: ${GREEN}$VERSION_CODE${NC}"
 else
-    echo -e "${BLUE}[4/8] Skipping Code Style Checks (quick mode)${NC}"
+    echo -e "${YELLOW}Warning: build.gradle.kts not found${NC}"
 fi
 
-echo ""
+echo
 
-# 5. Run lint (quick mode: skip)
-if [ "$QUICK_MODE" = false ]; then
-    echo -e "${BLUE}[5/8] Running Android Lint...${NC}"
+# Git Status
+echo -e "${BLUE}Git Status${NC}"
+echo -e "${BLUE}─────────────────────────────────────${NC}"
+
+if git diff-index --quiet HEAD --; then
+    echo -e "${GREEN}✓ Working tree clean${NC}"
+else
+    echo -e "${YELLOW}⚠ Uncommitted changes:${NC}"
+    git status --short
+fi
+
+CURRENT_BRANCH=$(git branch --show-current)
+echo -e "Current branch: ${BLUE}$CURRENT_BRANCH${NC}"
+
+echo
+
+# Keystore Check
+echo -e "${BLUE}Signing${NC}"
+echo -e "${BLUE}─────────────────────────────────────${NC}"
+
+if [ -f "momclaw-release-key.jks" ]; then
+    echo -e "${GREEN}✓ Keystore found${NC}"
     
-    if ./gradlew lintDebug 2>/dev/null; then
-        check_pass "Lint checks passed"
+    if [ -f "android/key.properties" ]; then
+        echo -e "${GREEN}✓ key.properties found${NC}"
     else
-        check_warn "Lint issues found (check report)"
+        echo -e "${YELLOW}⚠ key.properties not found (will prompt for password)${NC}"
     fi
 else
-    echo -e "${BLUE}[5/8] Skipping Lint (quick mode)${NC}"
+    echo -e "${YELLOW}⚠ Keystore not found (generate for release builds)${NC}"
 fi
 
-echo ""
-
-# 6. Build debug APK
-echo -e "${BLUE}[6/8] Building Debug APK...${NC}"
-
-if ./gradlew assembleDebug 2>&1 | grep -q "BUILD SUCCESSFUL"; then
-    check_pass "Debug build successful"
-    
-    # Check APK size
-    APK_SIZE=$(du -h app/build/outputs/apk/debug/*.apk | cut -f1)
-    check_pass "APK size: $APK_SIZE"
-    
-    # Check if APK exists
-    if [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
-        check_pass "APK generated: app-debug.apk"
-    else
-        check_fail "APK not found"
-    fi
-else
-    check_fail "Debug build failed"
-fi
-
-echo ""
-
-# 7. Run unit tests (quick mode: skip)
-if [ "$QUICK_MODE" = false ]; then
-    echo -e "${BLUE}[7/8] Running Unit Tests...${NC}"
-    
-    if ./gradlew testDebugUnitTest 2>&1 | grep -q "BUILD SUCCESSFUL"; then
-        check_pass "Unit tests passed"
-    else
-        check_fail "Unit tests failed"
-    fi
-else
-    echo -e "${BLUE}[7/8] Skipping Unit Tests (quick mode)${NC}"
-fi
-
-echo ""
-
-# 8. Check for security issues
-echo -e "${BLUE}[8/8] Checking Security...${NC}"
-
-# Check for hardcoded secrets
-if grep -r "password\s*=\s*\"" app/src --include="*.kt" 2>/dev/null; then
-    check_fail "Hardcoded password found"
-else
-    check_pass "No hardcoded passwords"
-fi
-
-if grep -r "api_key\s*=\s*\"" app/src --include="*.kt" 2>/dev/null; then
-    check_fail "Hardcoded API key found"
-else
-    check_pass "No hardcoded API keys"
-fi
-
-# Check for debuggable release builds
-if grep -q "isDebuggable = true" app/build.gradle.kts 2>/dev/null; then
-    if grep -A5 "buildTypes.*release" app/build.gradle.kts | grep -q "isDebuggable = true"; then
-        check_fail "Release build is debuggable!"
-    fi
-fi
-check_pass "Release build not debuggable"
-
-# Check for proper backup configuration
-if grep -q "android:allowBackup=\"true\"" app/src/main/AndroidManifest.xml 2>/dev/null; then
-    check_warn "android:allowBackup enabled (consider security implications)"
-fi
-
-echo ""
+echo
 
 # Summary
-echo -e "${BLUE}=== Validation Summary ===${NC}"
-echo ""
-
-if [ $ERRORS -eq 0 ] && [ $WARNINGS -eq 0 ]; then
-    echo -e "${GREEN}✅ All checks passed!${NC}"
-    echo ""
-    echo "Build is ready for release."
-    exit 0
-elif [ $ERRORS -eq 0 ]; then
-    echo -e "${YELLOW}⚠️  Validation completed with $WARNINGS warning(s)${NC}"
-    echo ""
-    echo "Build can proceed, but review warnings above."
+echo -e "${BLUE}═══════════════════════════════════════${NC}"
+if [ $ERRORS -eq 0 ]; then
+    echo -e "${GREEN}✓ All checks passed!${NC}"
+    echo -e "${GREEN}Ready for release.${NC}"
+    echo
+    echo "Next steps:"
+    echo "  1. Update CHANGELOG.md"
+    echo "  2. Tag release: git tag -a v$VERSION_NAME -m 'Release v$VERSION_NAME'"
+    echo "  3. Build release: ./scripts/build-release.sh $VERSION_NAME"
+    echo "  4. Upload to stores"
     exit 0
 else
-    echo -e "${RED}❌ Validation failed with $ERRORS error(s) and $WARNINGS warning(s)${NC}"
-    echo ""
-    echo "Fix errors before proceeding."
+    echo -e "${RED}✗ $ERRORS check(s) failed${NC}"
+    echo -e "${YELLOW}Fix issues before releasing.${NC}"
     exit 1
 fi

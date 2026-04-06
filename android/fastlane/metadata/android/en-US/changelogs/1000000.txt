@@ -1,0 +1,12 @@
+Initial release of MomClaw!
+
+Features:
+• Chat UI with streaming responses
+• Offline AI inference with Gemma 3 E4B-it
+• Model management (download, load, switch)
+• Settings customization
+• Persistent conversation history
+• Material You design with dark theme
+
+This is an early beta release. Expect bugs and missing features.
+Feedback welcome at https://github.com/serverul/momclaw/issues

@@ -11,7 +11,6 @@ import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.sse.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
@@ -109,8 +108,6 @@ fun Application.moduleInner(
         allowHeader(HttpHeaders.Authorization)
     }
     
-    install(SSE)
-    
     routing {
         // Health check
         get("/health") {
@@ -162,46 +159,48 @@ fun Application.moduleInner(
             )
             
             if (request.stream) {
-                // Streaming response via SSE
-                sse {
-                    val responseId = SSEWriter.generateId()
-                    val created = SSEWriter.currentTimestamp()
-                    var tokensGenerated = 0
-                    
-                    llmEngine.generateStreaming(litertRequest).collect { chunk ->
-                        tokensGenerated++
-                        
-                        val response = ChatCompletionResponse(
-                            id = responseId,
-                            created = created,
-                            model = llmEngine.getModelInfo()["name"] as? String ?: "litert",
-                            choices = listOf(
-                                ChatChoice(
-                                    index = 0,
-                                    delta = ChatDelta(
-                                        role = if (tokensGenerated == 1) "assistant" else null,
-                                        content = chunk.text
-                                    ),
-                                    finishReason = if (chunk.isComplete) "stop" else null
-                                )
-                            ),
-                            usage = if (chunk.isComplete) Usage(
-                                promptTokens = 0,
-                                completionTokens = tokensGenerated,
-                                totalTokens = tokensGenerated
-                            ) else null
-                        )
-                        
-                        send(
-                            data = json.encodeToString(
-                                ChatCompletionResponse.serializer(),
-                                response
+                // Streaming response via SSE (manual implementation for Ktor 2.x)
+                // NOTE: Ktor 2.x doesn't have the SSE plugin; we use respondTextWriter directly
+                val responseId = SSEWriter.generateId()
+                val created = SSEWriter.currentTimestamp()
+                var tokensGenerated = 0
+                
+                call.respondTextWriter(contentType = ContentType.Text.EventStream) {
+                    try {
+                        llmEngine.generateStreaming(litertRequest).collect { chunk ->
+                            tokensGenerated++
+                            
+                            val response = ChatCompletionResponse(
+                                id = responseId,
+                                created = created,
+                                model = llmEngine.getModelInfo()["name"] as? String ?: "litert",
+                                choices = listOf(
+                                    ChatChoice(
+                                        index = 0,
+                                        delta = ChatDelta(
+                                            role = if (tokensGenerated == 1) "assistant" else null,
+                                            content = chunk.text
+                                        ),
+                                        finishReason = if (chunk.isComplete) "stop" else null
+                                    )
+                                ),
+                                usage = if (chunk.isComplete) Usage(
+                                    promptTokens = 0,
+                                    completionTokens = tokensGenerated,
+                                    totalTokens = tokensGenerated
+                                ) else null
                             )
-                        )
-                        
-                        if (chunk.isComplete) {
-                            close()
+                            
+                            write("data: ${json.encodeToString(ChatCompletionResponse.serializer(), response)}\n\n")
+                            flush()
+                            
+                            if (chunk.isComplete) {
+                                write("data: [DONE]\n\n")
+                                flush()
+                            }
                         }
+                    } catch (e: Exception) {
+                        logger.error(e) { "Error during streaming response" }
                     }
                 }
             } else {

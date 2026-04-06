@@ -8,10 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **DEPLOYMENT.md** - Comprehensive deployment guide for Google Play Store and F-Droid
+- **Fastlane configuration** - Automated Google Play deployment with multiple tracks
+- **CI/CD automation scripts**:
+  - `scripts/ci-build.sh` - Main automation script for all operations
+  - `scripts/build-release.sh` - Build release APK + AAB
+  - `scripts/build-fdroid.sh` - Build F-Droid compatible APK
+  - `scripts/validate-build.sh` - Pre-release validation
+  - `scripts/run-tests.sh` - Run all test suites
+- **Google Play workflows**:
+  - `.github/workflows/google-play-deploy.yml` - Deploy to any track (internal/alpha/beta/production)
+  - `.github/workflows/fdroid-build.yml` - Build for F-Droid repository
+- **Store metadata**:
+  - Title, short/full descriptions
+  - Changelogs per version
+  - Screenshots directory structure
 - Comprehensive DOCUMENTATION.md with setup, deployment, API docs, and troubleshooting
 - CONTRIBUTING.md guide for contributors
 - CI/CD workflows (release.yml, security.yml)
-- Test automation scripts (run-tests.sh, validate-build.sh, build-release.sh)
 - Optimized gradle.properties with performance settings
 - Consumer ProGuard rules for all modules
 - Enhanced ProGuard rules for app module
@@ -21,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated README.md with badges, screenshots placeholders, and better structure
 - Improved build.gradle.kts for all modules with signing config and optimizations
 - Enhanced app/build.gradle.kts with comprehensive dependencies and build features
+- Better deployment documentation and automation
 
 ### Fixed
 - Signing configuration for release builds

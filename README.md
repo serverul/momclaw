@@ -120,6 +120,7 @@ adb push models/gemma-3-E4B-it.litertlm \
 | Documentație | Descriere |
 |-------------|-----------|
 | [DOCUMENTATION.md](DOCUMENTATION.md) | **Documentație completă** - setup, deployment, API, troubleshooting |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | **Deployment guide** - Google Play Store și F-Droid |
 | [BUILD.md](BUILD.md) | Build instructions detaliate |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Developer guide și arhitectură |
 | [SPEC.md](SPEC.md) | Specificații tehnice complete |
@@ -186,12 +187,29 @@ Vezi [DEVELOPMENT.md](DEVELOPMENT.md) pentru detalii complete.
 
 ## 🚀 Deployment
 
-### Release Builds
+### Quick Deployment
+
+Use the main CI/CD script:
+
+```bash
+# Build release
+./scripts/ci-build.sh build:release 1.0.0
+
+# Deploy to Google Play
+./scripts/ci-build.sh deploy:internal
+
+# Create GitHub release
+./scripts/ci-build.sh deploy:github 1.0.0
+
+# Build for F-Droid
+./scripts/ci-build.sh build:fdroid 1.0.0
+```
+
+### Manual Release Builds
 
 ```bash
 # 1. Generează keystore (prima dată)
-keytool -genkey -v -keystore momclaw-release-key.jks \
-    -keyalg RSA -keysize 2048 -validity 10000 -alias momclaw
+./scripts/ci-build.sh keystore:generate
 
 # 2. Creează key.properties
 cat > android/key.properties << EOF
@@ -201,18 +219,21 @@ keyAlias=momclaw
 storeFile=../momclaw-release-key.jks
 EOF
 
-# 3. Build release APK
-./android/gradlew assembleRelease
-
-# 4. Build release AAB (Google Play)
-./android/gradlew bundleRelease
+# 3. Build release
+./scripts/ci-build.sh build:release 1.0.0
 
 # Output:
-# APK: android/app/build/outputs/apk/release/app-release.apk
-# AAB: android/app/build/outputs/bundle/release/app-release.aab
+# APK: momclaw-1.0.0.apk
+# AAB: momclaw-1.0.0.aab
 ```
 
-Vezi [DOCUMENTATION.md#deployment](DOCUMENTATION.md#deployment) pentru detalii complete.
+### Deployment Platforms
+
+- **Google Play Store**: `./scripts/ci-build.sh deploy:internal` (sau `alpha`, `beta`, `production`)
+- **F-Droid**: `./scripts/ci-build.sh build:fdroid 1.0.0`
+- **GitHub Releases**: `./scripts/ci-build.sh deploy:github 1.0.0`
+
+Vezi [DEPLOYMENT.md](DEPLOYMENT.md) pentru detalii complete despre Google Play și F-Droid.
 
 ---
 
