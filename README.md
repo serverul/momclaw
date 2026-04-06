@@ -123,6 +123,8 @@ adb push models/gemma-3-E4B-it.litertlm \
 | [QUICKSTART.md](QUICKSTART.md) | **5-minute setup guide** - Get running quickly |
 | [DOCUMENTATION.md](DOCUMENTATION.md) | **Documentație completă** - setup, deployment, API, troubleshooting |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | **Deployment guide** - Google Play Store și F-Droid |
+| [BUILD-DEPLOYMENT-GUIDE.md](BUILD-DEPLOYMENT-GUIDE.md) | **Complete build & deploy guide** - All-in-one reference |
+| [PRODUCTION-CHECKLIST.md](PRODUCTION-CHECKLIST.md) | **Production checklist** - Single-source release checklist |
 | [BUILD.md](BUILD.md) | Build instructions detaliate |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Developer guide și arhitectură |
 | [TESTING.md](TESTING.md) | Testing strategy și checklists |

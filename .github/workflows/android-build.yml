@@ -29,7 +29,12 @@ jobs:
       run: chmod +x android/gradlew
     
     - name: Build with Gradle
-      run: ./android/gradlew assemble${{ matrix.build-type | capitalize }} -Pandroid.targetSdkVersion=${{ matrix.api-level }}
+      run: |
+        if [ "${{ matrix.build-type }}" = "debug" ]; then
+          ./android/gradlew assembleDebug -Pandroid.targetSdkVersion=${{ matrix.api-level }}
+        else
+          ./android/gradlew assembleRelease -Pandroid.targetSdkVersion=${{ matrix.api-level }}
+        fi
       
     - name: Upload APK
       if: success()

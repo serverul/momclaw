@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **BUILD-DEPLOYMENT-GUIDE.md** - Comprehensive all-in-one build and deployment reference
+- **PRODUCTION-CHECKLIST.md** - Single-source checklist for production releases
 - **PRIVACY_POLICY.md** - Complete privacy policy for store submission
 - **Screenshots documentation** - Guide for capturing store screenshots
 - **Fastlane screenshots structure** - Directory structure for all screen sizes

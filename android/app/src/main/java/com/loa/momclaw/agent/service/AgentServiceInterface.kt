@@ -1,5 +1,7 @@
 package com.loa.momclaw.agent.service
 
+import com.loa.momclaw.domain.model.AgentConfig as DomainAgentConfig
+
 /**
  * Service Interface for Agent Operations
  * 
@@ -16,7 +18,7 @@ interface AgentServiceInterface {
     /**
      * Start the agent with the given configuration
      */
-    suspend fun start(config: AgentConfig): Result<Unit>
+    suspend fun start(config: DomainAgentConfig): Result<Unit>
     
     /**
      * Stop the agent
@@ -49,15 +51,14 @@ sealed class AgentServiceState {
 
 /**
  * Agent Configuration for Service Layer
+ * Extended configuration with service-specific options.
  */
-data class AgentConfig(
-    val systemPrompt: String = "You are a helpful AI assistant running on-device.",
-    val temperature: Float = 0.7f,
-    val maxTokens: Int = 2048,
-    val modelPrimary: String = "litert-bridge/gemma-4e4b",
-    val baseUrl: String = "http://localhost:8080",
-    val memoryBackend: String = "sqlite",
-    val memoryPath: String = "",
+data class AgentServiceConfig(
+    val agentConfig: DomainAgentConfig = DomainAgentConfig.DEFAULT,
     val autoRestart: Boolean = true,
     val maxRestartAttempts: Int = 3
-)
+) {
+    companion object {
+        val DEFAULT = AgentServiceConfig()
+    }
+}

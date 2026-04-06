@@ -16,6 +16,8 @@ Complete index of all documentation files for the MomClaw project.
 | [PRODUCTION-READINESS.md](PRODUCTION-READINESS.md) | Production deployment status | DevOps/Releases |
 | [DOCUMENTATION.md](DOCUMENTATION.md) | Complete documentation | Developers |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Deployment guides | DevOps |
+| [BUILD-DEPLOYMENT-GUIDE.md](BUILD-DEPLOYMENT-GUIDE.md) | Complete build & deploy guide | DevOps/Developers |
+| [PRODUCTION-CHECKLIST.md](PRODUCTION-CHECKLIST.md) | Production release checklist | Release managers |
 | [BUILD.md](BUILD.md) | Build instructions | Developers |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Developer guide | Contributors |
 | [TESTING.md](TESTING.md) | Testing strategy | QA/Developers |
@@ -113,7 +115,7 @@ Complete index of all documentation files for the MomClaw project.
   - UI testing
   - Performance testing
   - Test coverage
-- ** **Audience**: QA, developers
+- **Audience**: QA, developers
 - **Update frequency**: As needed
 
 ---

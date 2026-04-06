@@ -7,15 +7,22 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.io.Writer
 import java.util.UUID
 
 /**
  * Server-Sent Events writer for streaming responses
+ * 
+ * Supports Ktor 2.x which doesn't have native SSE plugin.
+ * Uses respondTextWriter with text/event-stream content type.
  */
 class SSEWriter(
     private val call: ApplicationCall,
     private val json: Json = Json { ignoreUnknownKeys = true }
 ) {
+    /**
+     * Write SSE stream from Flow of ChatCompletionResponse
+     */
     suspend fun writeStream(
         flow: Flow<ChatCompletionResponse>,
         onEvent: suspend (ChatCompletionResponse) -> Unit = {}
@@ -30,8 +37,7 @@ class SSEWriter(
         call.respondTextWriter(contentType = ContentType.Text.EventStream) {
             flow.collect { response ->
                 onEvent(response)
-                val eventData = json.encodeToString(response)
-                write("data: $eventData\n\n")
+                writeEvent(response)
                 flush()
             }
             
@@ -41,9 +47,19 @@ class SSEWriter(
         }
     }
     
-    private fun writeEvent(response: ChatCompletionResponse) {
+    /**
+     * Write a single SSE event
+     */
+    private fun Writer.writeEvent(response: ChatCompletionResponse) {
         val eventData = json.encodeToString(response)
         write("data: $eventData\n\n")
+    }
+    
+    /**
+     * Write a raw SSE line
+     */
+    fun Writer.writeSSELine(data: String) {
+        write("data: $data\n\n")
     }
     
     companion object {
@@ -56,6 +72,11 @@ class SSEWriter(
          * Get current Unix timestamp
          */
         fun currentTimestamp(): Long = System.currentTimeMillis() / 1000
+        
+        /**
+         * SSE content type constant
+         */
+        val SSE_CONTENT_TYPE = ContentType.Text.EventStream
     }
 }
 
