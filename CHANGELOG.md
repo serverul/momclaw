@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Signing configuration for release builds
 - Module dependency versions alignment
 
-## [1.0.0] - 2026-04-05
+## [1.0.0] - 2026-04-06
 
 ### Added
 - Initial release
