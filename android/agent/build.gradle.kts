@@ -6,10 +6,10 @@ plugins {
 
 android {
     namespace = "com.loa.momclaw.agent"
-    compileSdk = 34
+    compileSdk = 35
     
     defaultConfig {
-        minSdk = 26
+        minSdk = 28
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -41,8 +41,8 @@ android {
 }
 
 dependencies {
-    // Domain model dependency (from app module)
-    implementation(project(":app"))
+    // NOTE: Agent module should NOT depend on app module to avoid circular dependency
+    // Domain models should be defined in a shared 'domain' module or in agent module
     
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.22")

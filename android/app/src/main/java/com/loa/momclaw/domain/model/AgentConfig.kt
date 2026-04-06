@@ -1,26 +1,14 @@
 package com.loa.momclaw.domain.model
 
 /**
- * Domain model for agent configuration
- * Used across the app for settings and agent communication
+ * Typealias to the canonical AgentConfig in the agent module.
  * 
- * This is the single source of truth for AgentConfig.
- * Other modules should import from this location, not create duplicates.
+ * The agent module owns the AgentConfig definition.
+ * App module re-exports it here for convenient access from domain layer.
  */
-data class AgentConfig(
-    val systemPrompt: String = "You are a helpful AI assistant running on-device. You are concise, helpful, and prioritize the user's needs.",
-    val temperature: Float = 0.7f,
-    val maxTokens: Int = 2048,
-    val modelPrimary: String = "litert-bridge/gemma-4e4b",
-    val modelPath: String = "/data/data/com.loa.momclaw/files/models/gemma-3-E4B-it.litertlm",
-    val baseUrl: String = "http://localhost:8080",
-    val memoryBackend: String = "sqlite",
-    val memoryPath: String = "/data/data/com.loa.momclaw/databases/agent.db"
-) {
-    companion object {
-        /**
-         * Default configuration
-         */
-        val DEFAULT = AgentConfig()
-    }
-}
+typealias AgentConfig = com.loa.momclaw.agent.model.AgentConfig
+
+/**
+ * Convenience access to AgentConfig.DEFAULT via domain namespace.
+ */
+val AgentConfigDefault = com.loa.momclaw.agent.model.AgentConfig.DEFAULT

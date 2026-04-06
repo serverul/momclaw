@@ -1,25 +1,23 @@
 package com.loa.momclaw.agent.model
 
 /**
- * Type alias for backward compatibility.
+ * Agent configuration model.
  * 
- * DEPRECATED: Import AgentConfig directly from com.loa.momclaw.domain.model
- * This alias will be removed in a future version.
- * 
- * The canonical AgentConfig is in the app module's domain/model package.
+ * Single source of truth for agent configuration.
+ * The app module's domain.model.AgentConfig should import from here
+ * or use a typealias to avoid duplication.
  */
-@Deprecated(
-    message = "Import AgentConfig from com.loa.momclaw.domain.model instead",
-    replaceWith = ReplaceWith("com.loa.momclaw.domain.model.AgentConfig")
-)
-typealias AgentConfig = com.loa.momclaw.domain.model.AgentConfig
-
-/**
- * Extension function to convert domain AgentConfig to agent module format.
- * Provided for migration compatibility.
- */
-@Deprecated(
-    message = "No longer needed - use domain AgentConfig directly",
-    level = DeprecationLevel.WARNING
-)
-fun com.loa.momclaw.domain.model.AgentConfig.toAgentModel(): com.loa.momclaw.domain.model.AgentConfig = this
+data class AgentConfig(
+    val systemPrompt: String = "You are a helpful AI assistant running on-device. You are concise, helpful, and prioritize the user's needs.",
+    val temperature: Float = 0.7f,
+    val maxTokens: Int = 2048,
+    val modelPrimary: String = "litert-bridge/gemma-4e4b",
+    val modelPath: String = "/data/data/com.loa.momclaw/files/models/gemma-3-E4B-it.litertlm",
+    val baseUrl: String = "http://localhost:8080",
+    val memoryBackend: String = "sqlite",
+    val memoryPath: String = "/data/data/com.loa.momclaw/databases/agent.db"
+) {
+    companion object {
+        val DEFAULT = AgentConfig()
+    }
+}
