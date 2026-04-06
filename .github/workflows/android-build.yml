@@ -31,11 +31,11 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          api-level: ${{ env.ANDROID_API_LEVEL }}
-          build-tools-version: ${{ env.ANDROID_BUILD_TOOLS_VERSION }}
-          ndk-version: ${{ env.ANDROID_NDK_VERSION }}
+        uses: android-actions/setup-android@v4
+
+      - name: Install Android SDK Components
+        run: |
+          sdkmanager "platforms;android-${{ env.ANDROID_API_LEVEL }}" "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION }}" "ndk;${{ env.ANDROID_NDK_VERSION }}"
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
