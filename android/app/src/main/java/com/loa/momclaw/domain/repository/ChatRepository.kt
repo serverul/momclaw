@@ -278,6 +278,13 @@ class ChatRepository(
      * Get current conversation ID
      */
     fun getCurrentConversationId(): String = conversationLock.withLock { currentConversationId }
+    
+    /**
+     * Close resources - should be called when repository is no longer needed
+     */
+    fun close() {
+        agentClient.close()
+    }
 }
 
 /**
