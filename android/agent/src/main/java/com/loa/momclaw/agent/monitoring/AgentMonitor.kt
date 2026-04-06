@@ -3,11 +3,11 @@ package com.loa.momclaw.agent.monitoring
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
-private val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger
 
 /**
  * Monitoring and Diagnostics for NullClaw Agent
@@ -232,7 +232,7 @@ interface ProcessLifecycleListener {
  * Default lifecycle listener implementation
  */
 class DefaultLifecycleListener : ProcessLifecycleListener {
-    private val logger = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger
     
     override fun onProcessStarted(pid: Long) {
         logger.info { "Process started: PID=$pid" }

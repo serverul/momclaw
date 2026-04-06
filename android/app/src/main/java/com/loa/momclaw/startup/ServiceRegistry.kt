@@ -2,9 +2,11 @@ package com.loa.momclaw.startup
 
 import kotlinx.coroutines.flow.StateFlow
 import java.util.concurrent.ConcurrentHashMap
-import mu.KotlinLogging
+import com.loa.momclaw.agent.AgentState
+import com.loa.momclaw.inference.InferenceState
+import io.github.oshai.kotlinlogging.KotlinLogging
 
-private val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger
 
 /**
  * ServiceRegistry — Centralized service discovery and lifecycle management

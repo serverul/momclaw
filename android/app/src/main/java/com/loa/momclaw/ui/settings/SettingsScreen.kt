@@ -387,7 +387,7 @@ private fun AppSettingsSection(
         SettingsSwitch(
             title = "Background Agent",
             subtitle = "Keep agent running when app is closed",
-            icon = Icons.Default.BackgroundDotSmall,
+            icon = Icons.Default.Loop,
             checked = uiState.backgroundAgentEnabled,
             onCheckedChange = onBackgroundAgentChange
         )

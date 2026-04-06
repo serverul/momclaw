@@ -282,6 +282,17 @@ class AgentClient(
         return cause is java.net.SocketException ||
                cause.message?.contains("cancel", ignoreCase = true) == true
     }
+    
+    /**
+     * Release resources and cleanup HTTP client
+     * IMPORTANT: Call this when the client is no longer needed
+     */
+    fun close() {
+        MomClawLogger.d("Closing AgentClient and releasing resources")
+        httpClient.dispatcher.executorService.shutdown()
+        httpClient.connectionPool.evictAll()
+        httpClient.cache?.close()
+    }
 }
 
 // Data classes for API requests/responses

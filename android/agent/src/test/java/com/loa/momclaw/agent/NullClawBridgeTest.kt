@@ -3,7 +3,7 @@ package com.loa.momclaw.agent
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.res.AssetManager
-import com.loa.momclaw.domain.model.AgentConfig
+import com.loa.momclaw.agent.model.AgentConfig
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
