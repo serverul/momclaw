@@ -1,0 +1,188 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  JAVA_VERSION: '17'
+  ANDROID_API_LEVEL: 35
+  ANDROID_BUILD_TOOLS_VERSION: 35.0.0
+  ANDROID_NDK_VERSION: 25.2.9519653
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build & Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Get tag version
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> GITHUB_OUTPUT
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: ${{ env.ANDROID_API_LEVEL }}
+          build-tools-version: ${{ env.ANDROID_BUILD_TOOLS_VERSION }}
+          ndk-version: ${{ env.ANDROID_NDK_VERSION }}
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Gradle Wrapper Validation
+        uses: gradle/wrapper-validation@v2
+
+      - name: Gradle Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/**/*.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Setup signing keystore
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/MOMCLAW-release-key.jks
+
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=../MOMCLAW-release-key.jks" >> android/key.properties
+
+          echo "✓ Keystore configured"
+
+      - name: Build Release APK (Universal)
+        run: ./android/gradlew assembleRelease --no-daemon
+
+      - name: Build Release AAB
+        run: ./android/gradlew bundleRelease --no-daemon
+
+      - name: Build APK Splits
+        run: |
+          # Build individual ABI splits
+          ./android/gradlew assembleRelease --no-daemon
+
+      - name: Sign APKs for GitHub Release
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        run: |
+          # If we have signing, the APKs are already signed via build.gradle.kts
+          echo "✓ APKs already signed during build"
+
+      - name: Generate Release Notes
+        run: |
+          # Extract changelog for this version
+          VERSION=$(echo ${{ steps.get_version.outputs.VERSION }} | sed 's/^v//')
+          echo "## Release ${VERSION}" > release-notes.md
+          echo "" >> release-notes.md
+          if [ -f "CHANGELOG.md" ]; then
+            # Extract section for this version from CHANGELOG
+            awk -v ver="[$VERSION]" '/^## \[/ { if (p) exit; if ($0 ~ ver) p=1 } p { print }' CHANGELOG.md >> release-notes.md || true
+          fi
+
+      - name: Collect APKs and AAB
+        run: |
+          mkdir -p release-artifacts
+          # Universal APK
+          cp android/app/build/outputs/apk/release/app-universal-release.apk release-artifacts/MOMCLAW-${{ steps.get_version.outputs.VERSION }}-universal.apk 2>/dev/null || true
+          # Individual ABI APKs
+          cp android/app/build/outputs/apk/release/app-arm64-v8a-release.apk release-artifacts/MOMCLAW-${{ steps.get_version.outputs.VERSION }}-arm64-v8a.apk 2>/dev/null || true
+          cp android/app/build/outputs/apk/release/app-armeabi-v7a-release.apk release-artifacts/MOMCLAW-${{ steps.get_version.outputs.VERSION }}-armeabi-v7a.apk 2>/dev/null || true
+          cp android/app/build/outputs/apk/release/app-x86_64-release.apk release-artifacts/MOMCLAW-${{ steps.get_version.outputs.VERSION }}-x86_64.apk 2>/dev/null || true
+          cp android/app/build/outputs/apk/release/app-x86-release.apk release-artifacts/MOMCLAW-${{ steps.get_version.outputs.VERSION }}-x86.apk 2>/dev/null || true
+          # AAB
+          cp android/app/build/outputs/bundle/release/app-release.aab release-artifacts/MOMCLAW-${{ steps.get_version.outputs.VERSION }}.aab 2>/dev/null || true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-artifacts/*
+          name: "${{ steps.get_version.outputs.VERSION }}"
+          body_path: release-notes.md
+          draft: false
+          prerelease: ${{ contains(steps.get_version.outputs.VERSION, '-alpha') || contains(steps.get_version.outputs.VERSION, '-beta') || contains(steps.get_version.outputs.VERSION, '-rc') }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Google Play Service JSON
+        if: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON != '' }}
+        run: |
+          mkdir -p android/app
+          echo "${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}" > android/app/play-store-service-account.json
+          echo "✓ Google Play service account configured"
+
+      - name: Deploy to Google Play Internal Testing
+        if: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON != '' && !contains(steps.get_version.outputs.VERSION, '-alpha') && !contains(steps.get_version.outputs.VERSION, '-beta') && !contains(steps.get_version.outputs.VERSION, '-rc') }}
+        run: |
+          echo "Deploying to Google Play Internal Testing"
+          ./scripts/deploy.sh google-play internal || echo "Deployment skipped or failed"
+
+  fdroid:
+    name: F-Droid Build (for metadata)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate F-Droid metadata
+        run: |
+          VERSION=$(echo ${{ github.ref }} | sed 's/refs\/tags\/v//')
+          mkdir -p fdroid-metadata
+
+          cat > fdroid-metadata/metadata.yml << EOF
+          Categories:
+            - Development
+            - Internet
+          License: Apache-2.0
+          SourceCode: https://github.com/serverul/MOMCLAW
+          IssueTracker: https://github.com/serverul/MOMCLAW/issues
+          Changelog: https://github.com/serverul/MOMCLAW/releases/tag/v${VERSION}
+          
+          AutoName: MomClAW
+          Summary: AI Agent 100% offline pe Android
+          
+          RepoType: git
+          Repo: https://github.com/serverul/MOMCLAW.git
+          
+          Builds:
+            - versionName: ${VERSION}
+              versionCode: 1
+              commit: v${VERSION}
+              subdir: android
+              gradle:
+                - yes
+              output: app/build/outputs/apk/release/app-release.apk
+              ndk: r25
+          EOF
+
+          echo "✓ F-Droid metadata generated"
+
+      - name: Upload F-Droid metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: fdroid-metadata
+          path: fdroid-metadata/

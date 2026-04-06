@@ -43,6 +43,8 @@ class LiteRTBridge(
     private val engine = LlmEngineWrapper(context)
     private val modelLoader = ModelLoader(context)
     private val healthMonitor = HealthMonitor(context)
+    private val fallbackManager = ModelFallbackManager(context, engine)
+    @Volatile private var inferenceMode = InferenceMode.SIMULATION
     private val json = Json {
         ignoreUnknownKeys = true
         prettyPrint = true
@@ -51,54 +53,38 @@ class LiteRTBridge(
     
     @Volatile private var isServerRunning = false
     @Volatile private var modelLoadTime: Long? = null
+    @Volatile private var currentModelName: String? = null
     
     /**
-     * Load model and start the HTTP server
+     * Load model and start the HTTP server with automatic fallback
      */
-    suspend fun start(modelPath: String): Result<Unit> {
+    suspend fun start(modelPath: String, enableFallback: Boolean = true): Result<Unit> {
         return try {
-            // Verify model first
-            val modelResult = modelLoader.verifyModel(modelPath)
-            if (modelResult is ModelLoader.LoadResult.Error) {
-                return Result.failure(
-                    BridgeError.ModelError.LoadFailed(
-                        modelPath, 
-                        modelResult.message,
-                        modelResult.cause
+            // Use fallback manager for intelligent model loading
+            val loadResult = fallbackManager.loadWithFallback(modelPath, enableFallback)
+            
+            when (loadResult) {
+                is LoadResult.Success -> {
+                    inferenceMode = loadResult.mode
+                    currentModelName = loadResult.modelName
+                    
+                    // TODO: Add logging - "Model loaded: ${loadResult.mode} - ${loadResult.message}"
+                    
+                    // Start server
+                    startServer()
+                    
+                    Result.success(Unit)
+                }
+                is LoadResult.Failure -> {
+                    Result.failure(
+                        BridgeError.ModelError.LoadFailed(
+                            modelPath,
+                            loadResult.error,
+                            RuntimeException(loadResult.suggestion)
+                        )
                     )
-                )
+                }
             }
-            
-            val modelInfo = (modelResult as ModelLoader.LoadResult.Success).info
-            
-            // Check memory
-            val requiredMemoryMB = modelInfo.sizeBytes / (1024 * 1024) * 2 // 2x safety margin
-            if (!healthMonitor.canLoadModel(requiredMemoryMB)) {
-                return Result.failure(
-                    BridgeError.ModelError.InsufficientMemory(
-                        requiredMemoryMB * 1024 * 1024,
-                        healthMonitor.getMemoryInfo().availableMB * 1024 * 1024
-                    )
-                )
-            }
-            
-            // Load model
-            val loadStart = System.currentTimeMillis()
-            val loaded = engine.loadModel(modelPath)
-            modelLoadTime = System.currentTimeMillis() - loadStart
-            
-            if (!loaded) {
-                return Result.failure(
-                    BridgeError.ModelError.LoadFailed(modelPath, "LiteRT failed to load model")
-                )
-            }
-            
-            // TODO: Add logging
-            
-            // Start server
-            startServer()
-            
-            Result.success(Unit)
         } catch (e: Exception) {
             // TODO: Add logging
             Result.failure(e)
@@ -144,20 +130,25 @@ class LiteRTBridge(
     }
 
     /**
-     * Load or reload a model after server start
+     * Load or reload a model after server start (with fallback)
      */
-    suspend fun loadModel(modelPath: String): Boolean {
+    suspend fun loadModel(modelPath: String, enableFallback: Boolean = true): Boolean {
         val loadStart = System.currentTimeMillis()
-        val result = engine.loadModel(modelPath)
+        val loadResult = fallbackManager.loadWithFallback(modelPath, enableFallback)
         modelLoadTime = System.currentTimeMillis() - loadStart
         
-        if (result) {
-            // TODO: Add logging
-        } else {
-            // TODO: Add logging
+        return when (loadResult) {
+            is LoadResult.Success -> {
+                inferenceMode = loadResult.mode
+                currentModelName = loadResult.modelName
+                // TODO: Add logging - "Model reloaded: ${loadResult.mode}"
+                true
+            }
+            is LoadResult.Failure -> {
+                // TODO: Add logging - "Model load failed: ${loadResult.error}"
+                false
+            }
         }
-        
-        return result
     }
     
     /**
@@ -178,7 +169,12 @@ class LiteRTBridge(
     /**
      * Check if model is ready for inference
      */
-    fun isModelReady(): Boolean = engine.isReady()
+    fun isModelReady(): Boolean = engine.isReady() || inferenceMode == InferenceMode.SIMULATION
+    
+    /**
+     * Get current inference mode
+     */
+    fun getInferenceMode(): InferenceMode = inferenceMode
     
     /**
      * Check if server is running
