@@ -91,7 +91,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         
         setContent {
-            MomClawTheme {
+            val settingsViewModel: SettingsViewModel = hiltViewModel()
+            val settingsState by settingsViewModel.state.collectAsState()
+            
+            MomClawTheme(darkTheme = settingsState.settings.darkMode) {
                 val navController = rememberNavController()
                 
                 Scaffold(
@@ -123,10 +126,9 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(BottomNavItem.Settings.route) {
-                            val viewModel: SettingsViewModel = hiltViewModel()
                             SettingsScreen(
-                                state = viewModel.state.collectAsState().value,
-                                onEvent = viewModel::onEvent,
+                                state = settingsState,
+                                onEvent = settingsViewModel::onEvent,
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }

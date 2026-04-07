@@ -82,8 +82,8 @@ jobs:
 
       - name: Build APK Splits
         run: |
-          # Build individual ABI splits
-          ./gradlew assembleRelease --no-daemon
+          # Build individual ABI splits (already done by assembleRelease)
+          echo "✓ APK splits built with assembleRelease"
         working-directory: android
 
       - name: Sign APKs for GitHub Release
@@ -136,8 +136,10 @@ jobs:
       - name: Deploy to Google Play Internal Testing
         if: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON != '' && !contains(steps.get_version.outputs.VERSION, '-alpha') && !contains(steps.get_version.outputs.VERSION, '-beta') && !contains(steps.get_version.outputs.VERSION, '-rc') }}
         run: |
-          echo "Deploying to Google Play Internal Testing"
-          ./scripts/deploy.sh google-play internal || echo "Deployment skipped or failed"
+          echo "🚀 Deploying to Google Play Internal Testing"
+          cd android && ./gradlew --no-daemon publishBundle
+        env:
+          PLAY_STORE_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
 
   fdroid:
     name: F-Droid Build (for metadata)

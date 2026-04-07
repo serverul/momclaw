@@ -6,6 +6,13 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
 }
 
+// Load signing config from key.properties if exists
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = java.util.Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(keystorePropertiesFile.inputStream())
+}
+
 android {
     namespace = "com.loa.momclaw"
     compileSdk = 34
@@ -14,12 +21,29 @@ android {
         applicationId = "com.loa.momclaw"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
+        versionCode = 1000000  // Format: MAJOR * 100000 + MINOR * 1000 + PATCH
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+        
+        // Performance optimizations
+        ndk {
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+        }
+    }
+
+    // Signing configuration for release builds
+    signingConfigs {
+        create("release") {
+            if (keystoreProperties.isNotEmpty()) {
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            }
         }
     }
 
@@ -31,10 +55,45 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
+            isDebuggable = false
+            
+            // Performance optimizations
+            ndk {
+                debugSymbolLevel = "NONE"
+            }
         }
         debug {
             isMinifyEnabled = false
             applicationIdSuffix = ".debug"
+            versionNameSuffix = "-DEBUG"
+            isDebuggable = true
+        }
+    }
+    
+    // APK Splits for smaller download sizes
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            isUniversalApk = true
+        }
+    }
+    
+    // Bundle configuration for Play Store
+    bundle {
+        language {
+            // Enable language split for smaller APKs
+            enableSplit = true
+        }
+        density {
+            // Enable density split for smaller APKs
+            enableSplit = true
+        }
+        abi {
+            // Enable ABI split for smaller APKs
+            enableSplit = true
         }
     }
 

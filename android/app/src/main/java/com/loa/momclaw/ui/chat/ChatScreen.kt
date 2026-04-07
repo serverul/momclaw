@@ -78,38 +78,46 @@ fun ChatScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Messages list
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                state = listState,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(vertical = 8.dp)
-            ) {
-                items(
-                    items = state.messages,
-                    key = { it.id }
-                ) { message ->
-                    MessageBubble(
-                        message = message,
-                        isUser = message.role == Message.ROLE_USER
-                    )
-                }
-
-                // Show streaming response
-                if (state.isStreaming && state.currentResponse.isNotEmpty()) {
-                    item {
+            // Messages list or empty state
+            if (state.messages.isEmpty() && !state.isStreaming && state.currentResponse.isEmpty()) {
+                EmptyChatState(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
+                    items(
+                        items = state.messages,
+                        key = { it.id }
+                    ) { message ->
                         MessageBubble(
-                            message = Message(
-                                role = Message.ROLE_ASSISTANT,
-                                content = state.currentResponse,
-                                timestamp = System.currentTimeMillis()
-                            ),
-                            isUser = false,
-                            isStreaming = true
+                            message = message,
+                            isUser = message.role == Message.ROLE_USER
                         )
+                    }
+
+                    // Show streaming response
+                    if (state.isStreaming && state.currentResponse.isNotEmpty()) {
+                        item {
+                            MessageBubble(
+                                message = Message(
+                                    role = Message.ROLE_ASSISTANT,
+                                    content = state.currentResponse,
+                                    timestamp = System.currentTimeMillis()
+                                ),
+                                isUser = false,
+                                isStreaming = true
+                            )
+                        }
                     }
                 }
             }
