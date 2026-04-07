@@ -74,6 +74,14 @@ class AgentMonitor(private val context: Context) {
     }
 
     /**
+     * Record agent stop
+     */
+    fun recordStop() {
+        startTime.set(0)
+        // TODO: Add logging
+    }
+    
+    /**
      * Record request
      */
     fun recordRequest() {

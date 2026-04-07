@@ -5,7 +5,9 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.loa.momclaw.domain.model.AgentSettings
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,7 +19,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  */
 @Singleton
 class SettingsPreferences @Inject constructor(
-    private val context: Context
+    @ApplicationContext private val context: Context
 ) {
     companion object {
         private val KEY_SYSTEM_PROMPT = stringPreferencesKey("system_prompt")
@@ -86,8 +88,6 @@ class SettingsPreferences @Inject constructor(
      * Gets the current conversation ID.
      */
     suspend fun getCurrentConversationId(): Long {
-        // Note: This is a simplified version. In production, you'd want to use
-        // a more robust method to get the value from DataStore
         return context.dataStore.data.map { preferences ->
             preferences[KEY_CURRENT_CONVERSATION_ID] ?: 0L
         }.first()
@@ -110,16 +110,13 @@ class SettingsPreferences @Inject constructor(
             preferences[KEY_DARK_MODE] ?: DEFAULT_DARK_MODE
         }
     }
-}
 
-/**
- * Extension function to get first value from Flow.
- */
-private suspend fun <T> Flow<T>.first(): T {
-    var result: T? = null
-    collect { value ->
-        result = value
-        return@collect
+    /**
+     * Sets dark mode setting.
+     */
+    suspend fun setDarkMode(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_DARK_MODE] = enabled
+        }
     }
-    return result ?: throw NoSuchElementException("Flow is empty")
 }

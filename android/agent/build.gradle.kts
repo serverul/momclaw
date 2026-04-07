@@ -51,6 +51,9 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.50")
     kapt("com.google.dagger:hilt-compiler:2.50")
 
+    // Kotlin Logging
+    implementation("io.github.microutils:kotlinlogging-jvm:2.0.11")
+
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
 

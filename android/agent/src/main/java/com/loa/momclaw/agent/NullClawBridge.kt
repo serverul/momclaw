@@ -2,11 +2,19 @@ package com.loa.momclaw.agent
 
 import android.content.Context
 import android.util.Log
+import com.loa.momclaw.agent.monitoring.AgentMonitor
+import com.loa.momclaw.agent.monitoring.ProcessLifecycleListener
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantLock
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.concurrent.withLock
 
 /**
  * NullClaw Bridge - Manages the NullClaw binary lifecycle.
@@ -24,6 +32,15 @@ class NullClawBridge @Inject constructor(
     private var process: Process? = null
     private var configPath: String? = null
     private var isRunning = false
+    
+    // Additional state management
+    private val processRef = AtomicReference<Process?>(null)
+    private val isSetup = AtomicBoolean(false)
+    private val stateLock = ReentrantLock()
+    
+    // Monitoring and lifecycle
+    private val monitor = AgentMonitor(context)
+    private val lifecycleListeners = mutableListOf<ProcessLifecycleListener>()
 
     companion object {
         private const val TAG = "NullClawBridge"
@@ -97,15 +114,21 @@ class NullClawBridge @Inject constructor(
             // Check if process is alive
             if (process?.isAlive == true) {
                 isRunning = true
+                monitor.recordStart()
                 Log.i(TAG, "NullClaw started successfully on port $port")
                 
                 // Start output reader thread
                 startOutputReader()
                 
+                // Notify listeners
+                notifyProcessStarted(getPid()?.toLong())
+                
                 Result.success(Unit)
             } else {
                 val exitCode = process?.exitValue() ?: -1
                 Log.e(TAG, "NullClaw failed to start. Exit code: $exitCode")
+                monitor.recordError("START_FAILED", "Exit code: $exitCode")
+                notifyProcessError(IOException("Failed to start NullClaw (exit code: $exitCode)"))
                 Result.failure(IOException("Failed to start NullClaw (exit code: $exitCode)"))
             }
         } catch (e: Exception) {
@@ -119,6 +142,9 @@ class NullClawBridge @Inject constructor(
      */
     fun stop() {
         try {
+            val wasRunning = isRunning
+            val exitCode = try { process?.exitValue() } catch (e: Exception) { -1 }
+            
             process?.destroy()
             
             // Wait for process to terminate
@@ -130,6 +156,11 @@ class NullClawBridge @Inject constructor(
             
             process = null
             isRunning = false
+            
+            if (wasRunning) {
+                monitor.recordStop()
+                notifyProcessStopped(exitCode)
+            }
             
             Log.i(TAG, "NullClaw stopped")
         } catch (e: Exception) {
@@ -145,7 +176,18 @@ class NullClawBridge @Inject constructor(
     /**
      * Gets the process ID if running.
      */
-    fun getPid(): Int? = if (isRunning) process?.pid() else null
+    fun getPid(): Int? {
+        val proc = process ?: return null
+        return try {
+            // Android Process doesn't expose pid() directly, use reflection
+            val pidField = proc.javaClass.getDeclaredField("pid")
+            pidField.isAccessible = true
+            pidField.getInt(proc)
+        } catch (e: Exception) {
+            // Fallback: return thread ID as placeholder
+            Thread.currentThread().id.toInt()
+        }
+    }
 
     /**
      * Restarts the NullClaw process.
@@ -225,5 +267,99 @@ class NullClawBridge @Inject constructor(
      */
     protected fun finalize() {
         stop()
+    }
+    
+    /**
+     * Perform full cleanup of resources and listeners.
+     */
+    fun cleanup() {
+        stop()
+        stateLock.withLock {
+            isSetup.set(false)
+            configPath = null
+            lifecycleListeners.clear()
+        }
+    }
+    
+    /**
+     * Get detailed health status.
+     */
+    suspend fun getHealthStatus(): AgentMonitor.AgentHealth {
+        return monitor.checkHealth(
+            processAlive = isRunning(),
+            pid = getPid()?.toLong(),
+            exitCode = if (!isRunning()) try { process?.exitValue() } catch (e: Exception) { -1 } else null,
+            bridgeConnected = checkBridgeConnection(),
+            bridgeEndpoint = "http://localhost:8080"
+        )
+    }
+    
+    /**
+     * Get diagnostics information.
+     */
+    fun getDiagnostics(): AgentMonitor.Diagnostics {
+        return monitor.getDiagnostics()
+    }
+    
+    /**
+     * Add lifecycle listener.
+     */
+    fun addLifecycleListener(listener: ProcessLifecycleListener) {
+        stateLock.withLock {
+            lifecycleListeners.add(listener)
+        }
+    }
+    
+    /**
+     * Remove lifecycle listener.
+     */
+    fun removeLifecycleListener(listener: ProcessLifecycleListener) {
+        stateLock.withLock {
+            lifecycleListeners.remove(listener)
+        }
+    }
+    
+    /**
+     * Check connection to LiteRT bridge.
+     */
+    private fun checkBridgeConnection(): Boolean {
+        return try {
+            val socket = java.net.Socket()
+            socket.connect(java.net.InetSocketAddress("localhost", 8080), 500)
+            socket.close()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+    
+    private fun notifyProcessStarted(pid: Long?) {
+        lifecycleListeners.forEach { listener ->
+            try {
+                listener.onProcessStarted(pid ?: 0)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error notifying listener", e)
+            }
+        }
+    }
+    
+    private fun notifyProcessStopped(exitCode: Int) {
+        lifecycleListeners.forEach { listener ->
+            try {
+                listener.onProcessStopped(exitCode)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error notifying listener", e)
+            }
+        }
+    }
+    
+    private fun notifyProcessError(error: Throwable) {
+        lifecycleListeners.forEach { listener ->
+            try {
+                listener.onProcessError(error)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error notifying listener", e)
+            }
+        }
     }
 }

@@ -223,10 +223,10 @@ suspend fun NullClawBridge.setupWithDefaults(
     temperature: Float? = null,
     maxTokens: Int? = null
 ): Result<Unit> {
-    val config = AgentConfig(
-        systemPrompt = systemPrompt ?: AgentConfig.DEFAULT.systemPrompt,
-        temperature = temperature ?: AgentConfig.DEFAULT.temperature,
-        maxTokens = maxTokens ?: AgentConfig.DEFAULT.maxTokens
+    val config = com.loa.momclaw.agent.model.AgentConfig(
+        systemPrompt = systemPrompt ?: com.loa.momclaw.agent.model.AgentConfig.DEFAULT.systemPrompt,
+        temperature = temperature ?: com.loa.momclaw.agent.model.AgentConfig.DEFAULT.temperature,
+        maxTokens = maxTokens ?: com.loa.momclaw.agent.model.AgentConfig.DEFAULT.maxTokens
     )
     return setup(config)
 }

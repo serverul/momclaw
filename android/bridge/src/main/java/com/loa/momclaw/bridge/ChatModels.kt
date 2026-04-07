@@ -48,6 +48,11 @@ data class Delta(
 )
 
 /**
+ * Type alias for compatibility
+ */
+typealias ChatCompletionResponse = ChatResponse
+
+/**
  * SSE (Server-Sent Events) parser and formatter.
  */
 object SSEFormatter {
