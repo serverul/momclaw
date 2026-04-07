@@ -69,8 +69,13 @@ jobs:
           languages: ${{ matrix.language }}
           queries: security-and-quality
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Manual Build (Android)
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
