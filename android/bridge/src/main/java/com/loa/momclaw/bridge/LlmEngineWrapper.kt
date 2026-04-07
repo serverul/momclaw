@@ -6,7 +6,7 @@ import com.google.ai.edge.litertlm.LlmEngine
 import com.google.ai.edge.litertlm.LlmGenerationSettings
 import com.google.ai.edge.litertlm.LlmSession
 import com.google.ai.edge.litertlm.LlmStream
-import io.github.microutils.kotlinlogging.KotlinLogging
+
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
@@ -43,7 +43,7 @@ class LlmEngineWrapper(
     private val context: Context
 ) {
     private companion object {
-        private val logger = KotlinLogging.logger {}
+        private val TAG = "LlmEngineWrapper"
     }
     
     private val sessionRef = AtomicReference<LlmSession?>(null)

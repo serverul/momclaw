@@ -1,7 +1,7 @@
 package com.loa.momclaw.bridge
 
 import android.content.Context
-import io.github.microutils.kotlinlogging.KotlinLogging
+
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -13,6 +13,7 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -44,7 +45,7 @@ class LiteRTBridge(
     private val port: Int = 8080
 ) {
     private companion object {
-        private val logger = KotlinLogging.logger {}
+        private val TAG = "LiteRTBridge"
     }
     
     private var server: ApplicationEngine? = null
@@ -93,7 +94,7 @@ class LiteRTBridge(
                 }
             }
         } catch (e: Exception) {
-            logger.error(e) { "Failed to start bridge with model path: $modelPath" }
+            println(e) { "Failed to start bridge with model path: $modelPath" }
             Result.failure(e)
         }
     }
@@ -118,7 +119,7 @@ class LiteRTBridge(
                     )
                 }
                 exception<Exception> { call, error ->
-                    logger.error(error) { "Unhandled exception in bridge" }
+                    println(error) { "Unhandled exception in bridge" }
                     call.respond(
                         HttpStatusCode.InternalServerError,
                         ErrorResponse(
@@ -151,7 +152,7 @@ class LiteRTBridge(
                 true
             }
             is LoadResult.Failure -> {
-                logger.error { "Model load failed: ${loadResult.error}" }
+                println { "Model load failed: ${loadResult.error}" }
                 false
             }
         }
@@ -326,7 +327,7 @@ fun Application.moduleInner(
             val request = call.receive<ChatCompletionRequest>()
             healthMonitor.recordRequest()
             
-            logger.debug { "Chat completion request: model=${request.model}, stream=${request.stream}, messages=${request.messages.size}" }
+            println { "Chat completion request: model=${request.model}, stream=${request.stream}, messages=${request.messages.size}" }
             
             // Validate request
             if (request.messages.isEmpty()) {
@@ -429,7 +430,7 @@ fun Application.moduleInner(
                 call.respond(HttpStatusCode.InternalServerError, ErrorResponse(ErrorDetail("REQUEST_CANCELLED", "Request was cancelled")))
             } catch (e: Exception) {
                 healthMonitor.recordError()
-                logger.error(e) { "Generation failed for chat completion request" }
+                println(e) { "Generation failed for chat completion request" }
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     ErrorResponse(ErrorDetail("GENERATION_FAILED", e.message ?: "Generation failed"))

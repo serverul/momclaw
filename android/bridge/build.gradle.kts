@@ -89,7 +89,6 @@ dependencies {
     implementation("com.github.tony19:logback-android:3.0.0")
     
     // Kotlin Logging
-    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
     
     // Rate Limiting
     implementation("io.ktor:ktor-server-rate-limit:$ktorVersion")
