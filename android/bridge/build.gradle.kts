@@ -49,15 +49,15 @@ dependencies {
     // GPU acceleration available via tensorflow-lite-gpu
     // ============================================================
     
-    // TensorFlow Lite core
-    implementation("org.tensorflow:tensorflow-lite:2.17.0")
+    // TensorFlow Lite core (2.14.0 is latest stable with all artifacts)
+    implementation("org.tensorflow:tensorflow-lite:2.14.0")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
     
     // GPU acceleration (optional, provides better performance)
-    implementation("org.tensorflow:tensorflow-lite-gpu:2.17.0")
+    implementation("org.tensorflow:tensorflow-lite-gpu:2.14.0")
     
     // Select TF ops (for models with advanced operations)
-    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.17.0")
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.14.0")
 
     // Ktor server
     implementation("io.ktor:ktor-server-netty:2.3.7")
