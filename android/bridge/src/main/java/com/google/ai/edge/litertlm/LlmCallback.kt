@@ -1,20 +1,11 @@
-// STUB: com.google.ai.edge.litertlm.LlmCallback
-// IMPORTANT: This is a placeholder stub for build-time compilation.
-// The actual Google AI Edge LiteRT-LM SDK is not yet publicly available.
-//
-// Expected artifact: com.google.ai.edge:litert-lm:1.0.0
-// See: https://ai.google.dev/edge/litert-lm/overview
-//
-// This stub provides build compatibility only.
+// Callback interface for LiteRT async generation
 package com.google.ai.edge.litertlm
 
 /**
  * Callback interface for LiteRT async generation.
  * 
- * STUB IMPLEMENTATION
- * 
- * This class exists for build-time compilation only. Actual inference
- * requires the real LiteRT-LM SDK from Google AI Edge.
+ * Used for non-streaming generation or when Flow-based streaming
+ * is not desired.
  * 
  * @see <a href="https://ai.google.dev/edge/litert">Google AI Edge LiteRT</a>
  */

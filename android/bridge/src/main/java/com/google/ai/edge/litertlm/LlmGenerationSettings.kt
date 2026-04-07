@@ -1,24 +1,13 @@
-// STUB: com.google.ai.edge.litertlm.LlmGenerationSettings
-// IMPORTANT: This is a placeholder stub for build-time compilation.
-// The actual Google AI Edge LiteRT-LM SDK is not yet publicly available.
-//
-// Integration options:
-// 1. Wait for official Google SDK release: https://ai.google.dev/edge/litert
-// 2. Use ML Kit on-device APIs as alternative
-// 3. Implement custom TensorFlow Lite model loading
-//
-// This stub provides build compatibility only.
+// Generation settings for LiteRT models
 package com.google.ai.edge.litertlm
 
 /**
  * Generation settings for LiteRT models.
  * 
- * STUB IMPLEMENTATION
+ * Controls sampling parameters for text generation including
+ * temperature, top-k, top-p, and max tokens.
  * 
- * This class exists for build-time compilation only. Actual inference
- * requires the real LiteRT-LM SDK from Google AI Edge.
- * 
- * Default values are optimized for Gemma 4 E4B model.
+ * Default values are optimized for Gemma-style models.
  * 
  * @see <a href="https://ai.google.dev/edge/litert">Google AI Edge LiteRT</a>
  */
@@ -37,12 +26,32 @@ class LlmGenerationSettings private constructor(
         fun builder() = Builder()
         
         /**
-         * Default settings optimized for Gemma 4 E4B.
+         * Default settings optimized for general text generation.
          */
         val DEFAULT = builder()
             .setTopK(40)
             .setTopP(0.95f)
             .setTemperature(0.7f)
+            .setMaxTokens(2048)
+            .build()
+        
+        /**
+         * Settings optimized for creative writing.
+         */
+        val CREATIVE = builder()
+            .setTopK(80)
+            .setTopP(0.95f)
+            .setTemperature(1.0f)
+            .setMaxTokens(2048)
+            .build()
+        
+        /**
+         * Settings optimized for factual/deterministic output.
+         */
+        val PRECISE = builder()
+            .setTopK(10)
+            .setTopP(0.9f)
+            .setTemperature(0.3f)
             .setMaxTokens(2048)
             .build()
     }
@@ -62,21 +71,30 @@ class LlmGenerationSettings private constructor(
          * Limits sampling to top k most likely tokens.
          * @param topK Number of top tokens (default: 40)
          */
-        fun setTopK(topK: Int) = apply { this.topK = topK }
+        fun setTopK(topK: Int) = apply { 
+            require(topK > 0) { "TopK must be positive" }
+            this.topK = topK 
+        }
         
         /**
          * Set top-p (nucleus) sampling parameter.
          * Limits sampling to tokens with cumulative probability >= top_p.
-         * @param topP Cumulative probability threshold (default: 0.95)
+         * @param topP Cumulative probability threshold (default: 0.95, range: 0.0-1.0)
          */
-        fun setTopP(topP: Float) = apply { this.topP = topP }
+        fun setTopP(topP: Float) = apply { 
+            require(topP in 0.0f..1.0f) { "TopP must be between 0.0 and 1.0" }
+            this.topP = topP 
+        }
         
         /**
          * Set sampling temperature.
          * Higher values produce more random output.
          * @param temperature Sampling temperature (default: 0.7, range: 0.0-2.0)
          */
-        fun setTemperature(temperature: Float) = apply { this.temperature = temperature }
+        fun setTemperature(temperature: Float) = apply { 
+            require(temperature >= 0.0f) { "Temperature must be non-negative" }
+            this.temperature = temperature 
+        }
         
         /**
          * Set random seed for reproducible outputs.
@@ -88,11 +106,19 @@ class LlmGenerationSettings private constructor(
          * Set maximum tokens to generate.
          * @param maxTokens Maximum output tokens (default: 2048)
          */
-        fun setMaxTokens(maxTokens: Int) = apply { this.maxTokens = maxTokens }
+        fun setMaxTokens(maxTokens: Int) = apply { 
+            require(maxTokens > 0) { "MaxTokens must be positive" }
+            this.maxTokens = maxTokens 
+        }
         
         /**
          * Build the generation settings.
          */
         fun build() = LlmGenerationSettings(topK, topP, temperature, randomSeed, maxTokens)
+    }
+    
+    override fun toString(): String {
+        return "LlmGenerationSettings(topK=$topK, topP=$topP, temperature=$temperature, " +
+               "randomSeed=$randomSeed, maxTokens=$maxTokens)"
     }
 }

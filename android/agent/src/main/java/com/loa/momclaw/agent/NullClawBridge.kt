@@ -64,7 +64,7 @@ class NullClawBridge @Inject constructor(
             
             // Generate config file
             val configWithDbPath = config.copy(
-                databasePath = getDatabasePath()
+                memoryPath = getDatabasePath()
             )
             val configFile = generateConfig(configWithDbPath)
             configPath = configFile.absolutePath
@@ -143,7 +143,7 @@ class NullClawBridge @Inject constructor(
     fun stop() {
         try {
             val wasRunning = isRunning
-            val exitCode = try { process?.exitValue() } catch (e: Exception) { -1 }
+            val exitCode = try { process?.exitValue() ?: -1 } catch (e: Exception) { -1 }
             
             process?.destroy()
             

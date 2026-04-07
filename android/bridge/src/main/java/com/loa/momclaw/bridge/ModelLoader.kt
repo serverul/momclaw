@@ -27,6 +27,8 @@ class ModelLoader(private val context: Context) {
     
     companion object {
         private const val TAG = "ModelLoader"
+        const val DEFAULT_MODEL_ID = "litert-community/gemma-4-E4B-it-litertlm"
+        const val MIN_MODEL_SIZE_BYTES = 100L * 1024 * 1024 // 100MB minimum
     }
     
     private val logger = MomClawLogger
@@ -233,14 +235,7 @@ class ModelLoader(private val context: Context) {
         val availableSpace: Long,
         val modelCount: Int
     )
-    
-    companion object {
-        const val DEFAULT_MODEL_ID = "litert-community/gemma-4-E4B-it-litertlm"
-        const val MIN_MODEL_SIZE_BYTES = 100L * 1024 * 1024 // 100MB minimum
-    }
 }
-
-// Custom exceptions
 
 // Custom exceptions
 class ModelNotFoundException(path: String) : Exception("Model not found: $path")

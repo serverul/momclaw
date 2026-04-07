@@ -77,7 +77,7 @@ class ModelFallbackManager(
             is ModelStatus.Available -> {
                 // Try to load real model
                 val loaded = engine.loadModel(modelPath)
-                if (loaded) {
+                if (loaded.isSuccess) {
                     LoadResult.Success(
                         mode = InferenceMode.LITERT,
                         modelName = status.info.name,
@@ -157,7 +157,15 @@ class ModelFallbackManager(
         return when (mode) {
             InferenceMode.LITERT -> {
                 try {
-                    engine.generate(request)
+                    val result = engine.generateComplete(
+                        prompt = request.prompt,
+                        temperature = request.temperature,
+                        maxTokens = request.maxTokens
+                    )
+                    result.fold(
+                        onSuccess = { text -> LiteRTResponseChunk(text = text, isComplete = true, tokensGenerated = 0) },
+                        onFailure = { e -> simulateResponse(request, "Error: ${e.message}") }
+                    )
                 } catch (e: Exception) {
                     // Fall back to simulation on error
                     simulateResponse(request, "Error: ${e.message}")
@@ -179,9 +187,23 @@ class ModelFallbackManager(
         when (mode) {
             InferenceMode.LITERT -> {
                 try {
-                    engine.generateStreaming(request).collect { chunk ->
-                        emit(chunk)
+                    engine.generate(
+                        prompt = request.prompt,
+                        temperature = request.temperature,
+                        maxTokens = request.maxTokens
+                    ).collect { token ->
+                        emit(LiteRTResponseChunk(
+                            text = token,
+                            isComplete = false,
+                            tokensGenerated = 1
+                        ))
                     }
+                    // Emit final completion marker
+                    emit(LiteRTResponseChunk(
+                        text = "",
+                        isComplete = true,
+                        tokensGenerated = 0
+                    ))
                 } catch (e: Exception) {
                     // Fall back to simulation on error
                     emit(LiteRTResponseChunk(

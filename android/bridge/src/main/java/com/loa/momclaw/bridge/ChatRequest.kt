@@ -29,19 +29,6 @@ data class ChatMessage(
     val content: String
 )
 
-/**
- * OpenAI-compatible chat completion response
- */
-@Serializable
-data class ChatCompletionResponse(
-    val id: String,
-    val `object`: String = "chat.completion",
-    val created: Long,
-    val model: String,
-    val choices: List<ChatChoice>,
-    val usage: Usage? = null
-)
-
 @Serializable
 data class ChatChoice(
     val index: Int = 0,

@@ -37,30 +37,27 @@ android {
 
 dependencies {
     // ============================================================
-    // LiteRT-LM SDK (Google AI Edge)
+    // LiteRT-LM SDK (TensorFlow Lite Implementation)
     // ============================================================
-    // Status: Placeholder - official SDK not yet publicly available
+    // Google AI Edge LiteRT-LM SDK is not publicly available yet.
+    // Using TensorFlow Lite as the runtime backend.
     //
-    // The stub implementations in com.google.ai.edge.litertlm package
-    // provide build compatibility. Actual inference requires:
+    // Supports:
+    // - .tflite model files (TensorFlow Lite format)
+    // - .litertlm model files (future format, fallback to TFLite)
     //
-    // Option 1: Wait for official Google SDK
-    //   - Monitor: https://ai.google.dev/edge/litert
-    //   - Expected artifact: com.google.ai.edge:litert-lm:x.x.x
-    //
-    // Option 2: Use TensorFlow Lite directly
-    //   - implementation("org.tensorflow:tensorflow-lite:2.14.0")
-    //   - implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.14.0")
-    //   - Requires custom model conversion to TFLite format
-    //
-    // Option 3: Use ML Kit APIs as alternative
-    //   - implementation("com.google.mlkit:common:18.10.0")
-    //   - Limited to specific tasks (translation, text recognition)
-    //
-    // Current state: Stub implementations allow UI/API testing
-    // Uncomment below when official SDK becomes available:
-    // implementation("com.google.ai.edge:litert-lm:1.0.0")
+    // GPU acceleration available via tensorflow-lite-gpu
     // ============================================================
+    
+    // TensorFlow Lite core
+    implementation("org.tensorflow:tensorflow-lite:2.17.0")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
+    
+    // GPU acceleration (optional, provides better performance)
+    implementation("org.tensorflow:tensorflow-lite-gpu:2.17.0")
+    
+    // Select TF ops (for models with advanced operations)
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.17.0")
 
     // Ktor server
     implementation("io.ktor:ktor-server-netty:2.3.7")

@@ -25,41 +25,39 @@ data class AgentConfig(
      * Converts the agent config to NullClaw JSON configuration format.
      */
     fun toJson(): String {
-        val config = mapOf(
-            "agents" to mapOf(
-                "defaults" to mapOf(
-                    "model" to mapOf("primary" to modelPrimary),
-                    "system_prompt" to systemPrompt
-                )
-            ),
-            "models" to mapOf(
-                "providers" to mapOf(
-                    "litert-bridge" to mapOf(
-                        "type" to "custom",
-                        "base_url" to baseUrl
-                    )
-                )
-            ),
-            "memory" to mapOf(
-                "backend" to memoryBackend,
-                "path" to memoryPath
-            ),
-            "tools" to mapOf(
-                "enabled" to listOf("shell", "file_read", "file_write")
-            ),
-            "channels" to mapOf(
-                "cli" to mapOf("enabled" to false),
-                "http" to mapOf(
-                    "enabled" to true,
-                    "port" to 9090
-                )
-            ),
-            "inference" to mapOf(
-                "temperature" to temperature,
-                "max_tokens" to maxTokens
-            )
-        )
-
-        return kotlinx.serialization.json.Json { prettyPrint = true }.encodeToString(config)
+        return """{
+            "agents": {
+                "defaults": {
+                    "model": { "primary": "$modelPrimary" },
+                    "system_prompt": "$systemPrompt"
+                }
+            },
+            "models": {
+                "providers": {
+                    "litert-bridge": {
+                        "type": "custom",
+                        "base_url": "$baseUrl"
+                    }
+                }
+            },
+            "memory": {
+                "backend": "$memoryBackend",
+                "path": "$memoryPath"
+            },
+            "tools": {
+                "enabled": ["shell", "file_read", "file_write"]
+            },
+            "channels": {
+                "cli": { "enabled": false },
+                "http": {
+                    "enabled": true,
+                    "port": 9090
+                }
+            },
+            "inference": {
+                "temperature": $temperature,
+                "max_tokens": $maxTokens
+            }
+        }""".replaceIndent(" ")
     }
 }

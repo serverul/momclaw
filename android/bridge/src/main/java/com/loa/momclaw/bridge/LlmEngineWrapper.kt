@@ -1,55 +1,99 @@
 package com.loa.momclaw.bridge
 
 import android.content.Context
+import android.util.Log
+import com.google.ai.edge.litertlm.LlmEngine
+import com.google.ai.edge.litertlm.LlmGenerationSettings
+import com.google.ai.edge.litertlm.LlmSession
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * Wrapper for LiteRT-LM inference engine.
+ * Wrapper for LiteRT-LM inference engine using TensorFlow Lite backend.
  * 
- * This is a placeholder implementation. In production, this would integrate
- * with the actual Google AI Edge LiteRT-LM SDK.
+ * This implementation uses the real TensorFlow Lite-based LlmEngine
+ * for actual on-device inference.
  * 
- * The real implementation would use:
- * - com.google.ai.edge.litert.LlmEngine
- * - com.google.ai.edge.litert.LlmSession
+ * Architecture:
+ * - LlmEngine: Singleton managing TensorFlow Lite interpreter
+ * - LlmSession: Per-request session for inference
+ * - LlmStream: Callback interface for streaming output
  */
 class LlmEngineWrapper(private val context: Context) {
 
+    private var engine: LlmEngine? = null
+    private var session: LlmSession? = null
     private var isModelLoaded = false
     private var modelPath: String? = null
+    private var generationSettings: LlmGenerationSettings = LlmGenerationSettings.DEFAULT
 
     /**
      * Loads a LiteRT model from the given path.
      * 
-     * @param path Absolute path to .litertlm model file
+     * Supports both .tflite and .litertlm model files.
+     * 
+     * @param path Absolute path to model file
      * @return Result.success if loaded successfully, Result.failure otherwise
      */
     suspend fun loadModel(path: String): Result<Unit> {
-        return try {
-            val modelFile = File(path)
-            
-            if (!modelFile.exists()) {
-                return Result.failure(Exception("Model file not found: $path"))
-            }
+        return withContext(Dispatchers.IO) {
+            try {
+                val modelFile = File(path)
+                
+                if (!modelFile.exists()) {
+                    return@withContext Result.failure(
+                        Exception("Model file not found: $path")
+                    )
+                }
 
-            // In real implementation:
-            // val engine = LlmEngine.getInstance(context)
-            // engine.loadModel(path)
-            // session = engine.createSession()
-            
-            modelPath = path
-            isModelLoaded = true
-            
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(Exception("Failed to load model: ${e.message}", e))
+                // Create model object
+                val model = LlmEngine.Model(modelFile)
+                
+                // Initialize engine
+                engine = LlmEngine.getInstance(context)
+                
+                // Load model into engine
+                val loadResult = engine!!.loadModel(model, generationSettings)
+                
+                if (loadResult.isFailure) {
+                    return@withContext Result.failure(
+                        loadResult.exceptionOrNull() 
+                            ?: Exception("Failed to load model")
+                    )
+                }
+                
+                // Create session
+                session = LlmSession.create(context)
+                val sessionResult = session!!.loadModel(model, generationSettings)
+                
+                if (sessionResult.isFailure) {
+                    return@withContext Result.failure(
+                        sessionResult.exceptionOrNull() 
+                            ?: Exception("Failed to initialize session")
+                    )
+                }
+                
+                modelPath = path
+                isModelLoaded = true
+                
+                Log.i("LlmEngineWrapper", "Model loaded successfully: ${model.name}")
+                Result.success(Unit)
+                
+            } catch (e: Exception) {
+                Log.e("LlmEngineWrapper", "Failed to load model: ${e.message}", e)
+                Result.failure(Exception("Failed to load model: ${e.message}", e))
+            }
         }
     }
 
     /**
      * Generates text tokens as a Flow for streaming responses.
+     * 
+     * Uses the TensorFlow Lite interpreter for actual inference.
      * 
      * @param prompt Formatted input prompt
      * @param temperature Sampling temperature (0.0-2.0)
@@ -60,28 +104,23 @@ class LlmEngineWrapper(private val context: Context) {
         prompt: String,
         temperature: Float = 0.7f,
         maxTokens: Int = 2048
-    ): Flow<String> = flow {
-        if (!isModelLoaded) {
+    ): Flow<String> {
+        if (!isModelLoaded || session == null) {
             throw IllegalStateException("Model not loaded. Call loadModel() first.")
         }
 
-        // In real implementation:
-        // session?.generate(prompt, temperature, maxTokens)?.collect { token ->
-        //     emit(token)
-        // }
-
-        // Placeholder: Simulate streaming with example response
-        // This should be replaced with actual LiteRT-LM inference
-        val exampleResponse = "This is a placeholder response. In production, this would be generated by the LiteRT-LM model."
-        
-        exampleResponse.split(" ").forEach { word ->
-            emit("$word ")
-            kotlinx.coroutines.delay(50) // Simulate streaming delay
-        }
+        // Use real TensorFlow Lite inference with Flow
+        return session!!.generateFlow(
+            prompt = prompt,
+            temperature = temperature,
+            maxTokens = maxTokens
+        ).flowOn(Dispatchers.Default)
     }
 
     /**
      * Generates a complete response (non-streaming).
+     * 
+     * Collects all tokens from the streaming flow and returns as single string.
      * 
      * @param prompt Formatted input prompt
      * @param temperature Sampling temperature
@@ -96,20 +135,47 @@ class LlmEngineWrapper(private val context: Context) {
         return try {
             val response = StringBuilder()
             
-            generate(prompt, temperature, maxTokens).collect { token ->
-                response.append(token)
-            }
+            generate(prompt, temperature, maxTokens)
+                .catch { e ->
+                    Log.e("LlmEngineWrapper", "Error during generation", e)
+                    throw e
+                }
+                .collect { token ->
+                    response.append(token)
+                }
             
             Result.success(response.toString())
         } catch (e: Exception) {
+            Log.e("LlmEngineWrapper", "Failed to generate response", e)
             Result.failure(e)
         }
     }
 
     /**
+     * Update generation settings
+     */
+    fun updateSettings(
+        temperature: Float? = null,
+        topK: Int? = null,
+        topP: Float? = null,
+        maxTokens: Int? = null
+    ) {
+        val builder = LlmGenerationSettings.builder()
+        
+        temperature?.let { builder.setTemperature(it) }
+        topK?.let { builder.setTopK(it) }
+        topP?.let { builder.setTopP(it) }
+        maxTokens?.let { builder.setMaxTokens(it) }
+        
+        generationSettings = builder.build()
+        
+        Log.d("LlmEngineWrapper", "Updated generation settings: temp=$temperature, topK=$topK, topP=$topP, maxTokens=$maxTokens")
+    }
+
+    /**
      * Checks if a model is currently loaded.
      */
-    fun isLoaded(): Boolean = isModelLoaded
+    fun isLoaded(): Boolean = isModelLoaded && session != null
 
     /**
      * Gets the currently loaded model path.
@@ -120,12 +186,20 @@ class LlmEngineWrapper(private val context: Context) {
      * Releases model resources.
      */
     fun close() {
-        // In real implementation:
-        // session?.close()
-        // engine = null
-        
-        isModelLoaded = false
-        modelPath = null
+        try {
+            session?.close()
+            session = null
+            
+            engine?.close()
+            engine = null
+            
+            isModelLoaded = false
+            modelPath = null
+            
+            Log.i("LlmEngineWrapper", "Engine resources released")
+        } catch (e: Exception) {
+            Log.e("LlmEngineWrapper", "Error closing engine", e)
+        }
     }
 
     companion object {

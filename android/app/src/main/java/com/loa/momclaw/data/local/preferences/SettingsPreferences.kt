@@ -28,8 +28,10 @@ class SettingsPreferences @Inject constructor(
         private val KEY_DARK_MODE = booleanPreferencesKey("dark_mode")
         private val KEY_AUTO_SAVE = booleanPreferencesKey("auto_save")
         private val KEY_CURRENT_CONVERSATION_ID = longPreferencesKey("current_conversation_id")
+        private val KEY_ACTIVE_MODEL_ID = stringPreferencesKey("active_model_id")
 
         private const val DEFAULT_SYSTEM_PROMPT = "You are MOMCLAW, a helpful AI assistant running offline on this device."
+        const val DEFAULT_MODEL_ID = "gemma-4-e4b-lt"
         private const val DEFAULT_TEMPERATURE = 0.7f
         private const val DEFAULT_MAX_TOKENS = 2048
         private const val DEFAULT_DARK_MODE = false
@@ -117,6 +119,33 @@ class SettingsPreferences @Inject constructor(
     suspend fun setDarkMode(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[KEY_DARK_MODE] = enabled
+        }
+    }
+
+    /**
+     * Gets the active model ID as Flow.
+     */
+    fun getActiveModelId(): Flow<String> {
+        return context.dataStore.data.map { preferences ->
+            preferences[KEY_ACTIVE_MODEL_ID] ?: DEFAULT_MODEL_ID
+        }
+    }
+
+    /**
+     * Gets the active model ID (suspend version).
+     */
+    suspend fun getActiveModelIdValue(): String {
+        return context.dataStore.data.map { preferences ->
+            preferences[KEY_ACTIVE_MODEL_ID] ?: DEFAULT_MODEL_ID
+        }.first()
+    }
+
+    /**
+     * Sets the active model ID.
+     */
+    suspend fun setActiveModelId(modelId: String) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_ACTIVE_MODEL_ID] = modelId
         }
     }
 }

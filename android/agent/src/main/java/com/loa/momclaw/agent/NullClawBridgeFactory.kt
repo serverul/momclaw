@@ -232,5 +232,5 @@ suspend fun NullClawBridge.setupWithDefaults(
         temperature = temperature ?: com.loa.momclaw.agent.model.AgentConfig.DEFAULT.temperature,
         maxTokens = maxTokens ?: com.loa.momclaw.agent.model.AgentConfig.DEFAULT.maxTokens
     )
-    return setup(config)
+    return setup(config).map { }
 }

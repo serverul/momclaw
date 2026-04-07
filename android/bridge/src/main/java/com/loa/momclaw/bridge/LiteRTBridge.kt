@@ -131,7 +131,7 @@ class LiteRTBridge @Inject constructor(
             val prompt = PromptFormatter.formatPrompt(request.messages)
 
             // Set up streaming response
-            call.response.cacheControl(CacheControl.NoCache)
+            call.response.cacheControl(CacheControl.NoCache())
             call.response.header(HttpHeaders.Connection, "keep-alive")
             
             call.respondTextWriter(ContentType.Text.EventStream) {

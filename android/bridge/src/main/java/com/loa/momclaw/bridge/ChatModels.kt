@@ -30,7 +30,8 @@ data class ChatResponse(
     val `object`: String = "chat.completion",
     val created: Long,
     val model: String,
-    val choices: List<Choice>
+    val choices: List<Choice>,
+    val usage: Usage? = null
 )
 
 @Serializable
@@ -47,8 +48,15 @@ data class Delta(
     val content: String? = null
 )
 
+@Serializable
+data class Usage(
+    val prompt_tokens: Int = 0,
+    val completion_tokens: Int = 0,
+    val total_tokens: Int = 0
+)
+
 /**
- * Type alias for compatibility
+ * Type alias for compatibility - points to ChatResponse
  */
 typealias ChatCompletionResponse = ChatResponse
 
@@ -59,6 +67,7 @@ object SSEFormatter {
     private val json = Json {
         ignoreUnknownKeys = true
         encodeDefaults = false
+        isLenient = true
     }
 
     fun formatStreamEvent(token: String, model: String): String {
@@ -70,7 +79,8 @@ object SSEFormatter {
             model = model,
             choices = listOf(choice)
         )
-        return "data: ${json.encodeToString(ChatResponse.serializer(), response)}\n\n"
+        val responseJson = json.encodeToString(response)
+        return "data: $responseJson\n\n"
     }
 
     fun formatDoneEvent(): String {

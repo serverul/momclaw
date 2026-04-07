@@ -1,55 +1,152 @@
-// STUB: com.google.ai.edge.litertlm.LlmEngine
-// IMPORTANT: This is a placeholder stub for build-time compilation.
-// The actual Google AI Edge LiteRT-LM SDK is not yet publicly available.
-// 
-// Integration options:
-// 1. Wait for official Google SDK release: https://ai.google.dev/edge/litert
-// 2. Use ML Kit on-device translation/text APIs as alternative
-// 3. Implement custom TensorFlow Lite model loading
-//
-// This stub provides build compatibility only. Runtime will throw
-// UnsupportedOperationException if actual inference is attempted.
+// Real TensorFlow Lite Implementation of LlmEngine
+// Supports .tflite and .litertlm model files
 package com.google.ai.edge.litertlm
 
 import android.content.Context
 import android.util.Log
+import org.tensorflow.lite.Interpreter
+import org.tensorflow.lite.gpu.CompatibilityList
+import org.tensorflow.lite.gpu.GpuDelegate
 import java.io.File
+import java.nio.MappedByteBuffer
+import java.nio.channels.FileChannel
 
 /**
- * LiteRT Engine for loading and managing LLM models.
+ * LiteRT Engine for loading and managing LLM models using TensorFlow Lite.
  * 
- * STUB IMPLEMENTATION - NOT FUNCTIONAL
- * 
- * This class exists for build-time compilation only. Actual inference
- * requires the real LiteRT-LM SDK from Google AI Edge.
+ * This is a real implementation using TensorFlow Lite as the backend runtime.
+ * Supports both .tflite and .litertlm model files (litertlm files are treated as TFLite).
  * 
  * @see <a href="https://ai.google.dev/edge/litert">Google AI Edge LiteRT</a>
  */
-class LlmEngine private constructor() {
+class LlmEngine private constructor(
+    private val context: Context
+) {
+    private var interpreter: Interpreter? = null
+    private var gpuDelegate: GpuDelegate? = null
+    private var modelBuffer: MappedByteBuffer? = null
+    private var currentModel: Model? = null
     
     companion object {
         private const val TAG = "LlmEngine"
         
+        @Volatile
+        private var instance: LlmEngine? = null
+        
+        /**
+         * Get singleton instance of LlmEngine
+         */
         fun getInstance(context: Context): LlmEngine {
-            Log.w(TAG, "Using stub LlmEngine - actual inference not available")
-            return LlmEngine()
+            return instance ?: synchronized(this) {
+                instance ?: LlmEngine(context.applicationContext).also { instance = it }
+            }
         }
     }
     
     /**
-     * Model representation wrapping a .litertlm file
+     * Model representation wrapping a .litertlm or .tflite file
      */
     class Model(file: File) {
         val path: String = file.absolutePath
         val name: String = file.nameWithoutExtension
+        val extension: String = file.extension.lowercase()
+        
+        init {
+            require(extension == "tflite" || extension == "litertlm") {
+                "Model must be .tflite or .litertlm format, got: .$extension"
+            }
+        }
     }
     
-    fun loadModel(model: Model, settings: LlmGenerationSettings) {
-        Log.w(TAG, "Stub loadModel called for: ${model.name}")
-        Log.w(TAG, "Install LiteRT-LM SDK for actual model loading")
+    /**
+     * Load a model file and initialize the interpreter
+     */
+    fun loadModel(model: Model, settings: LlmGenerationSettings): Result<Unit> {
+        return try {
+            // Close existing model if any
+            close()
+            
+            Log.i(TAG, "Loading model: ${model.name} from ${model.path}")
+            
+            // Load model file into memory
+            modelBuffer = loadModelFile(File(model.path))
+            
+            // Configure interpreter options
+            val options = Interpreter.Options().apply {
+                // Try to use GPU if available
+                val compatList = CompatibilityList()
+                if (compatList.isDelegateSupportedOnThisDevice) {
+                    Log.i(TAG, "GPU acceleration available, enabling GPU delegate")
+                    gpuDelegate = GpuDelegate(compatList.bestOptionsForThisDevice)
+                    addDelegate(gpuDelegate!!)
+                } else {
+                    Log.w(TAG, "GPU not available, using CPU with ${Runtime.getRuntime().availableProcessors()} threads")
+                    setNumThreads(Runtime.getRuntime().availableProcessors())
+                }
+                
+                // Enable XNNPACK for optimized CPU inference
+                setUseXNNPACK(true)
+            }
+            
+            // Create interpreter
+            interpreter = Interpreter(modelBuffer!!, options)
+            
+            currentModel = model
+            
+            Log.i(TAG, "Model loaded successfully: ${model.name}")
+            Log.d(TAG, "Input tensors: ${interpreter?.inputTensorCount}")
+            Log.d(TAG, "Output tensors: ${interpreter?.outputTensorCount}")
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to load model: ${model.name}", e)
+            Result.failure(e)
+        }
     }
     
+    /**
+     * Get the underlying TensorFlow Lite interpreter
+     */
+    fun getInterpreter(): Interpreter? = interpreter
+    
+    /**
+     * Check if a model is loaded
+     */
+    fun isLoaded(): Boolean = interpreter != null && modelBuffer != null
+    
+    /**
+     * Get the currently loaded model
+     */
+    fun getCurrentModel(): Model? = currentModel
+    
+    /**
+     * Close and release resources
+     */
     fun close() {
-        Log.d(TAG, "Stub close called")
+        try {
+            interpreter?.close()
+            interpreter = null
+            
+            gpuDelegate?.close()
+            gpuDelegate = null
+            
+            modelBuffer = null
+            currentModel = null
+            
+            Log.d(TAG, "Engine resources released")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error closing engine", e)
+        }
+    }
+    
+    /**
+     * Load model file into MappedByteBuffer
+     */
+    private fun loadModelFile(file: File): MappedByteBuffer {
+        val inputStream = file.inputStream()
+        val fileChannel = inputStream.channel
+        val startOffset = 0L
+        val declaredLength = file.length()
+        return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
     }
 }
