@@ -10,6 +10,7 @@ import com.loa.momclaw.agent.AgentState
 import com.loa.momclaw.domain.model.AgentConfig
 import com.loa.momclaw.inference.InferenceService
 import com.loa.momclaw.inference.InferenceState
+import com.loa.momclaw.util.MomClawLogger
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -62,7 +63,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
     private fun transitionState(newState: StartupState) {
         lock.withLock {
             val oldState = _state.value
-            // TODO: Add logging
+            MomClawLogger.i(TAG, "State transition: $oldState -> $newState")
             _state.value = newState
         }
     }
@@ -73,11 +74,11 @@ class StartupManager(private val context: Context) : LifecycleObserver {
     private fun transitionStateIf(expected: StartupState, newState: StartupState): Boolean {
         return lock.withLock {
             if (_state.value == expected) {
-                // TODO: Add logging
+                MomClawLogger.i(TAG, "State transition: $expected -> $newState")
                 _state.value = newState
                 true
             } else {
-                // TODO: Add logging
+                MomClawLogger.w(TAG, "State transition rejected: expected $expected, got ${_state.value}")
                 false
             }
         }
@@ -90,14 +91,14 @@ class StartupManager(private val context: Context) : LifecycleObserver {
         scope.launch {
             // Already running check
             if (_state.value == StartupState.Running) {
-                // TODO: Add logging
+                MomClawLogger.w(TAG, "Services already running, skipping start")
                 return@launch
             }
             
             // Atomic transition from Idle/Stopped to Starting
             if (!transitionStateIf(StartupState.Idle, StartupState.Starting) &&
                 !transitionStateIf(StartupState.Stopped, StartupState.Starting)) {
-                // TODO: Add logging
+                MomClawLogger.w(TAG, "Cannot start services from state: ${_state.value}")
                 return@launch
             }
             
@@ -111,7 +112,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 )
                 
                 // Step 1: Start Inference Service (LiteRT Bridge) with timeout
-                // TODO: Add logging
+                MomClawLogger.i(TAG, "Starting Inference Service...")
                 transitionState(StartupState.StartingInference)
                 
                 val inferenceStarted = withTimeoutOrNull(INFERENCE_TIMEOUT_MS) {
@@ -124,7 +125,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 }
                 
                 // Step 2: Wait for LiteRT Bridge to be ready with timeout
-                // TODO: Add logging
+                MomClawLogger.i(TAG, "Waiting for Inference Service to be ready...")
                 transitionState(StartupState.WaitingForInference)
                 
                 val inferenceReady = withTimeoutOrNull(MAX_WAIT_MS) {
@@ -146,7 +147,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 )
                 
                 // Step 3: Start Agent Service (NullClaw) with timeout
-                // TODO: Add logging
+                MomClawLogger.i(TAG, "Starting Agent Service...")
                 transitionState(StartupState.StartingAgent)
                 
                 val agentStarted = withTimeoutOrNull(AGENT_TIMEOUT_MS) {

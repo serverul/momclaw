@@ -3,7 +3,7 @@
 Complete index of all documentation files for the MOMCLAW project.
 
 **Version**: 1.0.0  
-**Last Updated**: 2026-04-06
+**Last Updated**: 2026-04-07
 
 ---
 
@@ -15,6 +15,7 @@ Complete index of all documentation files for the MOMCLAW project.
 | [USER_GUIDE.md](USER_GUIDE.md) | End-user guide - complete usage documentation | Users |
 | [QUICKSTART.md](QUICKSTART.md) | 5-minute setup guide | New users |
 | [PRODUCTION-READINESS.md](PRODUCTION-READINESS.md) | Production deployment status | DevOps/Releases |
+| [DEPLOYMENT_READINESS_FINAL_REPORT.md](DEPLOYMENT_READINESS_FINAL_REPORT.md) | Final deployment readiness assessment | DevOps/Releases |
 | [DOCUMENTATION.md](DOCUMENTATION.md) | Complete documentation | Developers |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Deployment guides | DevOps |
 | [BUILD-DEPLOYMENT-GUIDE.md](BUILD-DEPLOYMENT-GUIDE.md) | Complete build & deploy guide | DevOps/Developers |
@@ -25,6 +26,7 @@ Complete index of all documentation files for the MOMCLAW project.
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Developer guide | Contributors |
 | [TESTING.md](TESTING.md) | Testing strategy | QA/Developers |
 | [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Pre-release checklist | Release managers |
+| [docs/API_REFERENCE.md](docs/API_REFERENCE.md) | API documentation (LiteRT Bridge + NullClaw Agent) | Developers |
 
 ---
 

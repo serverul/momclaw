@@ -38,7 +38,7 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
           api-level: ${{ env.ANDROID_API_LEVEL }}
           build-tools-version: ${{ env.ANDROID_BUILD_TOOLS_VERSION }}

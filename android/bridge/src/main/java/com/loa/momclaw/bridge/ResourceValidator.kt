@@ -115,7 +115,7 @@ class ResourceValidator(private val context: Context) {
                     MissingResource(
                         name = "LiteRT Model",
                         type = ResourceType.MODEL,
-                        description = "Gemma 3 E4B IT model for on-device inference",
+                        description = "Gemma 4 E4B IT model for on-device inference",
                         downloadUrl = modelStatus.downloadUrl,
                         size = "~3.5GB"
                     )
@@ -267,7 +267,7 @@ class ResourceValidator(private val context: Context) {
         val sizeBytes = file.length()
         val sizeGB = sizeBytes / (1024.0 * 1024.0 * 1024.0)
         
-        // Expected size for Gemma 3 E4B IT is ~3.5GB
+        // Expected size for Gemma 4 E4B IT is ~3.9GB
         val expectedSizeGB = 3.5
         
         when {

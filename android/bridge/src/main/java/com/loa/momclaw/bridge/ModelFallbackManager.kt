@@ -10,7 +10,7 @@ import java.io.File
  * Model Fallback Manager
  * 
  * Provides graceful degradation when LiteRT models are not available:
- * - Primary: LiteRT on-device model (Gemma 3 E4B IT)
+ * - Primary: LiteRT on-device model (Gemma 4 E4B IT)
  * - Fallback 1: Simulated responses (echo mode)
  * - Fallback 2: Error responses with helpful guidance
  * 
@@ -37,7 +37,7 @@ class ModelFallbackManager(
             )
         }
         
-        // Check file size (Gemma 3 E4B is ~3.5GB)
+        // Check file size (Gemma 4 E4B is ~3.9GB)
         val sizeGB = file.length() / (1024.0 * 1024.0 * 1024.0)
         if (sizeGB < 0.5) {
             return@withContext ModelStatus.Corrupted(
@@ -219,7 +219,7 @@ class ModelFallbackManager(
             append("\n```\n\n")
             append("**Model Status:** Not loaded\n")
             append("**To enable real inference:**\n")
-            append("1. Download Gemma 3 E4B IT model:\n")
+            append("1. Download Gemma 4 E4B IT model:\n")
             append("   `litert-community/gemma-4-E4B-it-litertlm`\n")
             append("2. Place at: `/data/data/com.loa.momclaw/files/models/`\n")
             append("3. Restart the app\n\n")

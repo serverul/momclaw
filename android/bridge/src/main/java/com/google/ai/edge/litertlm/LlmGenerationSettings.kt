@@ -18,7 +18,7 @@ package com.google.ai.edge.litertlm
  * This class exists for build-time compilation only. Actual inference
  * requires the real LiteRT-LM SDK from Google AI Edge.
  * 
- * Default values are optimized for Gemma 3 E4B model.
+ * Default values are optimized for Gemma 4 E4B model.
  * 
  * @see <a href="https://ai.google.dev/edge/litert">Google AI Edge LiteRT</a>
  */
@@ -37,7 +37,7 @@ class LlmGenerationSettings private constructor(
         fun builder() = Builder()
         
         /**
-         * Default settings optimized for Gemma 3 E4B.
+         * Default settings optimized for Gemma 4 E4B.
          */
         val DEFAULT = builder()
             .setTopK(40)

@@ -182,7 +182,7 @@ class ConfigurationManager(private val context: Context) {
                 modelName.contains("llama", ignoreCase = true) -> ModelType.LLAMA
                 else -> ModelType.UNKNOWN
             },
-            contextLength = 8192, // Default for Gemma 3 E4B
+            contextLength = 8192, // Default for Gemma 4 E4B
             quantization = if (modelPath.contains("int8")) Quantization.INT8 else Quantization.FP16
         )
     }

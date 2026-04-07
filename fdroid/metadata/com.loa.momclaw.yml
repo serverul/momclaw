@@ -1,0 +1,80 @@
+Categories:
+  - Development
+  - Internet
+  - Science & Education
+
+License: Apache-2.0
+AuthorName: LinuxOnAsteroids
+AuthorEmail: support@momclaw.app
+AuthorWebSite: https://github.com/serverul
+WebSite: https://github.com/serverul/MomClAW
+SourceCode: https://github.com/serverul/MomClAW
+IssueTracker: https://github.com/serverul/MomClAW/issues
+Changelog: https://github.com/serverul/MomClAW/releases
+Donate: https://github.com/sponsors/serverul
+
+AutoName: MomClAW
+Summary: AI Agent 100% offline pe Android - Asistent AI complet autonom
+Description: |
+    MomClAW este un agent AI complet autonom care rulează pe telefon — zero cloud, 
+    zero tracking, 100% offline.
+    
+    == Caracteristici ==
+    
+    * 🧠 **Conversații inteligente** - Reasoning avansat cu Gemma 3 E4B-it
+    * 🔧 **Tool calls native** - Shell, file operations, web search
+    * 💾 **Memorie persistentă** - SQLite database cu conversații complete
+    * 📱 **Canale externe** - Telegram și Discord integration (online mode)
+    * 🔄 **OpenClaw Sync** - Sincronizare cu instanță principală OpenClaw
+    * 🔒 **Privacy-first** - Toate datele rămân pe device
+    * ⚡ **Performance** - Optimizat pentru mobile cu LiteRT-LM
+    * 🌙 **Dark theme** - Material You design cu dynamic colors
+    
+    == Tech Stack ==
+    
+    * Kotlin 2.0 + Jetpack Compose
+    * LiteRT-LM (Google AI Edge)
+    * Ktor Server (Netty)
+    * NullClaw Agent (Zig)
+    * Gemma 3 E4B-it (Q4_K_M)
+    * Room Database (SQLite)
+    * Hilt (Dagger)
+
+RepoType: git
+Repo: https://github.com/serverul/MomClAW.git
+
+Builds:
+  - versionName: 1.0.0
+    versionCode: 1000000
+    commit: v1.0.0
+    subdir: android
+    gradle:
+      - yes
+    output: app/build/outputs/apk/release/app-release.apk
+    ndk: r25c
+    prebuild:
+      - sed -i -e '/signingConfigs/d' build.gradle.kts
+      - sed -i -e '/signingConfig/d' app/build.gradle.kts
+
+MaintainerNotes: |
+    First release. APK size is larger due to bundled native libraries.
+    Model file must be downloaded separately (~2.5GB).
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+UpdateCheckData: android/app/build.gradle.kts|versionCode\s*=\s*(\d+)||
+CurrentVersion: 1.0.0
+CurrentVersionCode: 1000000
+
+ArchivePolicy: 10 versions
+Binaries: https://github.com/serverul/MomClAW/releases/download/v%v/MomClAW-%v-universal.apk
+
+AntiFeatures:
+  - NonFreeNet
+  - NonFreeComp
+
+NonFreeNet:
+  - Optional web search feature requires internet (can be disabled)
+  
+NonFreeComp:
+  - Model download requires Google's Gemma license (Apache 2.0 compatible)
