@@ -1,6 +1,6 @@
-# MomClAW Build Configuration Guide
+# MOMCLAW Build Configuration Guide
 
-Complete guide for configuring, building, and deploying MomClAW Android application.
+Complete guide for configuring, building, and deploying MOMCLAW Android application.
 
 **Version**: 1.0.0  
 **Last Updated**: 2026-04-06
@@ -26,7 +26,7 @@ Complete guide for configuring, building, and deploying MomClAW Android applicat
 
 ## Build Overview
 
-MomClAW uses Gradle with Kotlin DSL for build configuration. The project consists of:
+MOMCLAW uses Gradle with Kotlin DSL for build configuration. The project consists of:
 
 ```
 android/
@@ -244,7 +244,7 @@ Each split gets a unique version code suffix:
 
 ### Overview
 
-MomClAW uses ProGuard for:
+MOMCLAW uses ProGuard for:
 - Code shrinking (removes unused code)
 - Resource shrinking (removes unused resources)
 - Code obfuscation (optional)
@@ -330,7 +330,7 @@ retrace \
 
 ### Version Format
 
-MomClAW follows [Semantic Versioning](https://semver.org/):
+MOMCLAW follows [Semantic Versioning](https://semver.org/):
 
 ```
 MAJOR.MINOR.PATCH[-PRERELEASE]

@@ -1,4 +1,4 @@
-# MomClAW v1.0.0 Final Release Checklist
+# MOMCLAW v1.0.0 Final Release Checklist
 
 **Release Date**: 2026-04-06  
 **Version**: 1.0.0  
@@ -91,7 +91,7 @@
 - [ ] Phone screenshots (2-8 per language)
 - [ ] Tablet screenshots (recommended)
 - [ ] Store listing metadata:
-  - [ ] Title: "MomClAW - Offline AI Agent"
+  - [ ] Title: "MOMCLAW - Offline AI Agent"
   - [ ] Short description
   - [ ] Full description
   - [ ] Privacy policy URL

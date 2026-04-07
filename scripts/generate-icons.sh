@@ -1,5 +1,5 @@
 #!/bin/bash
-# MomClAW Icon Generator
+# MOMCLAW Icon Generator
 # Generates all required app icons from a base image
 
 set -e
@@ -345,7 +345,7 @@ verify_icons() {
 # Show help
 show_help() {
     cat << EOF
-MomClAW Icon Generator
+MOMCLAW Icon Generator
 
 Generates all required Android app icons from a base image.
 
@@ -386,7 +386,7 @@ Output Locations:
     assets/icon.png (512x512)
 
 Adaptive Icon:
-    MomClAW uses adaptive icons (Android 8.0+)
+    MOMCLAW uses adaptive icons (Android 8.0+)
     - Foreground: Your logo (72% safe area)
     - Background: Solid color or gradient
     

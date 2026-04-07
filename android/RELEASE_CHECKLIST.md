@@ -1,4 +1,4 @@
-# MomClAW v1.0.0 - Release Checklist
+# MOMCLAW v1.0.0 - Release Checklist
 
 **Quick Reference for Developers**
 
@@ -363,7 +363,7 @@ adb install app/build/outputs/apk/release/app-release.apk
 ### Step 5: Upload to Play Store
 
 1. Open Google Play Console
-2. Select MomClAW app
+2. Select MOMCLAW app
 3. Create new release
 4. Upload APK
 5. Fill release notes

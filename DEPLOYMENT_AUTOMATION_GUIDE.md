@@ -1,4 +1,4 @@
-# MomClAW Deployment Automation Guide
+# MOMCLAW Deployment Automation Guide
 
 **Version**: 1.0.0  
 **Last Updated**: 2026-04-06
@@ -7,7 +7,7 @@
 
 ## Overview
 
-This guide covers automated deployment of MomClAW to multiple distribution channels:
+This guide covers automated deployment of MOMCLAW to multiple distribution channels:
 - **GitHub Releases** - APK + AAB for direct download
 - **Google Play Store** - Internal, Alpha, Beta, and Production tracks
 - **F-Droid** - Open-source Android repository
@@ -124,7 +124,7 @@ KEY_ALIAS             # Key alias (e.g., "momclaw")
 gh release create v1.0.0 \
   momclaw-1.0.0.apk \
   momclaw-1.0.0.aab \
-  --title "MomClAW v1.0.0" \
+  --title "MOMCLAW v1.0.0" \
   --notes-file changelog.md
 ```
 
@@ -488,7 +488,7 @@ fastlane promote_beta_to_production version:"1.0.0"
 gh release delete v1.1.0
 
 # Re-release previous version
-gh release create v1.0.0 momclaw-1.0.0.apk --title "MomClAW v1.0.0"
+gh release create v1.0.0 momclaw-1.0.0.apk --title "MOMCLAW v1.0.0"
 ```
 
 ---

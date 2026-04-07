@@ -117,7 +117,7 @@ Version badge:
 ### 4. `android/fastlane/metadata/android/en-US/changelogs/1000000.txt`
 
 ```
-Initial release of MomClAW!
+Initial release of MOMCLAW!
 
 Features:
 - Offline AI chat with Gemma 3 E4B-it
@@ -346,4 +346,4 @@ git push --tags
 ---
 
 **Last Updated**: 2026-04-06  
-**Maintained by**: MomClAW Team
+**Maintained by**: MOMCLAW Team

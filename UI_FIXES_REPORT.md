@@ -1,4 +1,4 @@
-# MomClAW UI Fixes Report
+# MOMCLAW UI Fixes Report
 
 **Date:** 2026-04-07  
 **Analiză:** ChatScreen, ModelsScreen, SettingsScreen  

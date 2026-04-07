@@ -1,5 +1,5 @@
 #!/bin/bash
-# MomClAW Version Manager
+# MOMCLAW Version Manager
 # Manages version numbers across the project
 
 set -e
@@ -185,7 +185,7 @@ EOF
 show_version() {
     echo ""
     echo -e "${BLUE}═══════════════════════════════════════${NC}"
-    echo -e "${BLUE}         MomClAW Version Info${NC}"
+    echo -e "${BLUE}         MOMCLAW Version Info${NC}"
     echo -e "${BLUE}═══════════════════════════════════════${NC}"
     echo ""
     print_info "Version Name: $(get_version_name)"
@@ -198,7 +198,7 @@ show_version() {
 # Help
 show_help() {
     cat << EOF
-MomClAW Version Manager
+MOMCLAW Version Manager
 
 Usage: $0 <command> [options]
 

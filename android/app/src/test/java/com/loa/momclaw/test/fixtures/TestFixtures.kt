@@ -6,7 +6,7 @@ import com.loa.momclaw.domain.model.ChatMessage
 import java.util.UUID
 
 /**
- * Test data fixtures for MomClAW tests
+ * Test data fixtures for MOMCLAW tests
  * Provides pre-built test data for consistent testing across all test classes
  */
 object TestFixtures {

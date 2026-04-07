@@ -14,7 +14,7 @@ NC='\033[0m'
 
 PROJECT_ROOT="/home/userul/.openclaw/workspace/momclaw"
 
-echo -e "${BLUE}=== MomClAW Build Validation ===${NC}\n"
+echo -e "${BLUE}=== MOMCLAW Build Validation ===${NC}\n"
 
 # Check required files
 echo -e "${YELLOW}[1/6] Checking project structure...${NC}"

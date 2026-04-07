@@ -1,14 +1,14 @@
-# MomClAW v1.0.0 - Google Play Store Release Notes
+# MOMCLAW v1.0.0 - Google Play Store Release Notes
 
 ## Title
-MomClAW - AI Assistant
+MOMCLAW - AI Assistant
 
 ## Short Description (80 characters max)
 Offline AI chat with Gemma 3 - Privacy-first, no cloud required
 
 ## Full Description
 
-**MomClAW** is a privacy-first AI assistant that runs entirely on your device, no internet connection required for core features.
+**MOMCLAW** is a privacy-first AI assistant that runs entirely on your device, no internet connection required for core features.
 
 ### 🔒 Privacy First
 - All conversations stay on your device

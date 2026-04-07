@@ -1,5 +1,5 @@
 #!/bin/bash
-# MomClAW Test Runner - CI/CD Integration
+# MOMCLAW Test Runner - CI/CD Integration
 # Runs all test suites and generates reports
 set -euo pipefail
 
@@ -19,7 +19,7 @@ NC='\033[0m'
 mkdir -p "$REPORT_DIR"
 
 echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}   MomClAW Test Suite Runner${NC}"
+echo -e "${BLUE}   MOMCLAW Test Suite Runner${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 
@@ -174,7 +174,7 @@ generate_summary() {
     
     # Write summary to file
     cat > "$REPORT_DIR/summary.md" << EOF
-# MomClAW Test Report
+# MOMCLAW Test Report
 
 **Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
 **Commit:** $(cd "$PROJECT_DIR" && git rev-parse --short HEAD 2>/dev/null || echo "N/A")

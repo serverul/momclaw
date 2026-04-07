@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# MomClAW Release Validation Script
+# MOMCLAW Release Validation Script
 # Comprehensive pre-release validation for v1.0.0
 
 set -e

@@ -86,7 +86,7 @@ MOMCLAW v1.0.0 este complet implementat, documentat și configurat pentru deploy
 
 **Status**: USER_GUIDE.md complet  
 **Contents**:
-- ✅ What is MomClAW section
+- ✅ What is MOMCLAW section
 - ✅ Getting Started (installation, first-time setup)
 - ✅ System requirements table
 - ✅ Main interface walkthrough

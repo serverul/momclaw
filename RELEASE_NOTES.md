@@ -1,4 +1,4 @@
-# MomClAW v1.0.0 Release Notes
+# MOMCLAW v1.0.0 Release Notes
 
 **Release Date**: 2026-04-06  
 **Codename**: "Prime Claw"
@@ -7,7 +7,7 @@
 
 ## 🎉 First Stable Release
 
-MomClAW v1.0.0 marks the first stable release of the Mobile Offline Model Agent - a fully autonomous AI assistant running 100% offline on Android devices.
+MOMCLAW v1.0.0 marks the first stable release of the Mobile Offline Model Agent - a fully autonomous AI assistant running 100% offline on Android devices.
 
 ---
 
@@ -51,7 +51,7 @@ MomClAW v1.0.0 marks the first stable release of the Mobile Offline Model Agent 
 ## 🔧 Installation
 
 ### Google Play Store (Recommended)
-1. Search for "MomClAW"
+1. Search for "MOMCLAW"
 2. Install (~60MB download)
 3. Open app, download model (~2.5GB)
 

@@ -165,7 +165,7 @@ jobs:
           IssueTracker: https://github.com/serverul/MOMCLAW/issues
           Changelog: https://github.com/serverul/MOMCLAW/releases/tag/v${VERSION}
           
-          AutoName: MomClAW
+          AutoName: MOMCLAW
           Summary: AI Agent 100% offline pe Android
           
           RepoType: git

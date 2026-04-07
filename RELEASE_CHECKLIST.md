@@ -1,4 +1,4 @@
-# 🚀 MomClAW Release Checklist
+# 🚀 MOMCLAW Release Checklist
 
 Use this checklist for every release to ensure nothing is missed.
 

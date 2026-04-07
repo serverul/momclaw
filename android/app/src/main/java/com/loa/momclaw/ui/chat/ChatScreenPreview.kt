@@ -40,8 +40,8 @@ fun ChatScreenMessagesPreview() {
             uiState = ChatUiState(
                 messages = listOf(
                     ChatMessage("1", "Salut! Cu ce te pot ajuta?", false),
-                    ChatMessage("2", "Vreau să aflu despre MomClAW", true),
-                    ChatMessage("3", "MomClAW este un asistent AI local care rulează direct pe dispozitivul tău Android.", false)
+                    ChatMessage("2", "Vreau să aflu despre MOMCLAW", true),
+                    ChatMessage("3", "MOMCLAW este un asistent AI local care rulează direct pe dispozitivul tău Android.", false)
                 ),
                 isAgentAvailable = true
             ),
@@ -131,8 +131,8 @@ fun ChatScreenTabletPreview() {
             uiState = ChatUiState(
                 messages = listOf(
                     ChatMessage("1", "Salut!", false),
-                    ChatMessage("2", "Vreau info despre MomClAW", true),
-                    ChatMessage("3", "MomClAW rulează AI local pe Android.", false)
+                    ChatMessage("2", "Vreau info despre MOMCLAW", true),
+                    ChatMessage("3", "MOMCLAW rulează AI local pe Android.", false)
                 ),
                 isAgentAvailable = true
             ),

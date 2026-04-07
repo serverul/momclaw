@@ -1,5 +1,5 @@
 #!/bin/bash
-# MomClAW Integration Test Runner
+# MOMCLAW Integration Test Runner
 # Runs all integration tests and generates coverage report
 
 set -e
@@ -96,7 +96,7 @@ done
 generate_summary_report
 
 echo -e "\n${Magenta}========================================${NC}
-echo -e "  ${YELLOW}MomClAW Integration Test Summary${NC}
+echo -e "  ${YELLOW}MOMCLAW Integration Test Summary${NC}
 echo -e "========================================${NC}
 echo ""
 echo -e "Date: $(date '+%Y-%m-%d %H:%M:%S')"

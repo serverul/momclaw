@@ -1,4 +1,4 @@
-# MomClAW Android UI - Quick Checklist
+# MOMCLAW Android UI - Quick Checklist
 
 **Last Updated:** 2026-04-06 16:35 UTC
 

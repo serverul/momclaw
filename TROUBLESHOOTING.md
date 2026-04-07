@@ -1,6 +1,6 @@
-# MomClAW Troubleshooting Guide
+# MOMCLAW Troubleshooting Guide
 
-Complete troubleshooting guide for common issues with MomClAW.
+Complete troubleshooting guide for common issues with MOMCLAW.
 
 **Version**: 1.0.0  
 **Last Updated**: 2026-04-06
@@ -372,7 +372,7 @@ adb logcat -s AndroidRuntime:E | grep -A 10 MOMCLAW
 
 4. **Device optimization**:
    - Close unnecessary apps
-   - Disable battery optimization for MomClAW
+   - Disable battery optimization for MOMCLAW
    - Restart device
 
 5. **Check device specs**:
@@ -803,7 +803,7 @@ Error: Model file not found at /sdcard/Android/data/com.loa.MOMCLAW/files/models
 **Environment**
 - Device: [e.g., Pixel 6]
 - Android version: [e.g., 14]
-- MomClAW version: [e.g., 1.0.0]
+- MOMCLAW version: [e.g., 1.0.0]
 - Architecture: [e.g., arm64-v8a]
 
 **Steps to Reproduce**

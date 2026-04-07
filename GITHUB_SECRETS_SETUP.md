@@ -1,4 +1,4 @@
-# GitHub Secrets Setup pentru MomClAW
+# GitHub Secrets Setup pentru MOMCLAW
 
 Acest document descrie toate secretele necesare pentru funcționarea corectă a workflow-urilor GitHub Actions.
 

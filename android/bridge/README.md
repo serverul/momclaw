@@ -1,4 +1,4 @@
-# MomClAW Integration Guide
+# MOMCLAW Integration Guide
 
 ## Quick Start
 

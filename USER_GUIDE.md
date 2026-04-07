@@ -1,14 +1,14 @@
-# MomClAW User Guide
+# MOMCLAW User Guide
 
-**Version 1.0.0** | Complete guide for MomClAW users
+**Version 1.0.0** | Complete guide for MOMCLAW users
 
 ---
 
 ## 📖 Table of Contents
 
-- [What is MomClAW?](#what-is-momclaw)
+- [What is MOMCLAW?](#what-is-momclaw)
 - [Getting Started](#getting-started)
-- [Using MomClAW](#using-momclaw)
+- [Using MOMCLAW](#using-momclaw)
 - [Features Guide](#features-guide)
 - [Settings & Configuration](#settings--configuration)
 - [Model Management](#model-management)
@@ -19,9 +19,9 @@
 
 ---
 
-## What is MomClAW?
+## What is MOMCLAW?
 
-MomClAW is a **privacy-first AI assistant** that runs **100% offline** on your Android device. Unlike cloud-based AI assistants, MomClAW:
+MOMCLAW is a **privacy-first AI assistant** that runs **100% offline** on your Android device. Unlike cloud-based AI assistants, MOMCLAW:
 
 - ✅ Keeps all your conversations private on your device
 - ✅ Works without internet connection (after model download)
@@ -31,7 +31,7 @@ MomClAW is a **privacy-first AI assistant** that runs **100% offline** on your A
 
 ### Powered by Gemma 3
 
-MomClAW uses the **Gemma 3 E4B-it** model from Google, optimized for mobile devices with:
+MOMCLAW uses the **Gemma 3 E4B-it** model from Google, optimized for mobile devices with:
 - Natural, intelligent conversations
 - Context-aware responses
 - Multi-turn dialogue support
@@ -48,17 +48,17 @@ MomClAW uses the **Gemma 3 E4B-it** model from Google, optimized for mobile devi
 1. Download the APK from [GitHub Releases](https://github.com/serverul/MOMCLAW/releases)
 2. Enable "Install from Unknown Sources" in your device settings
 3. Open the APK file and tap "Install"
-4. Launch MomClAW from your app drawer
+4. Launch MOMCLAW from your app drawer
 
 #### From Google Play Store
 
-1. Search for "MomClAW" in Google Play
+1. Search for "MOMCLAW" in Google Play
 2. Tap "Install"
 3. Launch the app
 
 ### First-Time Setup
 
-When you first open MomClAW, you'll need to:
+When you first open MOMCLAW, you'll need to:
 
 1. **Grant Storage Permission** - Required to save the AI model
 2. **Download the Model** (~2.5GB)
@@ -82,11 +82,11 @@ When you first open MomClAW, you'll need to:
 
 ---
 
-## Using MomClAW
+## Using MOMCLAW
 
 ### Main Interface
 
-MomClAW has a clean, intuitive interface with three main screens:
+MOMCLAW has a clean, intuitive interface with three main screens:
 
 #### 1. Chat Screen
 - **Message Input**: Type your message at the bottom
@@ -127,7 +127,7 @@ MomClAW has a clean, intuitive interface with three main screens:
 
 ### 🧠 Intelligent Conversations
 
-MomClAW provides context-aware responses:
+MOMCLAW provides context-aware responses:
 - Remembers previous messages in conversation
 - Understands follow-up questions
 - Maintains coherent multi-turn dialogues
@@ -143,7 +143,7 @@ AI: Sure! A common example is... [Uses context from first question]
 
 ### 🔧 Tool Execution
 
-MomClAW can execute tools on your device:
+MOMCLAW can execute tools on your device:
 
 #### Shell Commands
 ```
@@ -174,7 +174,7 @@ AI: [Searches and summarizes results]
 
 ### 🌙 Dark Theme
 
-MomClAW supports:
+MOMCLAW supports:
 - **Light Mode**: Bright, clean interface
 - **Dark Mode**: Easy on the eyes, battery-saving
 - **System Default**: Follows your device settings
@@ -245,7 +245,7 @@ Customize AI behavior in Settings → AI Parameters:
 
 ### Available Models
 
-MomClAW currently supports:
+MOMCLAW currently supports:
 
 | Model | Size | RAM Required | Best For |
 |-------|------|--------------|----------|
@@ -318,7 +318,7 @@ MomClAW currently supports:
 **Solution:**
 ```bash
 # Clear app data
-Settings → Apps → MomClAW → Storage → Clear Data
+Settings → Apps → MOMCLAW → Storage → Clear Data
 
 # Re-download model
 ```
@@ -379,7 +379,7 @@ Settings → Apps → MomClAW → Storage → Clear Data
 
 ### General Questions
 
-**Q: Does MomClAW require internet?**
+**Q: Does MOMCLAW require internet?**
 A: Only for initial model download. After that, it works 100% offline.
 
 **Q: Is my data sent to the cloud?**
@@ -391,7 +391,7 @@ A: No account required. Just install and use.
 **Q: Can I use multiple models?**
 A: Yes, but only one can be loaded at a time due to RAM constraints.
 
-**Q: What languages does MomClAW support?**
+**Q: What languages does MOMCLAW support?**
 A: Gemma 3 supports English primarily, with some capability in other languages.
 
 ### Technical Questions
@@ -405,12 +405,12 @@ A: No, models must be in internal storage for performance reasons.
 **Q: Why is the first response slow?**
 A: The first generation after loading requires "warming up" the model. Subsequent responses are faster.
 
-**Q: Can I use MomClAW on an emulator?**
+**Q: Can I use MOMCLAW on an emulator?**
 A: Yes, but you need an x86_64 system image and 6GB+ RAM allocated.
 
 ### Privacy Questions
 
-**Q: Does MomClAW collect any data?**
+**Q: Does MOMCLAW collect any data?**
 A: No. Zero telemetry, zero analytics, zero tracking.
 
 **Q: Where are my conversations stored?**
@@ -428,7 +428,7 @@ A: Settings → Privacy → Clear Conversation History, or uninstall the app.
 
 ### Data Collection
 
-**MomClAW collects ZERO data:**
+**MOMCLAW collects ZERO data:**
 
 - ❌ No personal information
 - ❌ No usage analytics
@@ -454,12 +454,12 @@ All data is stored locally:
 To completely remove all data:
 
 1. **In-App**: Settings → Privacy → Clear All Data
-2. **System**: Settings → Apps → MomClAW → Storage → Clear Data
+2. **System**: Settings → Apps → MOMCLAW → Storage → Clear Data
 3. **Uninstall**: Removes everything
 
 ### Permissions
 
-MomClAW requests minimal permissions:
+MOMCLAW requests minimal permissions:
 
 | Permission | Purpose | Required? |
 |-----------|---------|-----------|
@@ -485,15 +485,15 @@ MomClAW requests minimal permissions:
 
 ### Contributing
 
-Want to improve MomClAW? See [CONTRIBUTING.md](CONTRIBUTING.md)
+Want to improve MOMCLAW? See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ### License
 
-MomClAW is open-source software licensed under the Apache License 2.0.
+MOMCLAW is open-source software licensed under the Apache License 2.0.
 
 ---
 
-**Thank you for using MomClAW! 🐾**
+**Thank you for using MOMCLAW! 🐾**
 
 Built with ❤️ by [LinuxOnAsteroids](https://github.com/serverul)
 

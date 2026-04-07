@@ -1,6 +1,6 @@
 # Google Play Store Setup Guide
 
-Complete guide for deploying MomClAW to Google Play Store.
+Complete guide for deploying MOMCLAW to Google Play Store.
 
 **Version**: 1.0.0  
 **Last Updated**: 2026-04-06
@@ -25,7 +25,7 @@ Complete guide for deploying MomClAW to Google Play Store.
 
 ## Overview
 
-MomClAW can be distributed through Google Play Store for maximum reach and automatic updates. This guide covers the complete setup and deployment process.
+MOMCLAW can be distributed through Google Play Store for maximum reach and automatic updates. This guide covers the complete setup and deployment process.
 
 ### Distribution Channels
 
@@ -107,7 +107,7 @@ https://play.google.com/console
 
 ### 4. Fastlane Setup
 
-MomClAW uses Fastlane for automated deployments:
+MOMCLAW uses Fastlane for automated deployments:
 
 ```bash
 # Install Fastlane (if not installed)
@@ -133,7 +133,7 @@ cd android
 
 2. **Create App**
    - Click "Create app"
-   - App name: `MomClAW`
+   - App name: `MOMCLAW`
    - Default language: `English (United States)`
    - Free or paid: `Free`
    - Check all declarations
@@ -167,18 +167,18 @@ Navigate to **Main Store Listing** and fill in:
 
 | Field | Value |
 |-------|-------|
-| **App name** | `MomClAW` |
+| **App name** | `MOMCLAW` |
 | **Short description** | `AI Agent 100% offline - Privacy-first mobile AI` |
 | **Full description** | See below |
 
 #### Full Description
 
 ```
-MomClAW - Mobile Offline Model Agent
+MOMCLAW - Mobile Offline Model Agent
 
 🧠 Your Private AI Assistant
 
-MomClAW is a fully autonomous AI agent that runs entirely on your phone - zero cloud, zero tracking, 100% offline.
+MOMCLAW is a fully autonomous AI agent that runs entirely on your phone - zero cloud, zero tracking, 100% offline.
 
 ✨ KEY FEATURES
 
@@ -243,11 +243,11 @@ MomClAW is a fully autonomous AI agent that runs entirely on your phone - zero c
 
 📦 MODEL
 
-MomClAW uses Gemma 3 E4B-it, a state-of-the-art open model optimized for mobile devices. The model is downloaded on first use and stored locally on your device.
+MOMCLAW uses Gemma 3 E4B-it, a state-of-the-art open model optimized for mobile devices. The model is downloaded on first use and stored locally on your device.
 
 🤝 OPEN SOURCE
 
-MomClAW is open source software. Contribute at:
+MOMCLAW is open source software. Contribute at:
 https://github.com/serverul/MOMCLAW
 
 📄 LICENSE
@@ -449,7 +449,7 @@ Result: ESRB E (Everyone) / PEGI 3
    ```
    Version 1.0.0 - Initial Release
    
-   🎉 First public release of MomClAW!
+   🎉 First public release of MOMCLAW!
    
    Features:
    - AI-powered conversations with Gemma 3 E4B-it
@@ -499,7 +499,7 @@ Result: ESRB E (Everyone) / PEGI 3
 
 ### GitHub Actions Setup
 
-MomClAW includes automated deployment to Google Play:
+MOMCLAW includes automated deployment to Google Play:
 
 #### 1. Configure Secrets
 

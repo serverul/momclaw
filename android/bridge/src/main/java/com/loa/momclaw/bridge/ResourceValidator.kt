@@ -6,7 +6,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * Resource Validator for MomClAW
+ * Resource Validator for MOMCLAW
  * 
  * Validates critical resources at startup:
  * - NullClaw binary existence and validity

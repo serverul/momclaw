@@ -1,4 +1,4 @@
-# MomClAW Test-suite - AndroidTest Configuration
+# MOMCLAW Test-suite - AndroidTest Configuration
 # This file configures Android instrumentation tests
 
 apply plugin: 'com.android.test'

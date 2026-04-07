@@ -1,4 +1,4 @@
-Initial release of MomClAW!
+Initial release of MOMCLAW!
 
 Features:
 • Offline AI chat with Gemma 3 E4B-it

@@ -1,4 +1,4 @@
-# MomClAW Security Scanning Configuration
+# MOMCLAW Security Scanning Configuration
 
 Complete guide for security scanning and vulnerability management.
 
@@ -9,7 +9,7 @@ Complete guide for security scanning and vulnerability management.
 
 ## Overview
 
-MomClAW implements comprehensive security scanning as part of the development and deployment process.
+MOMCLAW implements comprehensive security scanning as part of the development and deployment process.
 
 ### Security Scan Types
 
@@ -110,7 +110,7 @@ Scan for known vulnerabilities in dependencies:
 
 # Or using owasp dependency-check directly
 dependency-check \
-  --project MomClAW \
+  --project MOMCLAW \
   --scan . \
   --format HTML \
   --out reports \

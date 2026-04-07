@@ -1,4 +1,4 @@
-# MomClAW v1.0.0 - F-Droid Release Notes
+# MOMCLAW v1.0.0 - F-Droid Release Notes
 
 ## Package Name
 com.loa.momclaw
@@ -8,7 +8,7 @@ Privacy-first AI chatbot with offline inference using Gemma 3. No cloud, no trac
 
 ## Description
 
-MomClAW is a fully offline AI assistant that respects your privacy. Using the Gemma 3 E4B-it model, it provides intelligent responses without sending any data to external servers.
+MOMCLAW is a fully offline AI assistant that respects your privacy. Using the Gemma 3 E4B-it model, it provides intelligent responses without sending any data to external servers.
 
 ### Key Features
 
@@ -88,7 +88,7 @@ MomClAW is a fully offline AI assistant that respects your privacy. Using the Ge
 
 **🎉 Initial Release**
 
-This is the first public release of MomClAW, featuring:
+This is the first public release of MOMCLAW, featuring:
 
 - Complete chat interface with Material 3 design
 - Offline AI inference using Gemma 3 E4B-it
