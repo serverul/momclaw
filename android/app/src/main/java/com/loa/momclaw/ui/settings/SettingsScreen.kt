@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.loa.momclaw.domain.model.AgentSettings
+import com.loa.momclaw.ui.common.HapticUtils
 
 /**
  * Settings screen composable for configuring agent behavior.
@@ -26,6 +27,8 @@ fun SettingsScreen(
     onEvent: (SettingsEvent) -> Unit,
     onNavigateBack: () -> Unit
 ) {
+    val hapticManager = HapticUtils.rememberHapticManager()
+    
     var systemPrompt by remember(state.settings.systemPrompt) {
         mutableStateOf(state.settings.systemPrompt)
     }
@@ -52,7 +55,12 @@ fun SettingsScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(
+                        onClick = {
+                            hapticManager.lightTap()
+                            onNavigateBack()
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -60,13 +68,23 @@ fun SettingsScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { onEvent(SettingsEvent.ResetSettings) }) {
+                    IconButton(
+                        onClick = {
+                            hapticManager.mediumTap()
+                            onEvent(SettingsEvent.ResetSettings)
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Reset to defaults"
                         )
                     }
-                    IconButton(onClick = { onEvent(SettingsEvent.SaveSettings) }) {
+                    IconButton(
+                        onClick = {
+                            hapticManager.mediumTap()
+                            onEvent(SettingsEvent.SaveSettings)
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Save,
                             contentDescription = "Save"
@@ -238,6 +256,7 @@ fun SettingsScreen(
                             onValueChange = { 
                                 temperature = it
                                 onEvent(SettingsEvent.UpdateTemperature(it))
+                                hapticManager.tick()
                             },
                             valueRange = 0f..2f,
                             steps = 19,
@@ -331,7 +350,10 @@ fun SettingsScreen(
                         }
                         Switch(
                             checked = state.settings.darkMode,
-                            onCheckedChange = { onEvent(SettingsEvent.UpdateDarkMode(it)) },
+                            onCheckedChange = { 
+                                hapticManager.lightTap()
+                                onEvent(SettingsEvent.UpdateDarkMode(it)) 
+                            },
                             modifier = Modifier.semantics {
                                 contentDescription = "Dark Mode switch. ${if (state.settings.darkMode) "Currently enabled" else "Currently disabled"}"
                                 stateDescription = if (state.settings.darkMode) "On" else "Off"
@@ -372,7 +394,10 @@ fun SettingsScreen(
                         }
                         Switch(
                             checked = state.settings.autoSave,
-                            onCheckedChange = { onEvent(SettingsEvent.UpdateAutoSave(it)) },
+                            onCheckedChange = { 
+                                hapticManager.lightTap()
+                                onEvent(SettingsEvent.UpdateAutoSave(it)) 
+                            },
                             modifier = Modifier.semantics {
                                 contentDescription = "Auto Save switch. ${if (state.settings.autoSave) "Currently enabled" else "Currently disabled"}"
                                 stateDescription = if (state.settings.autoSave) "On" else "Off"
@@ -383,7 +408,10 @@ fun SettingsScreen(
 
                 // Save button
                 Button(
-                    onClick = { onEvent(SettingsEvent.SaveSettings) },
+                    onClick = { 
+                        hapticManager.success()
+                        onEvent(SettingsEvent.SaveSettings) 
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp) // Exceeds 48dp minimum
@@ -406,7 +434,10 @@ fun SettingsScreen(
 
                 // Reset button
                 OutlinedButton(
-                    onClick = { onEvent(SettingsEvent.ResetSettings) },
+                    onClick = { 
+                        hapticManager.heavyTap()
+                        onEvent(SettingsEvent.ResetSettings) 
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp) // Exceeds 48dp minimum

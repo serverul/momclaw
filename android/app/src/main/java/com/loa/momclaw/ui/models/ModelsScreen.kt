@@ -18,6 +18,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.loa.momclaw.domain.model.Model
+import com.loa.momclaw.ui.common.HapticUtils
 import com.loa.momclaw.ui.components.modelCardAccessibility
 
 /**
@@ -30,6 +31,8 @@ fun ModelsScreen(
     onEvent: (ModelsEvent) -> Unit,
     onNavigateBack: () -> Unit
 ) {
+    val hapticManager = HapticUtils.rememberHapticManager()
+    
     Scaffold(
         topBar = {
             TopAppBar(
@@ -40,7 +43,12 @@ fun ModelsScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(
+                        onClick = {
+                            hapticManager.lightTap()
+                            onNavigateBack()
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -48,7 +56,12 @@ fun ModelsScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { onEvent(ModelsEvent.RefreshModels) }) {
+                    IconButton(
+                        onClick = {
+                            hapticManager.lightTap()
+                            onEvent(ModelsEvent.RefreshModels)
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.Default.CloudDownload,
                             contentDescription = "Refresh"
@@ -87,7 +100,12 @@ fun ModelsScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.weight(1f)
                         )
-                        TextButton(onClick = { onEvent(ModelsEvent.ClearError) }) {
+                        TextButton(
+                            onClick = {
+                                hapticManager.lightTap()
+                                onEvent(ModelsEvent.ClearError)
+                            }
+                        ) {
                             Text("Dismiss")
                         }
                     }
@@ -119,10 +137,22 @@ fun ModelsScreen(
                         isLoading = state.loadingModelId == model.id,
                         downloadProgress = state.downloadProgress[model.id] ?: 0f,
                         isSelected = state.selectedModelId == model.id,
-                        onSelect = { onEvent(ModelsEvent.SelectModel(model.id)) },
-                        onDownload = { onEvent(ModelsEvent.DownloadModel(model.id)) },
-                        onLoad = { onEvent(ModelsEvent.LoadModel(model.id)) },
-                        onDelete = { onEvent(ModelsEvent.DeleteModel(model.id)) }
+                        onSelect = { 
+                            hapticManager.lightTap()
+                            onEvent(ModelsEvent.SelectModel(model.id)) 
+                        },
+                        onDownload = { 
+                            hapticManager.mediumTap()
+                            onEvent(ModelsEvent.DownloadModel(model.id)) 
+                        },
+                        onLoad = { 
+                            hapticManager.success()
+                            onEvent(ModelsEvent.LoadModel(model.id)) 
+                        },
+                        onDelete = { 
+                            hapticManager.heavyTap()
+                            onEvent(ModelsEvent.DeleteModel(model.id)) 
+                        }
                     )
                 }
 

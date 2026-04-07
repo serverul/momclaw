@@ -37,6 +37,7 @@ class LiteRTBridge @Inject constructor(
     private var llmEngine: LlmEngineWrapper = LlmEngineWrapper(context)
     private var currentModel: String? = null
     private var isRunning = false
+    private var serverPort: Int = DEFAULT_PORT
 
     companion object {
         private const val TAG = "LiteRTBridge"
@@ -45,6 +46,12 @@ class LiteRTBridge @Inject constructor(
     }
     
     private val logger = MomClawLogger
+    
+    /**
+     * Secondary constructor for manual instantiation (non-Hilt usage).
+     * Used by InferenceService which doesn't use Hilt injection.
+     */
+    constructor(context: Context) : this(context)
 
     /**
      * Starts the LiteRT Bridge server.
