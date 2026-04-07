@@ -42,11 +42,14 @@ data class Usage(
 
 /**
  * Legacy aliases for backward compatibility
+ * Note: ChatChoice and ChatDelta are defined in ChatRequest.kt
  */
 typealias ChatResponse = ChatCompletionResponse
 typealias MessageDto = ChatMessage
-typealias Choice = ChatChoice
-typealias Delta = ChatDelta
+
+// Type alias for request type (defined in ChatRequest.kt)
+typealias ChatRequest = ChatCompletionRequest
+typealias Message = ChatMessage
 
 // ==================== Streaming Models ====================
 

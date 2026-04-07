@@ -154,28 +154,15 @@ sealed class BridgeError(
 }
 
 /**
- * JSON-serializable error response for API
- */
-@Serializable
-data class ErrorResponse(
-    val error: ErrorDetail
-)
-
-@Serializable
-data class ErrorDetail(
-    val code: String,
-    val message: String,
-    val details: Map<String, String> = emptyMap()
-)
-
-/**
  * Convert BridgeError to API response
+ * Note: ErrorResponse and ErrorDetail are defined in ChatModels.kt for OpenAI compatibility
  */
 fun BridgeError.toResponse(): ErrorResponse = ErrorResponse(
     error = ErrorDetail(
-        code = this.code,
         message = this.message,
-        details = this.details.mapValues { it.value?.toString() ?: "" }
+        type = this.code,
+        param = null,
+        code = this.code
     )
 )
 

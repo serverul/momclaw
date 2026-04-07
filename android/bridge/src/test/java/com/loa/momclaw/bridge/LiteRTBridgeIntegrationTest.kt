@@ -98,16 +98,16 @@ class LiteRTBridgeIntegrationTest {
                 Message(role = "user", content = "Hello")
             ),
             stream = true,
-            temperature = 0.7f,
-            max_tokens = 2048
+            temperature = 0.7,
+            maxTokens = 2048
         )
         
         // Validate request structure
         assertEquals("gemma-4e4b", request.model)
         assertEquals(2, request.messages.size)
         assertTrue(request.stream)
-        assertEquals(0.7f, request.temperature)
-        assertEquals(2048, request.max_tokens)
+        assertEquals(0.7, request.temperature, 0.01)
+        assertEquals(2048, request.maxTokens)
         
         println("✅ Chat request format validated")
         println("   Model: ${request.model}")
