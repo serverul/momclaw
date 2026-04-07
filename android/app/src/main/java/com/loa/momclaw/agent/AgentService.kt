@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.loa.momclaw.MainActivity
@@ -35,6 +34,7 @@ import kotlin.math.pow
  * - Proper resource cleanup for coroutines
  * - Process startup timeouts
  * - Structured concurrency
+ * - Exponential backoff retry with jitter
  * 
  * Responsibilities:
  * - Extract and setup NullClaw binary from assets
@@ -46,6 +46,7 @@ import kotlin.math.pow
 class AgentService : LifecycleService() {
     
     companion object {
+        private const val TAG = "AgentService"
         const val NOTIFICATION_ID = 1002
         const val CHANNEL_ID = "momclaw_agent"
         const val CHANNEL_NAME = "MOMCLAW Agent"
@@ -95,7 +96,7 @@ class AgentService : LifecycleService() {
     private fun transitionState(newState: AgentState) {
         stateLock.withLock {
             val oldState = _state.value
-            // TODO: Add logging
+            android.util.Log.i(TAG, "State transition: $oldState -> $newState")
             _state.value = newState
         }
     }
@@ -106,11 +107,11 @@ class AgentService : LifecycleService() {
     private fun transitionStateIf(expected: AgentState, newState: AgentState): Boolean {
         return stateLock.withLock {
             if (_state.value == expected) {
-                // TODO: Add logging
+                android.util.Log.i(TAG, "State transition: $expected -> $newState")
                 _state.value = newState
                 true
             } else {
-                // TODO: Add logging
+                android.util.Log.w(TAG, "State transition rejected: expected $expected, got ${_state.value}")
                 false
             }
         }
@@ -124,13 +125,13 @@ class AgentService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
         serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        // TODO: Add logging
+        android.util.Log.i(TAG, "AgentService created")
     }
     
     override fun onDestroy() {
         super.onDestroy()
         cleanup()
-        // TODO: Add logging
+        android.util.Log.i(TAG, "AgentService destroyed")
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -159,14 +160,14 @@ class AgentService : LifecycleService() {
         serviceScope?.launch {
             // Already running check
             if (_state.value is AgentState.Running) {
-                // TODO: Add logging
+                android.util.Log.w(TAG, "Agent already running, skipping start")
                 return@launch
             }
             
             // Atomic transition
             if (!transitionStateIf(AgentState.Idle, AgentState.SettingUp) &&
                 !(_state.value is AgentState.Error)) {
-                // TODO: Add logging
+                android.util.Log.w(TAG, "Cannot start agent from state: ${_state.value}")
                 return@launch
             }
             
@@ -193,12 +194,15 @@ class AgentService : LifecycleService() {
                 if (setupResult == null) {
                     transitionState(AgentState.Error("Setup timeout after ${STARTUP_TIMEOUT_MS/1000}s"))
                     updateNotification("Setup timeout")
+                    android.util.Log.e(TAG, "Agent setup timed out")
                     return@launch
                 }
                 
                 if (setupResult.isFailure) {
-                    transitionState(AgentState.Error("Setup failed: ${setupResult.exceptionOrNull()?.message}"))
+                    val error = setupResult.exceptionOrNull()
+                    transitionState(AgentState.Error("Setup failed: ${error?.message}"))
                     updateNotification("Setup failed")
+                    android.util.Log.e(TAG, "Agent setup failed", error)
                     return@launch
                 }
                 
@@ -213,6 +217,7 @@ class AgentService : LifecycleService() {
                 if (startResult == null) {
                     transitionState(AgentState.Error("Start timeout after ${STARTUP_TIMEOUT_MS/1000}s"))
                     updateNotification("Start timeout")
+                    android.util.Log.e(TAG, "Agent start timed out")
                     cleanupOnError()
                     return@launch
                 }
@@ -220,22 +225,24 @@ class AgentService : LifecycleService() {
                 if (startResult.isSuccess) {
                     transitionState(AgentState.Running)
                     updateNotification("Agent running (PID: ${bridge?.getPid()})")
-                    // TODO: Add logging
+                    android.util.Log.i(TAG, "Agent started successfully with PID: ${bridge?.getPid()}")
                     restartCount = 0
                     startHealthMonitor()
                 } else {
-                    transitionState(AgentState.Error("Start failed: ${startResult.exceptionOrNull()?.message}"))
+                    val error = startResult.exceptionOrNull()
+                    transitionState(AgentState.Error("Start failed: ${error?.message}"))
                     updateNotification("Agent failed to start")
+                    android.util.Log.e(TAG, "Agent failed to start", error)
                     cleanupOnError()
                 }
             } catch (e: CancellationException) {
-                // TODO: Add logging
+                android.util.Log.w(TAG, "Agent startup cancelled")
                 transitionState(AgentState.Error("Startup cancelled"))
                 cleanupOnError()
             } catch (e: Exception) {
                 transitionState(AgentState.Error("Failed to start agent: ${e.message}"))
                 updateNotification("Error: ${e.message}")
-                // TODO: Add logging
+                android.util.Log.e(TAG, "Failed to start agent", e)
                 cleanupOnError()
             }
         }
@@ -256,7 +263,7 @@ class AgentService : LifecycleService() {
                         restartCount++
                         val delayMs = calculateBackoffDelay()
                         
-                        // TODO: Add logging
+                        android.util.Log.w(TAG, "Agent process died, restarting in ${delayMs}ms (attempt $restartCount/$maxRestarts)")
                         transitionState(AgentState.Restarting(restartCount, maxRestarts))
                         updateNotification("Restarting agent in ${delayMs/1000}s (${restartCount}/$maxRestarts)...")
                         
@@ -268,6 +275,7 @@ class AgentService : LifecycleService() {
                         }
                         
                         if (startResult?.isSuccess != true) {
+                            android.util.Log.e(TAG, "Agent restart failed after $restartCount attempts")
                             transitionState(AgentState.Error("Agent crashed after $restartCount restarts"))
                             updateNotification("Agent crashed")
                             cleanupOnError()
@@ -276,8 +284,10 @@ class AgentService : LifecycleService() {
                             // Reset backoff on successful restart
                             transitionState(AgentState.Running)
                             updateNotification("Agent running (PID: ${bridge?.getPid()})")
+                            android.util.Log.i(TAG, "Agent restarted successfully")
                         }
                     } else {
+                        android.util.Log.e(TAG, "Agent exceeded max restarts ($maxRestarts)")
                         transitionState(AgentState.Error("Agent crashed after $maxRestarts restart attempts"))
                         updateNotification("Agent crashed permanently")
                         cleanupOnError()
@@ -289,13 +299,18 @@ class AgentService : LifecycleService() {
     }
     
     private fun cleanupOnError() {
-        bridge?.cleanup()
+        try {
+            bridge?.cleanup()
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Error during bridge cleanup", e)
+        }
         bridge = null
     }
     
     private fun stopAgent() {
         serviceScope?.launch {
             try {
+                android.util.Log.i(TAG, "Stopping agent service...")
                 healthMonitorJob?.cancel()
                 healthMonitorJob = null
                 
@@ -309,8 +324,9 @@ class AgentService : LifecycleService() {
                 transitionState(AgentState.Idle)
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
+                android.util.Log.i(TAG, "Agent service stopped successfully")
             } catch (e: Exception) {
-                // TODO: Add logging
+                android.util.Log.e(TAG, "Error stopping agent", e)
             }
         }
     }

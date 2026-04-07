@@ -2,15 +2,14 @@ package com.loa.momclaw.startup
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
 import com.loa.momclaw.agent.AgentService
 import com.loa.momclaw.agent.AgentState
-import com.loa.momclaw.domain.model.AgentConfig
 import com.loa.momclaw.inference.InferenceService
 import com.loa.momclaw.inference.InferenceState
-import com.loa.momclaw.util.MomClawLogger
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,6 +37,7 @@ import kotlin.concurrent.withLock
 class StartupManager(private val context: Context) : LifecycleObserver {
     
     companion object {
+        private const val TAG = "StartupManager"
         private val lock = ReentrantLock()
         private val _state = MutableStateFlow<StartupState>(StartupState.Idle)
         val state: StateFlow<StartupState> = _state.asStateFlow()
@@ -63,7 +63,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
     private fun transitionState(newState: StartupState) {
         lock.withLock {
             val oldState = _state.value
-            MomClawLogger.i(TAG, "State transition: $oldState -> $newState")
+            Log.i(TAG, "State transition: $oldState -> $newState")
             _state.value = newState
         }
     }
@@ -74,11 +74,11 @@ class StartupManager(private val context: Context) : LifecycleObserver {
     private fun transitionStateIf(expected: StartupState, newState: StartupState): Boolean {
         return lock.withLock {
             if (_state.value == expected) {
-                MomClawLogger.i(TAG, "State transition: $expected -> $newState")
+                Log.i(TAG, "State transition: $expected -> $newState")
                 _state.value = newState
                 true
             } else {
-                MomClawLogger.w(TAG, "State transition rejected: expected $expected, got ${_state.value}")
+                Log.w(TAG, "State transition rejected: expected $expected, got ${_state.value}")
                 false
             }
         }
@@ -87,18 +87,18 @@ class StartupManager(private val context: Context) : LifecycleObserver {
     /**
      * Start all MOMCLAW services in the correct order
      */
-    fun startServices(config: AgentConfig = AgentConfig.DEFAULT) {
+    fun startServices(config: com.loa.momclaw.domain.model.AgentConfig = com.loa.momclaw.domain.model.AgentConfig.DEFAULT) {
         scope.launch {
             // Already running check
-            if (_state.value == StartupState.Running) {
-                MomClawLogger.w(TAG, "Services already running, skipping start")
+            if (_state.value is StartupState.Running) {
+                Log.w(TAG, "Services already running, skipping start")
                 return@launch
             }
             
             // Atomic transition from Idle/Stopped to Starting
             if (!transitionStateIf(StartupState.Idle, StartupState.Starting) &&
                 !transitionStateIf(StartupState.Stopped, StartupState.Starting)) {
-                MomClawLogger.w(TAG, "Cannot start services from state: ${_state.value}")
+                Log.w(TAG, "Cannot start services from state: ${_state.value}")
                 return@launch
             }
             
@@ -112,7 +112,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 )
                 
                 // Step 1: Start Inference Service (LiteRT Bridge) with timeout
-                MomClawLogger.i(TAG, "Starting Inference Service...")
+                Log.i(TAG, "Starting Inference Service...")
                 transitionState(StartupState.StartingInference)
                 
                 val inferenceStarted = withTimeoutOrNull(INFERENCE_TIMEOUT_MS) {
@@ -121,11 +121,12 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 
                 if (inferenceStarted != true) {
                     transitionState(StartupState.Error("InferenceService failed to start within ${INFERENCE_TIMEOUT_MS/1000}s"))
+                    Log.e(TAG, "InferenceService startup timed out")
                     return@launch
                 }
                 
                 // Step 2: Wait for LiteRT Bridge to be ready with timeout
-                MomClawLogger.i(TAG, "Waiting for Inference Service to be ready...")
+                Log.i(TAG, "Waiting for Inference Service to be ready...")
                 transitionState(StartupState.WaitingForInference)
                 
                 val inferenceReady = withTimeoutOrNull(MAX_WAIT_MS) {
@@ -134,6 +135,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 
                 if (inferenceReady != true) {
                     transitionState(StartupState.Error("LiteRT Bridge failed to become ready within ${MAX_WAIT_MS/1000}s"))
+                    Log.e(TAG, "InferenceService failed to become ready")
                     cleanupOnError()
                     return@launch
                 }
@@ -147,7 +149,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 )
                 
                 // Step 3: Start Agent Service (NullClaw) with timeout
-                MomClawLogger.i(TAG, "Starting Agent Service...")
+                Log.i(TAG, "Starting Agent Service...")
                 transitionState(StartupState.StartingAgent)
                 
                 val agentStarted = withTimeoutOrNull(AGENT_TIMEOUT_MS) {
@@ -156,6 +158,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 
                 if (agentStarted != true) {
                     transitionState(StartupState.Error("AgentService failed to start within ${AGENT_TIMEOUT_MS/1000}s"))
+                    Log.e(TAG, "AgentService startup timed out")
                     cleanupOnError()
                     return@launch
                 }
@@ -167,6 +170,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 
                 if (agentReady != true) {
                     transitionState(StartupState.Error("NullClaw Agent failed to become ready within ${MAX_WAIT_MS/1000}s"))
+                    Log.e(TAG, "AgentService failed to become ready")
                     cleanupOnError()
                     return@launch
                 }
@@ -175,14 +179,14 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                     inferenceEndpoint = "http://localhost:8080",
                     agentEndpoint = "http://localhost:9090"
                 ))
-                // TODO: Add logging
+                Log.i(TAG, "All services started successfully")
                 
             } catch (e: CancellationException) {
-                // TODO: Add logging
+                Log.w(TAG, "Startup cancelled")
                 transitionState(StartupState.Error("Startup cancelled"))
                 cleanupOnError()
             } catch (e: Exception) {
-                // TODO: Add logging
+                Log.e(TAG, "Startup failed: ${e.message}", e)
                 transitionState(StartupState.Error("Startup failed: ${e.message}"))
                 cleanupOnError()
             }
@@ -193,7 +197,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
      * Start inference service
      * @return true if intent was sent successfully
      */
-    private suspend fun startInferenceService(config: AgentConfig): Boolean {
+    private suspend fun startInferenceService(config: com.loa.momclaw.domain.model.AgentConfig): Boolean {
         return withContext(Dispatchers.Main) {
             try {
                 val inferenceIntent = Intent(context, InferenceService::class.java).apply {
@@ -202,9 +206,10 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                     putExtra(InferenceService.KEY_PORT, 8080)
                 }
                 context.startForegroundService(inferenceIntent)
+                Log.d(TAG, "InferenceService start intent sent")
                 true
             } catch (e: Exception) {
-                // TODO: Add logging
+                Log.e(TAG, "Failed to start InferenceService", e)
                 false
             }
         }
@@ -214,7 +219,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
      * Start agent service
      * @return true if intent was sent successfully
      */
-    private suspend fun startAgentService(config: AgentConfig): Boolean {
+    private suspend fun startAgentService(config: com.loa.momclaw.domain.model.AgentConfig): Boolean {
         return withContext(Dispatchers.Main) {
             try {
                 val agentIntent = Intent(context, AgentService::class.java).apply {
@@ -224,9 +229,10 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                     putExtra(AgentService.KEY_MAX_TOKENS, config.maxTokens)
                 }
                 context.startForegroundService(agentIntent)
+                Log.d(TAG, "AgentService start intent sent")
                 true
             } catch (e: Exception) {
-                // TODO: Add logging
+                Log.e(TAG, "Failed to start AgentService", e)
                 false
             }
         }
@@ -236,7 +242,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
      * Cleanup on error - stop any started services
      */
     private suspend fun cleanupOnError() {
-        // TODO: Add logging
+        Log.d(TAG, "Cleaning up services after error")
         
         // Try to stop agent if it was started
         if (AgentService.state.value !is AgentState.Idle) {
@@ -246,8 +252,9 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                         putExtra(AgentService.KEY_ACTION, AgentService.ACTION_STOP)
                     }
                     context.startService(agentIntent)
+                    Log.d(TAG, "AgentService stop intent sent")
                 } catch (e: Exception) {
-                    // TODO: Add logging
+                    Log.e(TAG, "Failed to stop AgentService during cleanup", e)
                 }
             }
         }
@@ -260,8 +267,9 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                         putExtra(InferenceService.KEY_ACTION, InferenceService.ACTION_STOP)
                     }
                     context.startService(inferenceIntent)
+                    Log.d(TAG, "InferenceService stop intent sent")
                 } catch (e: Exception) {
-                    // TODO: Add logging
+                    Log.e(TAG, "Failed to stop InferenceService during cleanup", e)
                 }
             }
         }
@@ -279,30 +287,32 @@ class StartupManager(private val context: Context) : LifecycleObserver {
             try {
                 lock.withLock {
                     if (_state.value !is StartupState.Running && _state.value !is StartupState.Starting) {
-                        // TODO: Add logging
+                        Log.w(TAG, "Services not running, skipping stop")
                         return@launch
                     }
                     _state.value = StartupState.Stopping
                 }
                 
+                Log.i(TAG, "Stopping services...")
+                
                 // Stop Agent first (depends on inference)
-                // TODO: Add logging
                 withContext(Dispatchers.Main) {
                     val agentIntent = Intent(context, AgentService::class.java).apply {
                         putExtra(AgentService.KEY_ACTION, AgentService.ACTION_STOP)
                     }
                     context.startService(agentIntent)
+                    Log.d(TAG, "AgentService stop intent sent")
                 }
                 
                 delay(1000) // Give agent time to shutdown gracefully
                 
                 // Stop Inference
-                // TODO: Add logging
                 withContext(Dispatchers.Main) {
                     val inferenceIntent = Intent(context, InferenceService::class.java).apply {
                         putExtra(InferenceService.KEY_ACTION, InferenceService.ACTION_STOP)
                     }
                     context.startService(inferenceIntent)
+                    Log.d(TAG, "InferenceService stop intent sent")
                 }
                 
                 // Unregister services
@@ -310,10 +320,10 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 ServiceRegistry.unregister(SERVICE_INFERENCE)
                 
                 transitionState(StartupState.Stopped)
-                // TODO: Add logging
+                Log.i(TAG, "All services stopped successfully")
                 
             } catch (e: Exception) {
-                // TODO: Add logging
+                Log.e(TAG, "Error stopping services", e)
                 transitionState(StartupState.Error("Shutdown error: ${e.message}"))
             }
         }
@@ -328,10 +338,11 @@ class StartupManager(private val context: Context) : LifecycleObserver {
         while (System.currentTimeMillis() - startTime < MAX_WAIT_MS) {
             val currentState = InferenceService.state.value
             if (currentState is InferenceState.Running) {
+                Log.i(TAG, "InferenceService is ready")
                 return true
             }
             if (currentState is InferenceState.Error) {
-                // TODO: Add logging
+                Log.e(TAG, "InferenceService encountered error: ${(currentState as InferenceState.Error).message}")
                 return false
             }
             delay(POLL_INTERVAL_MS)
@@ -349,10 +360,11 @@ class StartupManager(private val context: Context) : LifecycleObserver {
         while (System.currentTimeMillis() - startTime < MAX_WAIT_MS) {
             val currentState = AgentService.state.value
             if (currentState is AgentState.Running) {
+                Log.i(TAG, "AgentService is ready")
                 return true
             }
             if (currentState is AgentState.Error) {
-                // TODO: Add logging
+                Log.e(TAG, "AgentService encountered error: ${(currentState as AgentState.Error).message}")
                 return false
             }
             delay(POLL_INTERVAL_MS)
@@ -401,12 +413,12 @@ class StartupManager(private val context: Context) : LifecycleObserver {
     
     @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     fun onCreate() {
-        // TODO: Add logging
+        Log.i(TAG, "StartupManager created")
     }
     
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     fun onDestroy() {
-        // TODO: Add logging
+        Log.i(TAG, "StartupManager destroyed")
         cleanup()
     }
 }

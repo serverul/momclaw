@@ -1,7 +1,6 @@
 package com.loa.momclaw.bridge
 
 import android.content.Context
-import android.util.Log
 import com.loa.momclaw.util.MomClawLogger
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.ktor.http.*
@@ -28,16 +27,31 @@ import javax.inject.Singleton
  * - POST /v1/chat/completions - Chat completion endpoint (streaming)
  * - GET /health - Health check endpoint
  * - GET /v1/models - List available models
+ * 
+ * Supports two instantiation modes:
+ * 1. Hilt injection: @Inject constructor (for Hilt-managed components)
+ * 2. Manual: LiteRTBridge(context, port) (for services like InferenceService)
  */
 @Singleton
 class LiteRTBridge @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private var server: ApplicationEngine? = null
-    private var llmEngine: LlmEngineWrapper = LlmEngineWrapper(context)
+    private var llmEngine: LlmEngineWrapper? = null
     private var currentModel: String? = null
     private var isRunning = false
     private var serverPort: Int = DEFAULT_PORT
+    
+    /**
+     * Secondary constructor for manual instantiation (non-Hilt usage).
+     * Used by InferenceService which doesn't use Hilt injection.
+     * 
+     * @param context Application context
+     * @param port Port to run server on (default 8080)
+     */
+    constructor(context: Context, port: Int = DEFAULT_PORT) : this(context) {
+        this.serverPort = port
+    }
 
     companion object {
         private const val TAG = "LiteRTBridge"
@@ -46,25 +60,27 @@ class LiteRTBridge @Inject constructor(
     }
     
     private val logger = MomClawLogger
-    
-    /**
-     * Secondary constructor for manual instantiation (non-Hilt usage).
-     * Used by InferenceService which doesn't use Hilt injection.
-     */
-    constructor(context: Context) : this(context)
 
     /**
      * Starts the LiteRT Bridge server.
      * 
      * @param modelPath Path to .litertlm model file
-     * @param port Port to listen on (default 8080)
+     * @param port Port to listen on (default 8080, uses constructor port if not specified)
      * @return Result.success if started successfully
      */
-    suspend fun start(modelPath: String, port: Int = DEFAULT_PORT): Result<Unit> {
+    suspend fun start(modelPath: String, port: Int? = null): Result<Unit> {
+        val actualPort = port ?: serverPort
+        serverPort = actualPort
+        
         return withContext(Dispatchers.IO) {
             try {
+                // Initialize engine if not already done
+                if (llmEngine == null) {
+                    llmEngine = LlmEngineWrapper(context)
+                }
+                
                 // Load model first
-                llmEngine.loadModel(modelPath).getOrElse { error ->
+                llmEngine!!.loadModel(modelPath).getOrElse { error ->
                     return@withContext Result.failure(
                         Exception("Failed to load model: ${error.message}", error)
                     )
@@ -73,7 +89,7 @@ class LiteRTBridge @Inject constructor(
                 currentModel = DEFAULT_MODEL_NAME
 
                 // Start Ktor server
-                server = embeddedServer(Netty, port = port) {
+                server = embeddedServer(Netty, port = actualPort) {
                     install(ContentNegotiation) {
                         json()
                     }
@@ -109,7 +125,7 @@ class LiteRTBridge @Inject constructor(
                 }.start(wait = false)
 
                 isRunning = true
-                logger.i(TAG, "LiteRT Bridge started on port $port with model: $currentModel")
+                logger.i(TAG, "LiteRT Bridge started on port $actualPort with model: $currentModel")
                 
                 Result.success(Unit)
             } catch (e: Exception) {
@@ -126,7 +142,7 @@ class LiteRTBridge @Inject constructor(
         try {
             val request = call.receive<ChatRequest>()
             
-            if (!llmEngine.isLoaded()) {
+            if (llmEngine == null || !llmEngine!!.isLoaded()) {
                 call.respond(
                     HttpStatusCode.ServiceUnavailable,
                     mapOf("error" to "Model not loaded")
@@ -143,7 +159,7 @@ class LiteRTBridge @Inject constructor(
             
             call.respondTextWriter(ContentType.Text.EventStream) {
                 // Stream tokens
-                llmEngine.generate(
+                llmEngine!!.generate(
                     prompt = prompt,
                     temperature = request.temperature,
                     maxTokens = request.max_tokens
@@ -197,7 +213,8 @@ class LiteRTBridge @Inject constructor(
             server?.stop(1000, 2000)
             server = null
             
-            llmEngine.close()
+            llmEngine?.close()
+            llmEngine = null
             currentModel = null
             isRunning = false
             
@@ -213,7 +230,46 @@ class LiteRTBridge @Inject constructor(
     fun isRunning(): Boolean = isRunning && server?.application != null
 
     /**
+     * Checks if the server is currently running (alias for test compatibility).
+     */
+    fun isServerRunning(): Boolean = isRunning()
+
+    /**
+     * Checks if a model is ready for inference.
+     */
+    fun isModelReady(): Boolean = llmEngine?.isLoaded() ?: false
+
+    /**
      * Gets the currently loaded model name.
      */
     fun getCurrentModel(): String? = currentModel
+    
+    /**
+     * Gets health status for monitoring.
+     */
+    suspend fun getHealthStatus(): HealthStatus {
+        return HealthStatus(
+            isRunning = isRunning(),
+            modelLoaded = isModelReady(),
+            currentModel = currentModel,
+            port = serverPort
+        )
+    }
+    
+    /**
+     * Cleanup all resources.
+     */
+    fun cleanup() {
+        stop()
+    }
+    
+    /**
+     * Health status data class.
+     */
+    data class HealthStatus(
+        val isRunning: Boolean,
+        val modelLoaded: Boolean,
+        val currentModel: String?,
+        val port: Int
+    )
 }

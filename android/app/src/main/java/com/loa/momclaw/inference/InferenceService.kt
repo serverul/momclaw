@@ -43,6 +43,7 @@ import kotlin.concurrent.withLock
 class InferenceService : LifecycleService() {
     
     companion object {
+        private const val TAG = "InferenceService"
         const val NOTIFICATION_ID = 1001
         const val CHANNEL_ID = "momclaw_inference"
         const val CHANNEL_NAME = "MOMCLAW Inference"
@@ -72,7 +73,7 @@ class InferenceService : LifecycleService() {
     private fun transitionState(newState: InferenceState) {
         stateLock.withLock {
             val oldState = _state.value
-            // TODO: Add logging
+            android.util.Log.i(TAG, "State transition: $oldState -> $newState")
             _state.value = newState
         }
     }
@@ -83,11 +84,11 @@ class InferenceService : LifecycleService() {
     private fun transitionStateIf(expected: InferenceState, newState: InferenceState): Boolean {
         return stateLock.withLock {
             if (_state.value == expected) {
-                // TODO: Add logging
+                android.util.Log.i(TAG, "State transition: $expected -> $newState")
                 _state.value = newState
                 true
             } else {
-                // TODO: Add logging
+                android.util.Log.w(TAG, "State transition rejected: expected $expected, got ${_state.value}")
                 false
             }
         }
@@ -101,13 +102,13 @@ class InferenceService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
         inferenceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        // TODO: Add logging
+        android.util.Log.i(TAG, "InferenceService created")
     }
     
     override fun onDestroy() {
         super.onDestroy()
         cleanup()
-        // TODO: Add logging
+        android.util.Log.i(TAG, "InferenceService destroyed")
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -136,14 +137,14 @@ class InferenceService : LifecycleService() {
         inferenceScope?.launch {
             // Already running check
             if (_state.value is InferenceState.Running) {
-                // TODO: Add logging
+                android.util.Log.w(TAG, "Inference already running, skipping start")
                 return@launch
             }
             
             // Atomic transition
             if (!transitionStateIf(InferenceState.Idle, InferenceState.Loading(modelPath)) &&
                 !(_state.value is InferenceState.Error)) {
-                // TODO: Add logging
+                android.util.Log.w(TAG, "Cannot start inference from state: ${_state.value}")
                 return@launch
             }
             
@@ -180,23 +181,24 @@ class InferenceService : LifecycleService() {
                         val error = startResult.exceptionOrNull()
                         transitionState(InferenceState.Error("Failed to load model: ${error?.message}"))
                         updateNotification("Failed to load model")
+                        android.util.Log.e(TAG, "Failed to start LiteRT Bridge", error)
                         cleanupOnError()
                     }
                     else -> {
                         transitionState(InferenceState.Running(modelPath, port))
                         updateNotification("Running on localhost:$port")
-                        // TODO: Add logging
+                        android.util.Log.i(TAG, "LiteRT Bridge started successfully on port $port")
                     }
                 }
                 
             } catch (e: CancellationException) {
-                // TODO: Add logging
+                android.util.Log.w(TAG, "Inference startup cancelled")
                 transitionState(InferenceState.Error("Startup cancelled"))
                 cleanupOnError()
             } catch (e: Exception) {
                 transitionState(InferenceState.Error("Failed to start inference: ${e.message}"))
                 updateNotification("Error: ${e.message}")
-                // TODO: Add logging
+                android.util.Log.e(TAG, "Failed to start inference", e)
                 cleanupOnError()
             }
         }
@@ -206,7 +208,7 @@ class InferenceService : LifecycleService() {
         try {
             bridge?.stop()
         } catch (e: Exception) {
-            // TODO: Add logging
+            android.util.Log.e(TAG, "Error cleaning up bridge", e)
         }
         bridge = null
     }
@@ -214,6 +216,7 @@ class InferenceService : LifecycleService() {
     private fun stopInference() {
         inferenceScope?.launch {
             try {
+                android.util.Log.i(TAG, "Stopping inference service...")
                 withTimeoutOrNull(SHUTDOWN_TIMEOUT_MS) {
                     bridge?.stop()
                 }
@@ -222,8 +225,9 @@ class InferenceService : LifecycleService() {
                 transitionState(InferenceState.Idle)
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
+                android.util.Log.i(TAG, "Inference service stopped successfully")
             } catch (e: Exception) {
-                // TODO: Add logging
+                android.util.Log.e(TAG, "Error stopping inference", e)
             }
         }
     }
@@ -235,7 +239,7 @@ class InferenceService : LifecycleService() {
         try {
             bridge?.stop()
         } catch (e: Exception) {
-            // TODO: Add logging
+            android.util.Log.e(TAG, "Error stopping bridge during cleanup", e)
         }
         bridge = null
         

@@ -37,7 +37,7 @@ object ServiceRegistry {
         )
         services[name] = info
         stateFlow?.let { serviceStates[name] = it }
-        // TODO: Add logging
+        android.util.Log.d("ServiceRegistry", "Service registered: $name")
     }
     
     /**
@@ -46,7 +46,7 @@ object ServiceRegistry {
     fun unregister(name: String) {
         services.remove(name)
         serviceStates.remove(name)
-        // TODO: Add logging
+        android.util.Log.d("ServiceRegistry", "Service unregistered: $name")
     }
     
     /**
@@ -119,7 +119,7 @@ object ServiceRegistry {
     fun clear() {
         services.clear()
         serviceStates.clear()
-        // TODO: Add logging
+        android.util.Log.d("ServiceRegistry", "All services cleared")
     }
     
     /**
