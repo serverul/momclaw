@@ -29,6 +29,9 @@ data class ChatMessage(
     val content: String
 )
 
+// ChatCompletionResponse, Usage, and other response models are in ChatModels.kt
+// Avoid redeclarations by keeping all response types in one file
+
 @Serializable
 data class ChatChoice(
     val index: Int = 0,
@@ -42,16 +45,6 @@ data class ChatChoice(
 data class ChatDelta(
     val role: String? = null,
     val content: String? = null
-)
-
-@Serializable
-data class Usage(
-    @SerialName("prompt_tokens")
-    val promptTokens: Int,
-    @SerialName("completion_tokens")
-    val completionTokens: Int,
-    @SerialName("total_tokens")
-    val totalTokens: Int
 )
 
 /**

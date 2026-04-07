@@ -1,93 +1,150 @@
 package com.loa.momclaw.bridge
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
  * Data classes for OpenAI-compatible chat API requests and responses.
+ * 
+ * NOTE: Request types are in ChatRequest.kt
+ * This file contains only response types to avoid redeclarations.
+ */
+
+// ==================== Response Models ====================
+
+/**
+ * Chat completion response (OpenAI-compatible)
  */
 @Serializable
-data class ChatRequest(
-    val model: String = "gemma-4-e4b",
-    val messages: List<MessageDto>,
-    val stream: Boolean = true,
-    val temperature: Float = 0.7f,
-    val max_tokens: Int = 2048,
-    val top_p: Float = 1.0f,
-    val frequency_penalty: Float = 0.0f,
-    val presence_penalty: Float = 0.0f
-)
-
-@Serializable
-data class MessageDto(
-    val role: String,
-    val content: String
-)
-
-@Serializable
-data class ChatResponse(
+data class ChatCompletionResponse(
     val id: String,
-    val `object`: String = "chat.completion",
+    @SerialName("object")
+    val objectType: String = "chat.completion",
     val created: Long,
     val model: String,
-    val choices: List<Choice>,
+    val choices: List<ChatChoice>,
     val usage: Usage? = null
 )
 
-@Serializable
-data class Choice(
-    val index: Int = 0,
-    val delta: Delta? = null,
-    val message: MessageDto? = null,
-    val finish_reason: String? = null
-)
-
-@Serializable
-data class Delta(
-    val role: String? = null,
-    val content: String? = null
-)
-
+/**
+ * Token usage statistics
+ */
 @Serializable
 data class Usage(
-    val prompt_tokens: Int = 0,
-    val completion_tokens: Int = 0,
-    val total_tokens: Int = 0
+    @SerialName("prompt_tokens")
+    val promptTokens: Int = 0,
+    @SerialName("completion_tokens")
+    val completionTokens: Int = 0,
+    @SerialName("total_tokens")
+    val totalTokens: Int = 0
 )
 
 /**
- * Type alias for compatibility - points to ChatResponse
+ * Legacy aliases for backward compatibility
  */
-typealias ChatCompletionResponse = ChatResponse
+typealias ChatResponse = ChatCompletionResponse
+typealias MessageDto = ChatMessage
+typealias Choice = ChatChoice
+typealias Delta = ChatDelta
+
+// ==================== Streaming Models ====================
 
 /**
- * SSE (Server-Sent Events) parser and formatter.
+ * Streaming chat completion chunk
+ */
+@Serializable
+data class ChatCompletionChunk(
+    val id: String,
+    @SerialName("object")
+    val objectType: String = "chat.completion.chunk",
+    val created: Long,
+    val model: String,
+    val choices: List<StreamingChoice>
+)
+
+@Serializable
+data class StreamingChoice(
+    val index: Int = 0,
+    val delta: ChatDelta,
+    @SerialName("finish_reason")
+    val finishReason: String? = null
+)
+
+// ==================== Error Models ====================
+
+/**
+ * API error response
+ */
+@Serializable
+data class ErrorResponse(
+    val error: ErrorDetail
+)
+
+@Serializable
+data class ErrorDetail(
+    val message: String,
+    val type: String,
+    val param: String? = null,
+    val code: String? = null
+)
+
+// ==================== SSE Formatter ====================
+
+/**
+ * SSE (Server-Sent Events) formatter for streaming responses
  */
 object SSEFormatter {
     private val json = Json {
         ignoreUnknownKeys = true
-        encodeDefaults = false
+        encodeDefaults = true
         isLenient = true
+        prettyPrint = false
     }
 
+    /**
+     * Format a streaming token as SSE event
+     */
     fun formatStreamEvent(token: String, model: String): String {
-        val delta = Delta(content = token)
-        val choice = Choice(delta = delta)
-        val response = ChatResponse(
+        val delta = ChatDelta(content = token)
+        val choice = StreamingChoice(delta = delta)
+        val response = ChatCompletionChunk(
             id = "chatcmpl-${System.currentTimeMillis()}",
             created = System.currentTimeMillis() / 1000,
             model = model,
             choices = listOf(choice)
         )
-        val responseJson = json.encodeToString(response)
-        return "data: $responseJson\n\n"
+        return buildString {
+            append("data: ")
+            append(json.encodeToString(ChatCompletionChunk.serializer(), response))
+            append("\n\n")
+        }
     }
 
+    /**
+     * Format [DONE] marker for stream end
+     */
     fun formatDoneEvent(): String {
         return "data: [DONE]\n\n"
     }
 
+    /**
+     * Format error event
+     */
     fun formatErrorEvent(error: String): String {
-        return "data: {\"error\": \"$error\"}\n\n"
+        return buildString {
+            append("data: ")
+            append(json.encodeToString(ErrorResponse.serializer(), ErrorResponse(
+                ErrorDetail(message = error, type = "inference_error")
+            )))
+            append("\n\n")
+        }
+    }
+
+    /**
+     * Format complete response (non-streaming)
+     */
+    fun formatCompleteResponse(response: ChatCompletionResponse): String {
+        return json.encodeToString(ChatCompletionResponse.serializer(), response)
     }
 }

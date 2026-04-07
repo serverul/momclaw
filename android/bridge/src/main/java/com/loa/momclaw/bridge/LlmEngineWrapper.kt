@@ -110,11 +110,16 @@ class LlmEngineWrapper(private val context: Context) {
         }
 
         // Use real TensorFlow Lite inference with Flow
-        return session!!.generateFlow(
-            prompt = prompt,
-            temperature = temperature,
-            maxTokens = maxTokens
-        ).flowOn(Dispatchers.Default)
+        // Wrap suspend function call in flow builder
+        return kotlinx.coroutines.flow.flow {
+            session!!.generateFlow(
+                prompt = prompt,
+                temperature = temperature,
+                maxTokens = maxTokens
+            ).collect { token ->
+                emit(token)
+            }
+        }.flowOn(Dispatchers.Default)
     }
 
     /**

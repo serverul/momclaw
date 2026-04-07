@@ -74,13 +74,19 @@ class LlmEngine private constructor(
             // Configure interpreter options
             val options = Interpreter.Options().apply {
                 // Try to use GPU if available
-                val compatList = CompatibilityList()
-                if (compatList.isDelegateSupportedOnThisDevice) {
-                    Log.i(TAG, "GPU acceleration available, enabling GPU delegate")
-                    gpuDelegate = GpuDelegate(compatList.bestOptionsForThisDevice)
-                    addDelegate(gpuDelegate!!)
-                } else {
-                    Log.w(TAG, "GPU not available, using CPU with ${Runtime.getRuntime().availableProcessors()} threads")
+                try {
+                    val compatList = CompatibilityList()
+                    if (compatList.isDelegateSupportedOnThisDevice) {
+                        Log.i(TAG, "GPU acceleration available, enabling GPU delegate")
+                        // Use default GPU delegate options for compatibility
+                        gpuDelegate = GpuDelegate()
+                        addDelegate(gpuDelegate!!)
+                    } else {
+                        Log.w(TAG, "GPU not available, using CPU with ${Runtime.getRuntime().availableProcessors()} threads")
+                        setNumThreads(Runtime.getRuntime().availableProcessors())
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "GPU delegate initialization failed, falling back to CPU", e)
                     setNumThreads(Runtime.getRuntime().availableProcessors())
                 }
                 
