@@ -191,7 +191,7 @@ adb shell "curl -X POST http://localhost:9090/v1/chat/completions \
 
 ### 1. Model Files
 - Required in `/data/data/com.loa.momclaw/files/models/`
-- Default: `gemma-3-E4B-it.litertlm`
+- Default: `gemma-4-E4B-it.litertlm`
 - Must be downloaded separately or bundled
 
 ### 2. NullClaw Binary

@@ -14,7 +14,7 @@ Successfully downloaded, verified, and prepared the **Gemma 4 E4B-it** LiteRT-LM
 
 ### 1. Model Identification ✅
 
-- **Discovered Issue**: Original download script referenced incorrect model (gemma-3-E4B-it)
+- **Discovered Issue**: Original download script referenced incorrect model (gemma-4-E4B-it)
 - **Correct Model**: Gemma 4 E4B-it (as specified in SPEC.md)
 - **Repository**: `litert-community/gemma-4-E4B-it-litert-lm` on HuggingFace
 - **Status**: Public, no authentication required
@@ -145,12 +145,12 @@ adb logcat | grep -i "litert\|gemma"
 ## Known Issues & Resolutions
 
 ### Issue 1: Incorrect Model in Original Script
-- **Problem**: `download-model.sh` referenced `gemma-3-E4B-it` (incorrect)
+- **Problem**: `download-model.sh` referenced `gemma-4-E4B-it` (incorrect)
 - **Solution**: Created `download-model-v2.sh` with correct Gemma 4 E4B-it
 - **Impact**: Correct model now downloaded and validated
 
 ### Issue 2: HuggingFace 404 on Original URL
-- **Problem**: Original repository `litert-community/gemma-3-E4B-it-litertlm` returned 404
+- **Problem**: Original repository `litert-community/gemma-4-E4B-it-litertlm` returned 404
 - **Solution**: Updated to correct repository: `litert-community/gemma-4-E4B-it-litert-lm`
 - **Impact**: Model successfully downloaded from correct source
 

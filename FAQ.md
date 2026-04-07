@@ -135,7 +135,7 @@ Yes, but with limitations:
 ./scripts/download-model.sh ./models
 
 # Push to device
-adb push models/gemma-3-E4B-it.litertlm \
+adb push models/gemma-4-E4B-it.litertlm \
     /sdcard/Android/data/com.loa.MOMCLAW/files/models/
 ```
 
@@ -374,7 +374,7 @@ adb shell ls -la /sdcard/Android/data/com.loa.MOMCLAW/files/models/
 # Option 1: Via app (Settings → Models → Download)
 # Option 2: Manual
 ./scripts/download-model.sh ./models
-adb push models/gemma-3-E4B-it.litertlm \
+adb push models/gemma-4-E4B-it.litertlm \
     /sdcard/Android/data/com.loa.MOMCLAW/files/models/
 ```
 

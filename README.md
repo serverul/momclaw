@@ -102,7 +102,7 @@ adb install android/app/build/outputs/apk/debug/app-debug.apk
 
 # 4. Download model (~2.5GB)
 ./scripts/download-model.sh ./models
-adb push models/gemma-3-E4B-it.litertlm \
+adb push models/gemma-4-E4B-it.litertlm \
     /sdcard/Android/data/com.loa.MOMCLAW/files/models/
 ```
 

@@ -520,10 +520,10 @@ cd android && ./gradlew assembleDebug
 
 ```bash
 # Download LiteRT model
-huggingface-cli download litert-community/gemma-3-E4B-it-litertlm
+huggingface-cli download litert-community/gemma-4-E4B-it-litertlm
 
 # Place in app storage
-adb push gemma-3-E4B-it.litertlm /data/data/com.loa.momclaw/files/models/
+adb push gemma-4-E4B-it.litertlm /data/data/com.loa.momclaw/files/models/
 ```
 
 ### Health Check Endpoints

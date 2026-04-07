@@ -10,7 +10,7 @@ import android.content.Intent
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
+import com.loa.momclaw.util.MomClawLogger
 import androidx.core.app.NotificationCompat
 import com.loa.momclaw.MainActivity
 import com.loa.momclaw.data.download.ModelDownloadManager
@@ -43,6 +43,9 @@ class ModelDownloadService : Service() {
     
     companion object {
         private const val TAG = "ModelDownloadService"
+    }
+    
+    private val logger = MomClawLogger
         private const val CHANNEL_ID = "model_download_channel"
         private const val CHANNEL_NAME = "Model Downloads"
         private const val NOTIFICATION_ID_BASE = 1000
@@ -89,13 +92,13 @@ class ModelDownloadService : Service() {
         super.onCreate()
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         createNotificationChannel()
-        Log.d(TAG, "Service created")
+        logger.d(TAG, "Service created")
     }
     
     override fun onBind(intent: Intent?): IBinder = binder
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "onStartCommand: ${intent?.action}")
+        logger.d(TAG, "onStartCommand: ${intent?.action}")
         
         when (intent?.action) {
             ACTION_START_DOWNLOAD -> {
@@ -142,7 +145,7 @@ class ModelDownloadService : Service() {
         
         // Check if already downloading
         if (activeDownloads.containsKey(modelId)) {
-            Log.w(TAG, "Download already active: $modelId")
+            logger.w(TAG, "Download already active: $modelId")
             return
         }
         
@@ -310,6 +313,6 @@ class ModelDownloadService : Service() {
         super.onDestroy()
         serviceScope.cancel()
         stopAllDownloads()
-        Log.d(TAG, "Service destroyed")
+        logger.d(TAG, "Service destroyed")
     }
 }

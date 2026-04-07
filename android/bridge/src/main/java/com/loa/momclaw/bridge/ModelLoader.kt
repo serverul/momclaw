@@ -1,7 +1,7 @@
 package com.loa.momclaw.bridge
 
 import android.content.Context
-import android.util.Log
+import com.loa.momclaw.util.MomClawLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -20,7 +20,7 @@ import java.util.zip.ZipInputStream
  * - Checksum verification
  * - Model extraction from archives
  * 
- * HuggingFace model: litert-community/gemma-3-E4B-it-litertlm
+ * HuggingFace model: litert-community/gemma-4-E4B-it-litertlm
  * Format: .litertlm (single file) or .zip archive
  */
 class ModelLoader(private val context: Context) {
@@ -28,6 +28,8 @@ class ModelLoader(private val context: Context) {
     companion object {
         private const val TAG = "ModelLoader"
     }
+    
+    private val logger = MomClawLogger
     
     data class ModelInfo(
         val name: String,
@@ -50,13 +52,13 @@ class ModelLoader(private val context: Context) {
      */
     suspend fun verifyModel(modelPath: String): LoadResult = withContext(Dispatchers.IO) {
         try {
-            Log.d(TAG, "Verifying model at: $modelPath")
+            logger.d(TAG, "Verifying model at: $modelPath")
             
             val modelFile = File(modelPath)
             
             // Check if path exists
             if (!modelFile.exists()) {
-                Log.w(TAG, "Model file not found: $modelPath")
+                logger.w(TAG, "Model file not found: $modelPath")
                 return@withContext LoadResult.Error(
                     "Model file not found: $modelPath",
                     ModelNotFoundException(modelPath)
@@ -78,10 +80,10 @@ class ModelLoader(private val context: Context) {
                 modelFile
             }
             
-            // Validate model size (should be at least 100MB for Gemma 3 E4B)
+            // Validate model size (should be at least 100MB for Gemma 4 E4B)
             val sizeBytes = actualModelFile.length()
             if (sizeBytes < MIN_MODEL_SIZE_BYTES) {
-                Log.w(TAG, "Model file too small: ${sizeBytes / (1024 * 1024)}MB (expected >${MIN_MODEL_SIZE_BYTES / (1024 * 1024)}MB)")
+                logger.w(TAG, "Model file too small: ${sizeBytes / (1024 * 1024)}MB (expected >${MIN_MODEL_SIZE_BYTES / (1024 * 1024)}MB)")
                 return@withContext LoadResult.Error(
                     "Model file too small (expected >${MIN_MODEL_SIZE_BYTES / (1024 * 1024)}MB, got ${sizeBytes / (1024 * 1024)}MB)",
                     ModelTooSmallException(sizeBytes)
@@ -90,7 +92,7 @@ class ModelLoader(private val context: Context) {
             
             // Calculate checksum (optional, for verification)
             val checksum = calculateChecksum(actualModelFile)
-            Log.d(TAG, "Model verified: ${actualModelFile.name}, size=${sizeBytes / (1024 * 1024)}MB, checksum=${checksum?.take(16)}...")
+            logger.d(TAG, "Model verified: ${actualModelFile.name}, size=${sizeBytes / (1024 * 1024)}MB, checksum=${checksum?.take(16)}...")
             
             LoadResult.Success(
                 ModelInfo(
@@ -102,7 +104,7 @@ class ModelLoader(private val context: Context) {
                 )
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Model verification failed", e)
+            logger.e(TAG, "Model verification failed", e)
             LoadResult.Error("Model verification failed: ${e.message}", e)
         }
     }
@@ -111,8 +113,8 @@ class ModelLoader(private val context: Context) {
      * Download model from HuggingFace (placeholder for future implementation)
      * 
      * Note: Actual download should be done via:
-     * - huggingface-cli: `huggingface-cli download litert-community/gemma-3-E4B-it-litertlm`
-     * - Direct URL: https://huggingface.co/litert-community/gemma-3-E4B-it-litertlm/resolve/main/gemma-3-E4B-it.litertlm
+     * - huggingface-cli: `huggingface-cli download litert-community/gemma-4-E4B-it-litertlm`
+     * - Direct URL: https://huggingface.co/litert-community/gemma-4-E4B-it-litertlm/resolve/main/gemma-4-E4B-it.litertlm
      */
     suspend fun downloadFromHuggingFace(
         modelId: String = DEFAULT_MODEL_ID,
@@ -126,8 +128,8 @@ class ModelLoader(private val context: Context) {
         
         val actualTargetPath = targetPath ?: getDefaultModelPath()
         
-        Log.i(TAG, "HuggingFace download requested for: $modelId -> $actualTargetPath")
-        Log.i(TAG, "Use: huggingface-cli download $modelId or manual download")
+        logger.i(TAG, "HuggingFace download requested for: $modelId -> $actualTargetPath")
+        logger.i(TAG, "Use: huggingface-cli download $modelId or manual download")
         // HuggingFace download not implemented - see documentation
         
         LoadResult.Error(
@@ -137,10 +139,10 @@ class ModelLoader(private val context: Context) {
     }
     
     /**
-     * Get default model path for Gemma 3 E4B
+     * Get default model path for Gemma 4 E4B
      */
     fun getDefaultModelPath(): String {
-        return File(context.filesDir, "models/gemma-3-E4B-it.litertlm").absolutePath
+        return File(context.filesDir, "models/gemma-4-E4B-it.litertlm").absolutePath
     }
     
     /**
@@ -150,7 +152,7 @@ class ModelLoader(private val context: Context) {
         val modelDir = File(context.filesDir, "models")
         if (!modelDir.exists()) {
             modelDir.mkdirs()
-            Log.d(TAG, "Created models directory: ${modelDir.absolutePath}")
+            logger.d(TAG, "Created models directory: ${modelDir.absolutePath}")
         }
         return modelDir
     }
@@ -203,7 +205,7 @@ class ModelLoader(private val context: Context) {
                         zis.copyTo(fos)
                     }
                     extractedFile = outFile
-                    Log.i(TAG, "Extracted model: ${outFile.name}")
+                    logger.i(TAG, "Extracted model: ${outFile.name}")
                     break
                 }
                 entry = zis.nextEntry
@@ -233,7 +235,7 @@ class ModelLoader(private val context: Context) {
     )
     
     companion object {
-        const val DEFAULT_MODEL_ID = "litert-community/gemma-3-E4B-it-litertlm"
+        const val DEFAULT_MODEL_ID = "litert-community/gemma-4-E4B-it-litertlm"
         const val MIN_MODEL_SIZE_BYTES = 100L * 1024 * 1024 // 100MB minimum
     }
 }

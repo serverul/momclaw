@@ -18,7 +18,9 @@ data class ModelsState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val downloadingModelId: String? = null,
-    val loadingModelId: String? = null
+    val loadingModelId: String? = null,
+    val downloadProgress: Map<String, Float> = emptyMap(), // ModelId -> Progress (0.0 to 1.0)
+    val selectedModelId: String? = null // Currently selected/active model
 )
 
 /**
@@ -28,6 +30,7 @@ sealed class ModelsEvent {
     data class DownloadModel(val modelId: String) : ModelsEvent()
     data class LoadModel(val modelId: String) : ModelsEvent()
     data class DeleteModel(val modelId: String) : ModelsEvent()
+    data class SelectModel(val modelId: String) : ModelsEvent() // Switch to this model
     object RefreshModels : ModelsEvent()
     object ClearError : ModelsEvent()
 }
@@ -59,6 +62,7 @@ class ModelsViewModel @Inject constructor(
             is ModelsEvent.DownloadModel -> downloadModel(event.modelId)
             is ModelsEvent.LoadModel -> loadModel(event.modelId)
             is ModelsEvent.DeleteModel -> deleteModel(event.modelId)
+            is ModelsEvent.SelectModel -> selectModel(event.modelId)
             is ModelsEvent.RefreshModels -> loadModels()
             is ModelsEvent.ClearError -> clearError()
         }
@@ -89,21 +93,43 @@ class ModelsViewModel @Inject constructor(
     }
 
     /**
-     * Downloads a model.
+     * Downloads a model with simulated progress for UI feedback.
      */
     private fun downloadModel(modelId: String) {
         viewModelScope.launch {
-            _state.update { it.copy(downloadingModelId = modelId, error = null) }
+            _state.update { it.copy(
+                downloadingModelId = modelId,
+                error = null,
+                downloadProgress = _state.value.downloadProgress + (modelId to 0f)
+            )}
+            
+            // Simulate progress updates (repository may not support real progress)
+            val progressJob = launch {
+                var progress = 0f
+                while (progress < 0.95f && _state.value.downloadingModelId == modelId) {
+                    delay(200)
+                    progress += 0.05f
+                    _state.update { it.copy(
+                        downloadProgress = _state.value.downloadProgress + (modelId to progress.coerceAtMost(0.95f))
+                    )}
+                }
+            }
             
             modelRepository.downloadModel(modelId)
                 .onSuccess {
-                    _state.update { it.copy(downloadingModelId = null) }
+                    progressJob.cancel()
+                    _state.update { it.copy(
+                        downloadingModelId = null,
+                        downloadProgress = _state.value.downloadProgress - modelId
+                    )}
                     loadModels() // Refresh list
                 }
                 .onFailure { error ->
+                    progressJob.cancel()
                     Log.e(TAG, "Failed to download model", error)
                     _state.update { it.copy(
                         downloadingModelId = null,
+                        downloadProgress = _state.value.downloadProgress - modelId,
                         error = "Failed to download model: ${error.message}"
                     )}
                 }
@@ -111,7 +137,7 @@ class ModelsViewModel @Inject constructor(
     }
 
     /**
-     * Loads a model into memory.
+     * Loads a model into memory and selects it.
      */
     private fun loadModel(modelId: String) {
         viewModelScope.launch {
@@ -119,7 +145,10 @@ class ModelsViewModel @Inject constructor(
             
             modelRepository.loadModel(modelId)
                 .onSuccess {
-                    _state.update { it.copy(loadingModelId = null) }
+                    _state.update { it.copy(
+                        loadingModelId = null,
+                        selectedModelId = modelId // Auto-select when loaded
+                    )}
                     loadModels() // Refresh list to show loaded status
                 }
                 .onFailure { error ->
@@ -129,6 +158,20 @@ class ModelsViewModel @Inject constructor(
                         error = "Failed to load model: ${error.message}"
                     )}
                 }
+        }
+    }
+    
+    /**
+     * Selects a model as active (switch to this model).
+     */
+    private fun selectModel(modelId: String) {
+        val model = _state.value.models.find { it.id == modelId }
+        if (model?.downloaded == true && !model.loaded) {
+            // If downloaded but not loaded, load it first
+            loadModel(modelId)
+        } else if (model?.loaded == true) {
+            // If already loaded, just select it
+            _state.update { it.copy(selectedModelId = modelId) }
         }
     }
 
@@ -155,5 +198,12 @@ class ModelsViewModel @Inject constructor(
      */
     private fun clearError() {
         _state.update { it.copy(error = null) }
+    }
+    
+    /**
+     * Helper to get currently loaded model.
+     */
+    fun getLoadedModel(): Model? {
+        return _state.value.models.find { it.loaded }
     }
 }

@@ -2,6 +2,7 @@ package com.loa.momclaw.bridge
 
 import android.content.Context
 import android.util.Log
+import com.loa.momclaw.util.MomClawLogger
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -40,8 +41,10 @@ class LiteRTBridge @Inject constructor(
     companion object {
         private const val TAG = "LiteRTBridge"
         private const val DEFAULT_PORT = 8080
-        private const val DEFAULT_MODEL_NAME = "gemma-3-e4b"
+        private const val DEFAULT_MODEL_NAME = "gemma-4-e4b"
     }
+    
+    private val logger = MomClawLogger
 
     /**
      * Starts the LiteRT Bridge server.
@@ -99,11 +102,11 @@ class LiteRTBridge @Inject constructor(
                 }.start(wait = false)
 
                 isRunning = true
-                Log.i(TAG, "LiteRT Bridge started on port $port")
+                logger.i(TAG, "LiteRT Bridge started on port $port with model: $currentModel")
                 
                 Result.success(Unit)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to start LiteRT Bridge", e)
+                logger.e(TAG, "Failed to start LiteRT Bridge", e)
                 Result.failure(e)
             }
         }
@@ -138,7 +141,7 @@ class LiteRTBridge @Inject constructor(
                     temperature = request.temperature,
                     maxTokens = request.max_tokens
                 ).catch { e ->
-                    Log.e(TAG, "Error during generation", e)
+                    logger.e(TAG, "Error during generation", e)
                     write(SSEFormatter.formatErrorEvent(e.message ?: "Unknown error"))
                 }.collect { token ->
                     write(SSEFormatter.formatStreamEvent(token, request.model))
@@ -150,7 +153,7 @@ class LiteRTBridge @Inject constructor(
                 flush()
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error handling chat completion", e)
+            logger.e(TAG, "Error handling chat completion", e)
             call.respond(
                 HttpStatusCode.InternalServerError,
                 mapOf("error" to (e.message ?: "Internal server error"))
@@ -191,9 +194,9 @@ class LiteRTBridge @Inject constructor(
             currentModel = null
             isRunning = false
             
-            Log.i(TAG, "LiteRT Bridge stopped")
+            logger.i(TAG, "LiteRT Bridge stopped")
         } catch (e: Exception) {
-            Log.e(TAG, "Error stopping LiteRT Bridge", e)
+            logger.e(TAG, "Error stopping LiteRT Bridge", e)
         }
     }
 

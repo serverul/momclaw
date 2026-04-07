@@ -15,7 +15,7 @@ class LiteRTBridgeTest {
     @Test
     fun `ModelLoader generates correct default path`() {
         // Default path should be in app files directory
-        val expectedPath = "/data/data/com.loa.momclaw/files/models/gemma-3-E4B-it.litertlm"
+        val expectedPath = "/data/data/com.loa.momclaw/files/models/gemma-4-E4B-it.litertlm"
         // Note: In tests, we can't access real context, so this verifies the pattern
         assertTrue("Default path should contain models directory", 
             expectedPath.contains("models"))
@@ -26,14 +26,14 @@ class LiteRTBridgeTest {
     @Test
     fun `ModelInfo contains required fields`() {
         val info = ModelLoader.ModelInfo(
-            name = "gemma-3-E4B-it",
+            name = "gemma-4-E4B-it",
             path = "/path/to/model.litertlm",
             sizeBytes = 1024 * 1024 * 500, // 500MB
             checksum = "abc123",
             isReady = true
         )
         
-        assertEquals("gemma-3-E4B-it", info.name)
+        assertEquals("gemma-4-E4B-it", info.name)
         assertEquals("/path/to/model.litertlm", info.path)
         assertEquals(500L * 1024 * 1024, info.sizeBytes)
         assertEquals("abc123", info.checksum)
@@ -111,7 +111,7 @@ class LiteRTBridgeTest {
             messages = listOf(ChatMessage("user", "Hello"))
         )
         
-        assertEquals("gemma-3-e4b", request.model)
+        assertEquals("gemma-4-e4b", request.model)
         assertEquals(0.7, request.temperature, 0.01)
         assertEquals(0.9, request.topP, 0.01)
         assertFalse(request.stream)

@@ -4,13 +4,13 @@
 
 1. **Download Model**: 
    ```bash
-   huggingface-cli download litert-community/gemma-3-E4B-it-litertlm
+   huggingface-cli download litert-community/gemma-4-E4B-it-litertlm
    ```
 
 2. **Place in app assets**: 
-   Copy `gemma-3-E4B-it.litertlm` to:
+   Copy `gemma-4-E4B-it.litertlm` to:
  
- `app/src/main/assets/gemma-3-E4B-it.litertlm`
+ `app/src/main/assets/gemma-4-E4B-it.litertlm`
    ```
 
 3. **Initialize Bridge**:
@@ -22,7 +22,7 @@
    // Or use factory
    val bridge = NullClawBridgeFactory.getInstance(context)
    val config = AgentConfig(
-       modelPath = context.filesDir.resolve("models/gemma-3-E4B-it.litertlm").absolutePath
+       modelPath = context.filesDir.resolve("models/gemma-4-E4B-it.litertlm").absolutePath
    )
    bridge.setup(config)
    bridge.start()
@@ -69,7 +69,7 @@ val config = AgentConfig(
     temperature = 0.7f,  // 0.0-2.0
     maxTokens = 2048,    // 4096 max
     modelPrimary = "litert-bridge/gemma-4e4b",
-    modelPath = "/data/data/com.loa.momclaw/files/models/gemma-3-E4B-it.litertlm",
+    modelPath = "/data/data/com.loa.momclaw/files/models/gemma-4-E4B-it.litertlm",
     baseUrl = "http://localhost:8080",
     memoryBackend = "sqlite",
     memoryPath = "/data/data/com.loa.momclaw/databases/agent.db"

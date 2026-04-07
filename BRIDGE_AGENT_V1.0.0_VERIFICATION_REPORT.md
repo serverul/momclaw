@@ -197,7 +197,7 @@ Bridge și Agent modules pentru MomClAW v1.0.0 sunt **100% complete și funcțio
 ```
 
 **Model Features**:
-- ✅ HuggingFace integration (litert-community/gemma-3-E4B-it-litertlm)
+- ✅ HuggingFace integration (litert-community/gemma-4-E4B-it-litertlm)
 - ✅ Hot-reload without server restart
 - ✅ Multiple model support
 - ✅ Model validation and checksum verification

@@ -61,7 +61,7 @@ Generate a chat completion using the loaded model.
 
 ```json
 {
-  "model": "gemma-3-e4b-it",
+  "model": "gemma-4-e4b-it",
   "messages": [
     {
       "role": "system",
@@ -85,7 +85,7 @@ Generate a chat completion using the loaded model.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `model` | string | No | `gemma-3-e4b-it` | Model to use (currently only one model supported) |
+| `model` | string | No | `gemma-4-e4b-it` | Model to use (currently only one model supported) |
 | `messages` | array | Yes | - | Array of message objects |
 | `temperature` | float | No | `0.7` | Sampling temperature (0.0-2.0) |
 | `max_tokens` | integer | No | `2048` | Maximum tokens to generate |
@@ -110,7 +110,7 @@ Generate a chat completion using the loaded model.
   "id": "chatcmpl-1234567890",
   "object": "chat.completion",
   "created": 1234567890,
-  "model": "gemma-3-e4b-it",
+  "model": "gemma-4-e4b-it",
   "choices": [
     {
       "index": 0,
@@ -134,13 +134,13 @@ Generate a chat completion using the loaded model.
 When `stream: true`, the response is sent as Server-Sent Events (SSE):
 
 ```
-data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gemma-3-e4b-it","choices":[{"index":0,"delta":{"role":"assistant"},"finish_reason":null}]}
+data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gemma-4-e4b-it","choices":[{"index":0,"delta":{"role":"assistant"},"finish_reason":null}]}
 
-data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gemma-3-e4b-it","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}
+data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gemma-4-e4b-it","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}
 
-data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gemma-3-e4b-it","choices":[{"index":0,"delta":{"content":"!"},"finish_reason":null}]}
+data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gemma-4-e4b-it","choices":[{"index":0,"delta":{"content":"!"},"finish_reason":null}]}
 
-data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gemma-3-e4b-it","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1234567890,"model":"gemma-4-e4b-it","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
 
 data: [DONE]
 ```
@@ -178,12 +178,12 @@ List available models.
   "object": "list",
   "data": [
     {
-      "id": "gemma-3-e4b-it",
+      "id": "gemma-4-e4b-it",
       "object": "model",
       "created": 1234567890,
       "owned_by": "google",
       "permission": [],
-      "root": "gemma-3-e4b-it",
+      "root": "gemma-4-e4b-it",
       "parent": null
     }
   ]
@@ -198,12 +198,12 @@ Get details about a specific model.
 
 ```json
 {
-  "id": "gemma-3-e4b-it",
+  "id": "gemma-4-e4b-it",
   "object": "model",
   "created": 1234567890,
   "owned_by": "google",
   "permission": [],
-  "root": "gemma-3-e4b-it",
+  "root": "gemma-4-e4b-it",
   "parent": null,
   "meta": {
     "quantization": "Q4_K_M",
@@ -227,7 +227,7 @@ Check if the bridge is running and model is loaded.
 {
   "status": "healthy",
   "model_loaded": true,
-  "model": "gemma-3-e4b-it",
+  "model": "gemma-4-e4b-it",
   "uptime_seconds": 3600,
   "requests_served": 42,
   "memory_usage_mb": 2048
@@ -433,7 +433,7 @@ import json
 response = requests.post(
     "http://localhost:8080/v1/chat/completions",
     json={
-        "model": "gemma-3-e4b-it",
+        "model": "gemma-4-e4b-it",
         "messages": [
             {"role": "user", "content": "Tell me a joke"}
         ],
@@ -457,7 +457,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ChatRequest(
-    val model: String = "gemma-3-e4b-it",
+    val model: String = "gemma-4-e4b-it",
     val messages: List<Message>,
     val temperature: Double = 0.7,
     val max_tokens: Int = 2048
@@ -490,7 +490,7 @@ suspend fun chat(message: String): String {
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gemma-3-e4b-it",
+    "model": "gemma-4-e4b-it",
     "messages": [
       {"role": "user", "content": "What is 2+2?"}
     ],
@@ -502,7 +502,7 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gemma-3-e4b-it",
+    "model": "gemma-4-e4b-it",
     "messages": [
       {"role": "user", "content": "Tell me a story"}
     ],

@@ -423,13 +423,13 @@ Error: Model file not found at /sdcard/Android/data/com.loa.MOMCLAW/files/models
    ./scripts/download-model.sh ./models
    
    # Push to device
-   adb push models/gemma-3-E4B-it.litertlm \
+   adb push models/gemma-4-E4B-it.litertlm \
        /sdcard/Android/data/com.loa.MOMCLAW/files/models/
    ```
 
 3. **Verify model integrity**:
    ```bash
-   adb shell sha256sum /sdcard/Android/data/com.loa.MOMCLAW/files/models/gemma-3-E4B-it.litertlm
+   adb shell sha256sum /sdcard/Android/data/com.loa.MOMCLAW/files/models/gemma-4-E4B-it.litertlm
    ```
 
 ### Issue: "Failed to load model"
@@ -455,11 +455,11 @@ Error: Model file not found at /sdcard/Android/data/com.loa.MOMCLAW/files/models
 3. **Re-download model**:
    ```bash
    # Delete corrupted file
-   adb shell rm /sdcard/Android/data/com.loa.MOMCLAW/files/models/gemma-3-E4B-it.litertlm
+   adb shell rm /sdcard/Android/data/com.loa.MOMCLAW/files/models/gemma-4-E4B-it.litertlm
    
    # Download again
    ./scripts/download-model.sh ./models
-   adb push models/gemma-3-E4B-it.litertlm \
+   adb push models/gemma-4-E4B-it.litertlm \
        /sdcard/Android/data/com.loa.MOMCLAW/files/models/
    ```
 
@@ -495,10 +495,10 @@ Error: Model file not found at /sdcard/Android/data/com.loa.MOMCLAW/files/models
 3. **Manual download**:
    ```bash
    # Download manually
-   wget https://huggingface.co/litert-community/gemma-3-E4B-it-litertlm/resolve/main/gemma-3-E4B-it.litertlm
+   wget https://huggingface.co/litert-community/gemma-4-E4B-it-litertlm/resolve/main/gemma-4-E4B-it.litertlm
    
    # Push to device
-   adb push gemma-3-E4B-it.litertlm \
+   adb push gemma-4-E4B-it.litertlm \
        /sdcard/Android/data/com.loa.MOMCLAW/files/models/
    ```
 

@@ -506,7 +506,7 @@ EOF
 ./scripts/download-model.sh ./models
 
 # Push to device
-adb push models/gemma-3-E4B-it.litertlm \
+adb push models/gemma-4-E4B-it.litertlm \
     /sdcard/Android/data/com.loa.MOMCLAW/files/models/
 ```
 

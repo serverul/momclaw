@@ -172,7 +172,7 @@ chmod +x android/gradlew
 ./scripts/download-model.sh ./models
 
 # Copiază pe device
-adb push models/gemma-3-E4B-it.litertlm \
+adb push models/gemma-4-E4B-it.litertlm \
     /sdcard/Android/data/com.loa.MOMCLAW/files/models/
 ```
 
@@ -290,7 +290,7 @@ http://localhost:8080/v1
 
 ```json
 {
-  "model": "gemma-3-e4b-it",
+  "model": "gemma-4-e4b-it",
   "messages": [
     {"role": "system", "content": "You are a helpful assistant."},
     {"role": "user", "content": "Hello!"}
@@ -308,7 +308,7 @@ http://localhost:8080/v1
   "id": "chatcmpl-123",
   "object": "chat.completion",
   "created": 1712345678,
-  "model": "gemma-3-e4b-it",
+  "model": "gemma-4-e4b-it",
   "choices": [{
     "index": 0,
     "message": {
@@ -344,7 +344,7 @@ data: [DONE]
   "object": "list",
   "data": [
     {
-      "id": "gemma-3-e4b-it",
+      "id": "gemma-4-e4b-it",
       "object": "model",
       "created": 1712345678,
       "owned_by": "google"
@@ -360,7 +360,7 @@ data: [DONE]
 ```json
 {
   "status": "ok",
-  "model": "gemma-3-e4b-it",
+  "model": "gemma-4-e4b-it",
   "uptime_seconds": 3600
 }
 ```
@@ -495,7 +495,7 @@ sdkmanager "ndk;25.2.9519653"
 
 #### Model Loading Failed
 
-**Simptom:** `Failed to load model: gemma-3-e4b-it.litertlm`
+**Simptom:** `Failed to load model: gemma-4-e4b-it.litertlm`
 
 **Soluții:**
 

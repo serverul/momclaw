@@ -157,7 +157,11 @@ fun SettingsScreen(
             ) {
                 // System Prompt
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription = "System Prompt settings section"
+                        },
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(
@@ -167,7 +171,10 @@ fun SettingsScreen(
                     ) {
                         Text(
                             text = "System Prompt",
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.semantics {
+                                androidx.compose.ui.semantics.heading()
+                            }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
@@ -178,7 +185,10 @@ fun SettingsScreen(
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(120.dp),
+                                .height(120.dp)
+                                .semantics {
+                                    contentDescription = "System prompt input. Instructions for the AI assistant. ${if (systemPrompt.isNotEmpty()) "Current: $systemPrompt" else "Empty"}"
+                                },
                             placeholder = { Text("Enter system prompt...") },
                             supportingText = { Text("Instructions for the AI assistant") },
                             maxLines = 5
@@ -188,7 +198,11 @@ fun SettingsScreen(
 
                 // Temperature
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription = "Temperature settings section"
+                        },
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(
@@ -203,12 +217,19 @@ fun SettingsScreen(
                         ) {
                             Text(
                                 text = "Temperature",
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.semantics {
+                                    androidx.compose.ui.semantics.heading()
+                                }
                             )
                             Text(
                                 text = String.format("%.2f", temperature),
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.semantics {
+                                    liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite
+                                    contentDescription = "Current temperature: ${String.format("%.2f", temperature)}"
+                                }
                             )
                         }
                         Spacer(modifier = Modifier.height(8.dp))
@@ -220,7 +241,11 @@ fun SettingsScreen(
                             },
                             valueRange = 0f..2f,
                             steps = 19,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics {
+                                    contentDescription = "Temperature slider. Controls randomness: 0 = focused, 2 = creative. Current value: ${String.format("%.2f", temperature)}"
+                                }
                         )
                         Text(
                             text = "Controls randomness: 0 = focused, 2 = creative",
@@ -232,7 +257,11 @@ fun SettingsScreen(
 
                 // Max Tokens
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription = "Max Tokens settings section"
+                        },
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(
@@ -242,7 +271,10 @@ fun SettingsScreen(
                     ) {
                         Text(
                             text = "Max Tokens",
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.semantics {
+                                androidx.compose.ui.semantics.heading()
+                            }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
@@ -255,7 +287,11 @@ fun SettingsScreen(
                                     }
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics {
+                                    contentDescription = "Max tokens input. Maximum response length between 1 and 8192. Current: $maxTokens"
+                                },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             supportingText = { Text("Maximum response length (1-8192)") },
                             singleLine = true
@@ -265,7 +301,11 @@ fun SettingsScreen(
 
                 // Dark Mode
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription = "Dark Mode settings section"
+                        },
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Row(
@@ -275,10 +315,13 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Dark Mode",
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.semantics {
+                                    androidx.compose.ui.semantics.heading()
+                                }
                             )
                             Text(
                                 text = "Enable dark theme",
@@ -288,14 +331,22 @@ fun SettingsScreen(
                         }
                         Switch(
                             checked = state.settings.darkMode,
-                            onCheckedChange = { onEvent(SettingsEvent.UpdateDarkMode(it)) }
+                            onCheckedChange = { onEvent(SettingsEvent.UpdateDarkMode(it)) },
+                            modifier = Modifier.semantics {
+                                contentDescription = "Dark Mode switch. ${if (state.settings.darkMode) "Currently enabled" else "Currently disabled"}"
+                                stateDescription = if (state.settings.darkMode) "On" else "Off"
+                            }
                         )
                     }
                 }
 
                 // Auto Save
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription = "Auto Save settings section"
+                        },
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Row(
@@ -305,10 +356,13 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Auto Save",
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.semantics {
+                                    androidx.compose.ui.semantics.heading()
+                                }
                             )
                             Text(
                                 text = "Automatically save conversations",
@@ -318,7 +372,11 @@ fun SettingsScreen(
                         }
                         Switch(
                             checked = state.settings.autoSave,
-                            onCheckedChange = { onEvent(SettingsEvent.UpdateAutoSave(it)) }
+                            onCheckedChange = { onEvent(SettingsEvent.UpdateAutoSave(it)) },
+                            modifier = Modifier.semantics {
+                                contentDescription = "Auto Save switch. ${if (state.settings.autoSave) "Currently enabled" else "Currently disabled"}"
+                                stateDescription = if (state.settings.autoSave) "On" else "Off"
+                            }
                         )
                     }
                 }
@@ -328,7 +386,10 @@ fun SettingsScreen(
                     onClick = { onEvent(SettingsEvent.SaveSettings) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(56.dp) // Exceeds 48dp minimum
+                        .semantics {
+                            contentDescription = "Save Settings button"
+                        },
                     enabled = !state.isLoading
                 ) {
                     Icon(
@@ -348,7 +409,10 @@ fun SettingsScreen(
                     onClick = { onEvent(SettingsEvent.ResetSettings) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(56.dp) // Exceeds 48dp minimum
+                        .semantics {
+                            contentDescription = "Reset to Defaults button"
+                        },
                     enabled = !state.isLoading
                 ) {
                     Icon(

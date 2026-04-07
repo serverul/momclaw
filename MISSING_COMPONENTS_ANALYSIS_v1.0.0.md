@@ -136,7 +136,7 @@ class ModelRepositoryImpl @Inject constructor(
 
 **Evidence**:
 - Downloaded model: `gemma-4-E4B-it.litertlm` (from report)
-- ModelLoader default: `gemma-3-E4B-it.litertlm` (ModelLoader.kt line 73)
+- ModelLoader default: `gemma-4-E4B-it.litertlm` (ModelLoader.kt line 73)
 - DEFAULT_MODEL_ID still references Gemma 3 (line 277)
 
 **Impact**: App may look for wrong model file
@@ -145,11 +145,11 @@ class ModelRepositoryImpl @Inject constructor(
 ```kotlin
 // Update ModelLoader.kt
 companion object {
-    const val DEFAULT_MODEL_ID = "litert-community/gemma-4-E4B-it-litert-lm" // was gemma-3
+    const val DEFAULT_MODEL_ID = "litert-community/gemma-4-E4B-it-litert-lm" // was gemma-4
 }
 
 fun getDefaultModelPath(): String {
-    return File(context.filesDir, "models/gemma-4-E4B-it.litertlm").absolutePath // was gemma-3
+    return File(context.filesDir, "models/gemma-4-E4B-it.litertlm").absolutePath // was gemma-4
 }
 ```
 

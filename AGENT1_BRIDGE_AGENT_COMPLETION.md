@@ -71,7 +71,7 @@ I received your prompt:
 **Model Status:** Not loaded
 **To enable real inference:**
 1. Download Gemma 3 E4B IT model:
-   `litert-community/gemma-3-E4B-it-litertlm`
+   `litert-community/gemma-4-E4B-it-litertlm`
 2. Place at: `/data/data/com.loa.momclaw/files/models/`
 3. Restart the app
 
@@ -368,7 +368,7 @@ Error Handling:          10/10 ✓
    - Size: ~15-25MB per binary
 
 2. **Download LiteRT model**
-   - Run: `huggingface-cli download litert-community/gemma-3-E4B-it-litertlm`
+   - Run: `huggingface-cli download litert-community/gemma-4-E4B-it-litertlm`
    - Place in `android/bridge/src/main/assets/models/` or device storage
    - Size: ~3.5GB
 

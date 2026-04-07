@@ -8,7 +8,7 @@ import kotlinx.serialization.json.Json
  */
 @Serializable
 data class ChatRequest(
-    val model: String = "gemma-3-e4b",
+    val model: String = "gemma-4-e4b",
     val messages: List<MessageDto>,
     val stream: Boolean = true,
     val temperature: Float = 0.7f,

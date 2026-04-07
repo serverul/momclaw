@@ -120,7 +120,7 @@ class ResourceValidator(private val context: Context) {
                         size = "~3.5GB"
                     )
                 )
-                recoverySteps.add("Download model: huggingface-cli download litert-community/gemma-3-E4B-it-litertlm")
+                recoverySteps.add("Download model: huggingface-cli download litert-community/gemma-4-E4B-it-litertlm")
                 recoverySteps.add("Place model at: ${modelStatus.expectedPath}")
             }
             is ModelValidationStatus.Corrupted -> {
@@ -129,7 +129,7 @@ class ResourceValidator(private val context: Context) {
                         name = "LiteRT Model",
                         type = ResourceType.MODEL,
                         description = "Model file appears corrupted (${modelStatus.actualSizeGB}GB vs expected ${modelStatus.expectedSizeGB}GB)",
-                        downloadUrl = "https://huggingface.co/litert-community/gemma-3-E4B-it-litertlm",
+                        downloadUrl = "https://huggingface.co/litert-community/gemma-4-E4B-it-litertlm",
                         size = "~3.5GB"
                     )
                 )
@@ -241,7 +241,7 @@ class ResourceValidator(private val context: Context) {
      * Validate LiteRT model
      */
     private fun validateModel(): ModelValidationStatus {
-        val modelPath = File(context.filesDir, "models/gemma-3-E4B-it.litertlm").absolutePath
+        val modelPath = File(context.filesDir, "models/gemma-4-E4B-it.litertlm").absolutePath
         val modelFile = File(modelPath)
         
         if (!modelFile.exists()) {
@@ -253,7 +253,7 @@ class ResourceValidator(private val context: Context) {
             
             return ModelValidationStatus.Missing(
                 expectedPath = modelPath,
-                downloadUrl = "https://huggingface.co/litert-community/gemma-3-E4B-it-litertlm"
+                downloadUrl = "https://huggingface.co/litert-community/gemma-4-E4B-it-litertlm"
             )
         }
         
@@ -344,7 +344,7 @@ class ResourceValidator(private val context: Context) {
     }
     
     companion object {
-        const val MODEL_DOWNLOAD_URL = "https://huggingface.co/litert-community/gemma-3-E4B-it-litertlm"
+        const val MODEL_DOWNLOAD_URL = "https://huggingface.co/litert-community/gemma-4-E4B-it-litertlm"
         const val BINARY_DOWNLOAD_URL = "https://github.com/loa-momclaw/nullclaw/releases"
         const val EXPECTED_MODEL_SIZE_GB = 3.5
     }

@@ -2,15 +2,15 @@
 # download-model.sh — Download LiteRT model from HuggingFace
 # Usage: ./download-model.sh [output_dir]
 #
-# Downloads gemma-3-E4B-it-litertlm for on-device inference.
+# Downloads gemma-4-E4B-it-litertlm for on-device inference.
 # Requires: wget or curl, ~2.5GB free space
 #
 set -euo pipefail
 
 OUTPUT_DIR="${1:-./models}"
-MODEL_NAME="gemma-3-E4B-it"
+MODEL_NAME="gemma-4-E4B-it"
 MODEL_FILE="${MODEL_NAME}.litertlm"
-HF_REPO="litert-community/gemma-3-E4B-it-litertlm"
+HF_REPO="litert-community/gemma-4-E4B-it-litertlm"
 HF_URL="https://huggingface.co/${HF_REPO}/resolve/main/${MODEL_FILE}"
 
 echo "=== MOMCLAW Model Download ==="

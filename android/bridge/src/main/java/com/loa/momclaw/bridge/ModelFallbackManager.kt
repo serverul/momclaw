@@ -33,7 +33,7 @@ class ModelFallbackManager(
         if (!file.exists()) {
             return@withContext ModelStatus.NotFound(
                 path = modelPath,
-                suggestion = "Download model from HuggingFace: litert-community/gemma-3-E4B-it-litertlm"
+                suggestion = "Download model from HuggingFace: litert-community/gemma-4-E4B-it-litertlm"
             )
         }
         
@@ -220,7 +220,7 @@ class ModelFallbackManager(
             append("**Model Status:** Not loaded\n")
             append("**To enable real inference:**\n")
             append("1. Download Gemma 3 E4B IT model:\n")
-            append("   `litert-community/gemma-3-E4B-it-litertlm`\n")
+            append("   `litert-community/gemma-4-E4B-it-litertlm`\n")
             append("2. Place at: `/data/data/com.loa.momclaw/files/models/`\n")
             append("3. Restart the app\n\n")
             append("This simulation mode allows you to test the UI and API integration.")

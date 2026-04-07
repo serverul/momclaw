@@ -49,7 +49,7 @@ val config = AgentConfig(
     systemPrompt = "You are a helpful assistant.",
     temperature = 0.7f,
     maxTokens = 2048,
-    modelPath = context.filesDir.resolve("models/gemma-3-E4B-it.litertlm").absolutePath,
+    modelPath = context.filesDir.resolve("models/gemma-4-E4B-it.litertlm").absolutePath,
     baseUrl = "http://localhost:8080"
 )
 bridge.setup(config)

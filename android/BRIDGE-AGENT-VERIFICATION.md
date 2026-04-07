@@ -287,7 +287,7 @@ AgentConfig(
     temperature = 0.7f,
     maxTokens = 2048,
     modelPrimary = "litert-bridge/gemma-4e4b",
-    modelPath = "/data/data/com.loa.momclaw/files/models/gemma-3-E4B-it.litertlm",
+    modelPath = "/data/data/com.loa.momclaw/files/models/gemma-4-E4B-it.litertlm",
     baseUrl = "http://localhost:8080",
     memoryBackend = "sqlite",
     memoryPath = "/data/data/com.loa.momclaw/databases/agent.db"

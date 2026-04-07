@@ -140,7 +140,7 @@ On Stop: Running → Stopping → Stopped
   - Extraction check
 
 - ✅ Model validation (LiteRT):
-  - Path validation: `models/gemma-3-E4B-it.litertlm`
+  - Path validation: `models/gemma-4-E4B-it.litertlm`
   - Size check: Expected ~3.5GB
   - Corruption detection (file too small)
   - Alternate locations support

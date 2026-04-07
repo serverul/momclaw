@@ -54,7 +54,7 @@ adb install android/app/build/outputs/apk/debug/app-debug.apk
 ./scripts/download-model.sh ./models
 
 # Push to device
-adb push models/gemma-3-E4B-it.litertlm \
+adb push models/gemma-4-E4B-it.litertlm \
     /sdcard/Android/data/com.loa.MOMCLAW/files/models/
 ```
 
@@ -113,7 +113,7 @@ export ANDROID_HOME=/path/to/android/sdk
 ### Model download fails
 - Check internet connection
 - Verify ~3GB free space
-- Try manual download from [HuggingFace](https://huggingface.co/google/gemma-3-e4b-it)
+- Try manual download from [HuggingFace](https://huggingface.co/google/gemma-4-e4b-it)
 
 ### App crashes on launch
 - Check logcat: `adb logcat | grep -i MOMCLAW`

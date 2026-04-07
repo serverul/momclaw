@@ -73,6 +73,7 @@ sealed class ChatEvent {
     data class InputChanged(val text: String) : ChatEvent()
     object ClearConversation : ChatEvent()
     object LoadConversation : ChatEvent()
+    object ClearError : ChatEvent()
 }
 
 /**

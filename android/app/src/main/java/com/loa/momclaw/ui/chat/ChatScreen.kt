@@ -1,5 +1,9 @@
 package com.loa.momclaw.ui.chat
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,9 +17,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.loa.momclaw.domain.model.Message
+import com.loa.momclaw.ui.common.AnimationUtils
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -105,38 +113,52 @@ fun ChatScreen(
                         )
                     }
 
-                    // Show streaming response
+                    // Show streaming response with animation
                     if (state.isStreaming && state.currentResponse.isNotEmpty()) {
                         item {
-                            MessageBubble(
-                                message = Message(
-                                    role = Message.ROLE_ASSISTANT,
-                                    content = state.currentResponse,
-                                    timestamp = System.currentTimeMillis()
-                                ),
-                                isUser = false,
-                                isStreaming = true
-                            )
+                            AnimatedVisibility(
+                                visible = true,
+                                enter = fadeIn() + slideInVertically()
+                            ) {
+                                MessageBubble(
+                                    message = Message(
+                                        role = Message.ROLE_ASSISTANT,
+                                        content = state.currentResponse,
+                                        timestamp = System.currentTimeMillis()
+                                    ),
+                                    isUser = false,
+                                    isStreaming = true
+                                )
+                            }
                         }
                     }
                 }
             }
 
-            // Error message
-            state.error?.let { error ->
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    color = MaterialTheme.colorScheme.errorContainer,
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = error,
-                        modifier = Modifier.padding(12.dp),
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+            // Error message with better visibility
+            AnimatedVisibility(
+                visible = state.error != null,
+                enter = fadeIn() + slideInVertically()
+            ) {
+                state.error?.let { error ->
+                    Snackbar(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .semantics {
+                                liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite
+                                contentDescription = "Error: $error"
+                            },
+                        action = {
+                            TextButton(onClick = { onEvent(ChatEvent.ClearError) }) {
+                                Text("Dismiss")
+                            }
+                        }
+                    ) {
+                        Text(
+                            text = error,
+                            color = MaterialTheme.colorScheme.onError
+                        )
+                    }
                 }
             }
 
@@ -161,7 +183,7 @@ fun ChatScreen(
 }
 
 /**
- * Individual message bubble component.
+ * Individual message bubble component with streaming animation.
  */
 @Composable
 fun MessageBubble(
@@ -176,10 +198,26 @@ fun MessageBubble(
         MaterialTheme.colorScheme.surfaceVariant
     }
 
+    // Blinking cursor for streaming messages
+    val cursorAlpha by AnimationUtils.rememberBlinkingState(
+        initialValue = 1f,
+        targetValue = 0.3f,
+        durationMs = 530
+    )
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp),
+            .padding(horizontal = 4.dp)
+            .semantics {
+                contentDescription = buildString {
+                    append(if (isUser) "You" else "Assistant")
+                    append(": ")
+                    append(message.content)
+                    if (isStreaming) append(". Still typing...")
+                    append(". Sent at ${formatTime(message.timestamp)}")
+                }
+            },
         horizontalAlignment = alignment
     ) {
         Surface(
@@ -196,15 +234,28 @@ fun MessageBubble(
             Column(
                 modifier = Modifier.padding(12.dp)
             ) {
-                Text(
-                    text = message.content,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = if (isUser) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(
+                        text = message.content,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (isUser) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                    
+                    // Blinking cursor for streaming
+                    if (isStreaming) {
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text(
+                            text = "|",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = cursorAlpha)
+                        )
                     }
-                )
+                }
 
                 Row(
                     modifier = Modifier
@@ -220,11 +271,21 @@ fun MessageBubble(
                     )
 
                     if (isStreaming) {
-                        Text(
-                            text = "•••",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(12.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "Streaming...",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
             }
@@ -233,7 +294,7 @@ fun MessageBubble(
 }
 
 /**
- * Chat input component with send button.
+ * Chat input component with send button and accessibility.
  */
 @Composable
 fun ChatInput(
@@ -257,7 +318,11 @@ fun ChatInput(
                 value = text,
                 onValueChange = onTextChange,
                 enabled = enabled,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics {
+                        contentDescription = "Message input field. ${if (text.isNotEmpty()) "Current text: $text" else "Empty"}"
+                    },
                 placeholder = { 
                     Text(
                         "Type a message...",
@@ -276,7 +341,11 @@ fun ChatInput(
             FilledIconButton(
                 onClick = onSend,
                 enabled = enabled && text.isNotBlank(),
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier
+                    .size(48.dp) // Minimum 48dp touch target
+                    .semantics {
+                        contentDescription = "Send message"
+                    },
                 colors = IconButtonDefaults.filledIconButtonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -284,7 +353,7 @@ fun ChatInput(
             ) {
                 Icon(
                     imageVector = Icons.Default.Send,
-                    contentDescription = "Send",
+                    contentDescription = null, // Already set in parent semantics
                     modifier = Modifier.size(24.dp)
                 )
             }

@@ -41,6 +41,7 @@ class ChatViewModel @Inject constructor(
             is ChatEvent.InputChanged -> updateInput(event.text)
             is ChatEvent.ClearConversation -> clearConversation()
             is ChatEvent.LoadConversation -> loadConversation()
+            is ChatEvent.ClearError -> clearError()
         }
     }
 
