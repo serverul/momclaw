@@ -8,6 +8,7 @@ import com.loa.momclaw.data.download.ModelMetadata
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.io.File
+import java.io.IOException
 import java.security.MessageDigest
 
 /**
@@ -51,10 +52,11 @@ class ModelManager private constructor(private val context: Context) {
     
     private val managerScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     
+    private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+    
     companion object {
         private const val TAG = "ModelManager"
         private const val PREF_ACTIVE_MODEL = "active_model_id"
-        private const val DEFAULT_MODEL_ID = LiteRModel.DEFAULT_MODEL_ID
         
         @Volatile
         private var instance: ModelManager? = null
@@ -191,6 +193,16 @@ class ModelManager private constructor(private val context: Context) {
         }
         
         Log.i(TAG, "Active model set to: $modelId")
+    }
+    
+    /**
+     * Clear the active model (set to none).
+     */
+    fun clearActiveModel() {
+        prefs.edit().remove(PREF_ACTIVE_MODEL).apply()
+        _activeModelId.value = null
+        _models.value = _models.value.map { it.copy(isActive = false) }
+        Log.i(TAG, "Active model cleared")
     }
     
     /**
