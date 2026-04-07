@@ -61,6 +61,10 @@ dependencies {
     
     // Logging
     
+    // Resilience4j
+    implementation("io.github.resilience4j:resilience4j-circuitbreaker:2.2.0")
+    implementation("io.github.resilience4j:resilience4j-retry:2.2.0")
+    
     // Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")

@@ -1,6 +1,7 @@
 package com.loa.momclaw.bridge
 
 import android.content.Context
+import io.github.microutils.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -12,7 +13,10 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -39,6 +43,10 @@ class LiteRTBridge(
     private val context: Context,
     private val port: Int = 8080
 ) {
+    private companion object {
+        private val logger = KotlinLogging.logger {}
+    }
+    
     private var server: ApplicationEngine? = null
     private val engine = LlmEngineWrapper(context)
     private val modelLoader = ModelLoader(context)
@@ -67,8 +75,7 @@ class LiteRTBridge(
                 is LoadResult.Success -> {
                     inferenceMode = loadResult.mode
                     currentModelName = loadResult.modelName
-                    
-                    // TODO: Add logging - "Model loaded: ${loadResult.mode} - ${loadResult.message}"
+                    logger.info { "Model loaded: ${loadResult.mode} - ${loadResult.message}" }
                     
                     // Start server
                     startServer()
@@ -86,7 +93,7 @@ class LiteRTBridge(
                 }
             }
         } catch (e: Exception) {
-            // TODO: Add logging
+            logger.error(e) { "Failed to start bridge with model path: $modelPath" }
             Result.failure(e)
         }
     }
@@ -96,11 +103,11 @@ class LiteRTBridge(
      */
     suspend fun startServer() {
         if (isServerRunning) {
-            // TODO: Add logging
+            logger.warn { "Server already running, skipping start" }
             return
         }
         
-        // TODO: Add logging
+        logger.info { "Starting LiteRT Bridge server on port $port" }
         
         server = embeddedServer(Netty, port = port, module = {
             install(StatusPages) {
@@ -111,7 +118,7 @@ class LiteRTBridge(
                     )
                 }
                 exception<Exception> { call, error ->
-                    // TODO: Add logging
+                    logger.error(error) { "Unhandled exception in bridge" }
                     call.respond(
                         HttpStatusCode.InternalServerError,
                         ErrorResponse(
@@ -125,8 +132,7 @@ class LiteRTBridge(
         
         isServerRunning = true
         healthMonitor.recordStart(port)
-        
-        // TODO: Add logging
+        logger.info { "LiteRT Bridge server started on port $port" }
     }
 
     /**
@@ -141,11 +147,11 @@ class LiteRTBridge(
             is LoadResult.Success -> {
                 inferenceMode = loadResult.mode
                 currentModelName = loadResult.modelName
-                // TODO: Add logging - "Model reloaded: ${loadResult.mode}"
+                logger.info { "Model reloaded: ${loadResult.mode}, load time: ${modelLoadTime}ms" }
                 true
             }
             is LoadResult.Failure -> {
-                // TODO: Add logging - "Model load failed: ${loadResult.error}"
+                logger.error { "Model load failed: ${loadResult.error}" }
                 false
             }
         }
@@ -155,15 +161,14 @@ class LiteRTBridge(
      * Stop the server and release model resources
      */
     fun stop() {
-        // TODO: Add logging
+        logger.info { "Stopping LiteRT Bridge server" }
         
         engine.close()
         server?.stop(1000, 2000)
         server = null
         isServerRunning = false
         healthMonitor.recordStop()
-        
-        // TODO: Add logging
+        logger.info { "LiteRT Bridge server stopped" }
     }
     
     /**
@@ -321,7 +326,7 @@ fun Application.moduleInner(
             val request = call.receive<ChatCompletionRequest>()
             healthMonitor.recordRequest()
             
-            // TODO: Add logging
+            logger.debug { "Chat completion request: model=${request.model}, stream=${request.stream}, messages=${request.messages.size}" }
             
             // Validate request
             if (request.messages.isEmpty()) {
@@ -419,9 +424,12 @@ fun Application.moduleInner(
                         )
                     ))
                 }
+            } catch (e: CancellationException) {
+                logger.warn { "Chat completion request cancelled" }
+                call.respond(HttpStatusCode.InternalServerError, ErrorResponse(ErrorDetail("REQUEST_CANCELLED", "Request was cancelled")))
             } catch (e: Exception) {
                 healthMonitor.recordError()
-                // TODO: Add logging
+                logger.error(e) { "Generation failed for chat completion request" }
                 call.respond(
                     HttpStatusCode.InternalServerError,
                     ErrorResponse(ErrorDetail("GENERATION_FAILED", e.message ?: "Generation failed"))

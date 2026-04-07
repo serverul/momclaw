@@ -6,6 +6,7 @@ import com.google.ai.edge.litertlm.LlmEngine
 import com.google.ai.edge.litertlm.LlmGenerationSettings
 import com.google.ai.edge.litertlm.LlmSession
 import com.google.ai.edge.litertlm.LlmStream
+import io.github.microutils.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
@@ -41,6 +42,10 @@ import kotlin.coroutines.resumeWithException
 class LlmEngineWrapper(
     private val context: Context
 ) {
+    private companion object {
+        private val logger = KotlinLogging.logger {}
+    }
+    
     private val sessionRef = AtomicReference<LlmSession?>(null)
     @Volatile private var modelName: String? = null
     @Volatile private var modelPath: String? = null
@@ -54,13 +59,14 @@ class LlmEngineWrapper(
     suspend fun loadModel(path: String): Boolean {
         return lock.write {
             try {
-                // TODO: Add logging
-                
                 val file = java.io.File(path)
                 if (!file.exists()) {
-                    // TODO: Add logging
+                    logger.error { "Model file not found: $path" }
                     return@write false
                 }
+                
+                val fileSizeMB = file.length() / (1024 * 1024)
+                logger.info { "Loading LiteRT model from $path (${fileSizeMB}MB)" }
                 
                 // Close existing session if any
                 sessionRef.get()?.close()
@@ -68,7 +74,6 @@ class LlmEngineWrapper(
                 modelPath = path
                 modelName = file.nameWithoutExtension
                 
-                // Load model into LiteRT session
                 val newSession = LlmSession.create(context).apply {
                     val model = LlmEngine.Model(file)
                     val settings = LlmGenerationSettings.builder()
@@ -81,11 +86,10 @@ class LlmEngineWrapper(
                 }
                 
                 sessionRef.set(newSession)
-                
-                // TODO: Add logging
+                logger.info { "LiteRT model loaded: $modelName" }
                 true
             } catch (e: Exception) {
-                // TODO: Add logging
+                logger.error(e) { "Failed to load LiteRT model from $path" }
                 sessionRef.set(null)
                 modelPath = null
                 modelName = null
@@ -226,11 +230,11 @@ class LlmEngineWrapper(
      */
     fun close() {
         lock.write {
-            // TODO: Add logging
+            logger.info { "Closing LLM engine, model=$modelName" }
             try {
                 sessionRef.getAndSet(null)?.close()
             } catch (e: Exception) {
-                // TODO: Add logging
+                logger.warn(e) { "Error closing LLM session" }
             }
             modelPath = null
             modelName = null

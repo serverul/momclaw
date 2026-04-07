@@ -21,25 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 
-/**
- * UI State for Settings screen
- */
-data class SettingsUiState(
-    val systemPrompt: String = "",
-    val temperature: Float = 0.7f,
-    val maxTokens: Int = 2048,
-    val modelPrimary: String = "",
-    val baseUrl: String = "",
-    val darkTheme: Boolean = true,
-    val streamingEnabled: Boolean = true,
-    val notificationsEnabled: Boolean = true,
-    val backgroundAgentEnabled: Boolean = false,
-    val isLoading: Boolean = false,
-    val hasChanges: Boolean = false
-) {
-    // Computed property for theme access
-    val darkThemeEnabled: Boolean get() = darkTheme
-}
+// Note: SettingsUiState is now defined in SettingsViewModel.kt for proper MVVM architecture
 
 /**
  * Settings screen for app configuration with Material3 compliance
@@ -71,9 +53,36 @@ fun SettingsScreen(
     // Snackbar state for save confirmation
     val snackbarHostState = remember { SnackbarHostState() }
     
+    // Validation states
+    var baseUrlError by remember { mutableStateOf<String?>(null) }
+    var temperatureError by remember { mutableStateOf<String?>(null) }
+    var maxTokensError by remember { mutableStateOf<String?>(null) }
+    
+    // Reset confirmation dialog state
+    var showResetDialog by remember { mutableStateOf(false) }
+    
     // Derived states to minimize recomposition
     val showSaveButton = remember(uiState.hasChanges) {
         uiState.hasChanges
+    }
+    
+    // Validation functions
+    fun validateBaseUrl(url: String): Boolean {
+        if (url.isEmpty()) return true // Allow empty
+        return try {
+            val uri = java.net.URI(url)
+            uri.scheme in listOf("http", "https")
+        } catch (e: Exception) {
+            false
+        }
+    }
+    
+    fun validateTemperature(temp: Float): Boolean {
+        return temp in 0f..2f
+    }
+    
+    fun validateMaxTokens(tokens: Int): Boolean {
+        return tokens in 256..8192
     }
 
     Scaffold(
@@ -95,7 +104,11 @@ fun SettingsScreen(
                 },
                 actions = {
                     if (showSaveButton) {
-                        FilledTonalButton(onClick = onSave) {
+                        val hasValidationErrors = baseUrlError != null || temperatureError != null || maxTokensError != null
+                        FilledTonalButton(
+                            onClick = onSave,
+                            enabled = !hasValidationErrors
+                        ) {
                             Text("Save")
                         }
                     }
@@ -162,6 +175,7 @@ fun SettingsScreen(
                         )
 
                         // Save button in column for tablets
+                        val hasValidationErrors = baseUrlError != null || temperatureError != null || maxTokensError != null
                         AnimatedVisibility(
                             visible = showSaveButton,
                             enter = fadeIn() + slideInVertically(),
@@ -170,7 +184,8 @@ fun SettingsScreen(
                             Spacer(modifier = Modifier.height(16.dp))
                             Button(
                                 onClick = onSave,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = !hasValidationErrors
                             ) {
                                 Icon(
                                     Icons.Default.Save,
@@ -220,6 +235,7 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(32.dp))
 
                     // Save button at bottom for phones
+                    val hasValidationErrors = baseUrlError != null || temperatureError != null || maxTokensError != null
                     AnimatedVisibility(
                         visible = showSaveButton,
                         enter = fadeIn() + slideInVertically(),
@@ -229,7 +245,8 @@ fun SettingsScreen(
                             onClick = onSave,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
+                                .padding(horizontal = 16.dp),
+                            enabled = !hasValidationErrors
                         ) {
                             Icon(
                                 Icons.Default.Save,
@@ -280,27 +297,52 @@ private fun AgentSettingsSection(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Temperature Slider
+        // Temperature Slider with validation
+        val tempError = if (!validateTemperature(uiState.temperature)) {
+            "Temperature must be between 0 and 2"
+        } else null
+        
         SettingsSlider(
             label = "Temperature",
             value = uiState.temperature,
-            onValueChange = onTemperatureChange,
+            onValueChange = { newValue ->
+                temperatureError = if (!validateTemperature(newValue)) {
+                    "Temperature must be between 0 and 2"
+                } else {
+                    null
+                }
+                onTemperatureChange(newValue)
+            },
             valueRange = 0f..2f,
             steps = 19,
-            supportingText = "Controls randomness: 0 = deterministic, 2 = creative"
+            supportingText = tempError ?: "Controls randomness: 0 = deterministic, 2 = creative",
+            isError = tempError != null
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Max Tokens Slider
+        // Max Tokens Slider with validation
+        val tokensError = if (!validateMaxTokens(uiState.maxTokens)) {
+            "Max tokens must be between 256 and 8192"
+        } else null
+        
         SettingsSlider(
             label = "Max Tokens",
             value = uiState.maxTokens.toFloat(),
-            onValueChange = { onMaxTokensChange(it.roundToInt()) },
+            onValueChange = { newValue ->
+                val tokens = newValue.roundToInt()
+                maxTokensError = if (!validateMaxTokens(tokens)) {
+                    "Max tokens must be between 256 and 8192"
+                } else {
+                    null
+                }
+                onMaxTokensChange(tokens)
+            },
             valueRange = 256f..8192f,
             steps = 30,
-            supportingText = "Maximum length of responses",
-            displayValue = { "${it.roundToInt()}" }
+            supportingText = tokensError ?: "Maximum length of responses",
+            displayValue = { "${it.roundToInt()}" },
+            isError = tokensError != null
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -322,10 +364,17 @@ private fun AgentSettingsSection(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Base URL
+        // Base URL with validation
         OutlinedTextField(
             value = uiState.baseUrl,
-            onValueChange = onBaseUrlChange,
+            onValueChange = { newValue ->
+                baseUrlError = if (newValue.isNotEmpty() && !validateBaseUrl(newValue)) {
+                    "Invalid URL format (must start with http:// or https://)"
+                } else {
+                    null
+                }
+                onBaseUrlChange(newValue)
+            },
             label = { Text("Agent URL") },
             modifier = Modifier.fillMaxWidth(),
             leadingIcon = {
@@ -333,9 +382,13 @@ private fun AgentSettingsSection(
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
             singleLine = true,
-            supportingText = { Text("NullClaw endpoint") },
+            isError = baseUrlError != null,
+            supportingText = { 
+                Text(baseUrlError ?: "NullClaw endpoint")
+            },
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                errorBorderColor = MaterialTheme.colorScheme.error
             )
         )
     }
@@ -436,9 +489,9 @@ private fun AboutSection(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Reset to Defaults
+        // Reset to Defaults with confirmation
         OutlinedButton(
-            onClick = onResetToDefaults,
+            onClick = { showResetDialog = true },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.error
@@ -451,6 +504,33 @@ private fun AboutSection(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text("Reset to Defaults")
+        }
+        
+        // Reset confirmation dialog
+        if (showResetDialog) {
+            AlertDialog(
+                onDismissRequest = { showResetDialog = false },
+                title = { Text("Reset to Defaults") },
+                text = { Text("This will reset all settings to their default values. This action cannot be undone.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onResetToDefaults()
+                            showResetDialog = false
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("Reset")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showResetDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }
@@ -501,7 +581,8 @@ fun SettingsSlider(
     steps: Int,
     supportingText: String,
     modifier: Modifier = Modifier,
-    displayValue: (Float) -> String = { String.format("%.1f", it) }
+    displayValue: (Float) -> String = { String.format("%.1f", it) },
+    isError: Boolean = false
 ) {
     Column(modifier = modifier) {
         Row(
@@ -511,12 +592,12 @@ fun SettingsSlider(
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = displayValue(value),
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primary
+                color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
             )
         }
         Slider(
@@ -526,14 +607,14 @@ fun SettingsSlider(
             steps = steps,
             modifier = Modifier.fillMaxWidth(),
             colors = SliderDefaults.colors(
-                thumbColor = MaterialTheme.colorScheme.primary,
-                activeTrackColor = MaterialTheme.colorScheme.primary
+                thumbColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                activeTrackColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
             )
         )
         Text(
             text = supportingText,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

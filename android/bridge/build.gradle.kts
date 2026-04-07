@@ -89,6 +89,14 @@ dependencies {
     implementation("com.github.tony19:logback-android:3.0.0")
     
     // Kotlin Logging
+    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
+    
+    // Rate Limiting
+    implementation("io.ktor:ktor-server-rate-limit:$ktorVersion")
+    
+    // Resilience4j
+    implementation("io.github.resilience4j:resilience4j-circuitbreaker:2.2.0")
+    implementation("io.github.resilience4j:resilience4j-retry:2.2.0")
 
     // Testing - Unit Tests
     testImplementation("junit:junit:4.13.2")
