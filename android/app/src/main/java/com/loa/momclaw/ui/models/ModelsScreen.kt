@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import com.loa.momclaw.ui.common.AnimationUtils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -24,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,6 +48,33 @@ fun ModelsScreen(
     onRetry: () -> Unit,
     useNavigationRail: Boolean = false
 ) {
+    // Delete confirmation state
+    var modelToDelete by remember { mutableStateOf<String?>(null) }
+    
+    // Delete confirmation dialog
+    modelToDelete?.let { modelId ->
+        val modelName = uiState.models.find { it.id == modelId }?.name ?: modelId
+        AlertDialog(
+            onDismissRequest = { modelToDelete = null },
+            title = { Text("Delete Model") },
+            text = { Text("Are you sure you want to delete \"$modelName\"? This will remove the downloaded model files.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteModel(modelId)
+                        modelToDelete = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { modelToDelete = null }) { Text("Cancel") }
+            }
+        )
+    }
+    
     // Use grid layout for larger screens
     val useGridLayout = useNavigationRail
     val gridColumns = if (useGridLayout) 2 else 1
@@ -187,7 +216,7 @@ fun ModelsScreen(
                                 model = model,
                                 onDownload = { onDownloadModel(model.id) },
                                 onLoad = { onLoadModel(model.id) },
-                                onDelete = { onDeleteModel(model.id) },
+                                onDelete = { modelToDelete = model.id },
                                 isDownloading = uiState.downloadingModelId == model.id && uiState.isDownloading,
                                 isLoading = uiState.loadingModelId == model.id,
                                 compactMode = true
@@ -208,7 +237,7 @@ fun ModelsScreen(
                                 model = model,
                                 onDownload = { onDownloadModel(model.id) },
                                 onLoad = { onLoadModel(model.id) },
-                                onDelete = { onDeleteModel(model.id) },
+                                onDelete = { modelToDelete = model.id },
                                 isDownloading = uiState.downloadingModelId == model.id && uiState.isDownloading,
                                 isLoading = uiState.loadingModelId == model.id,
                                 compactMode = false
@@ -328,6 +357,7 @@ fun ModelCard(
     compactMode: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    // Rotation animation for loading indicator - only visible when isLoading/isDownloading
     val infiniteTransition = rememberInfiniteTransition(label = "rotation")
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,

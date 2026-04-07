@@ -7,6 +7,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import com.loa.momclaw.ui.common.AnimationUtils
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -372,30 +373,22 @@ fun AssistantMessageBubble(
 }
 
 /**
- * Pulsing dot for loading indicator with proper pulsing animation
+ * Pulsing dot for loading indicator with optimized animation
  */
 @Composable
 fun PulsingDot(delayMs: Long) {
-    val infiniteTransition = rememberInfiniteTransition(label = "pulsing")
-    
-    val scale by infiniteTransition.animateFloat(
+    val scale by AnimationUtils.rememberPulsingState(
         initialValue = 0.3f,
         targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(600, delayMillis = delayMs.toInt(), easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "scale"
+        durationMs = 600,
+        delayMs = delayMs.toInt()
     )
     
-    val alpha by infiniteTransition.animateFloat(
+    val alpha by AnimationUtils.rememberPulsingState(
         initialValue = 0.3f,
         targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(600, delayMillis = delayMs.toInt(), easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "alpha"
+        durationMs = 600,
+        delayMs = delayMs.toInt()
     )
 
     Box(
@@ -414,20 +407,14 @@ fun PulsingDot(delayMs: Long) {
 }
 
 /**
- * Blinking cursor for streaming indicator
+ * Blinking cursor for streaming indicator with optimized animation
  */
 @Composable
 fun BlinkingCursor() {
-    val infiniteTransition = rememberInfiniteTransition(label = "blinking")
-    
-    val alpha by infiniteTransition.animateFloat(
+    val alpha by AnimationUtils.rememberBlinkingState(
         initialValue = 1f,
         targetValue = 0.2f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(530, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "alpha"
+        durationMs = 530
     )
 
     Box(
