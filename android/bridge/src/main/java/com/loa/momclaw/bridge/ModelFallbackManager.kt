@@ -10,7 +10,7 @@ import java.io.File
  * Model Fallback Manager
  * 
  * Provides graceful degradation when LiteRT models are not available:
- * - Primary: LiteRT on-device model (Gemma 4E4B IT)
+ * - Primary: LiteRT on-device model (Gemma 3 E4B IT)
  * - Fallback 1: Simulated responses (echo mode)
  * - Fallback 2: Error responses with helpful guidance
  * 
@@ -37,7 +37,7 @@ class ModelFallbackManager(
             )
         }
         
-        // Check file size (Gemma 4E4B is ~3.5GB)
+        // Check file size (Gemma 3 E4B is ~3.5GB)
         val sizeGB = file.length() / (1024.0 * 1024.0 * 1024.0)
         if (sizeGB < 0.5) {
             return@withContext ModelStatus.Corrupted(

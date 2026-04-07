@@ -84,28 +84,13 @@ interface SettingsRepository {
  * Repository interface for model operations.
  */
 interface ModelRepository {
-    /**
-     * Gets available models.
-     */
     suspend fun getAvailableModels(): Result<List<com.loa.momclaw.domain.model.Model>>
-
-    /**
-     * Downloads a model.
-     */
     suspend fun downloadModel(modelId: String): Result<Unit>
-
-    /**
-     * Loads a model into memory.
-     */
     suspend fun loadModel(modelId: String): Result<Unit>
-
-    /**
-     * Deletes a downloaded model.
-     */
     suspend fun deleteModel(modelId: String): Result<Unit>
-
-    /**
-     * Gets the currently loaded model.
-     */
     suspend fun getCurrentModel(): String?
+    fun getDownloadProgress(modelId: String): kotlinx.coroutines.flow.Flow<com.loa.momclaw.data.download.ModelDownloadManager.DownloadProgress>
+    fun getAllDownloadProgress(): kotlinx.coroutines.flow.StateFlow<Map<String, com.loa.momclaw.data.download.ModelDownloadManager.DownloadProgress>>
+    suspend fun getStorageInfo(): com.loa.momclaw.data.repository.StorageInfo
+    suspend fun cancelDownload(modelId: String)
 }

@@ -1,6 +1,7 @@
 package com.loa.momclaw.agent.monitoring
 
 import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentHashMap
@@ -22,6 +23,11 @@ class AgentMonitor(private val context: Context) {
     private val requestCount = AtomicLong(0)
     private val errorCount = AtomicLong(0)
     private val lastError = ConcurrentHashMap<String, String>()
+    private val latencySamples = mutableListOf<Long>()
+    
+    companion object {
+        private const val TAG = "AgentMonitor"
+    }
 
     /**
      * Agent health status
@@ -62,23 +68,16 @@ class AgentMonitor(private val context: Context) {
      */
     fun recordStart() {
         startTime.set(System.currentTimeMillis())
-        // TODO: Add logging
+        Log.i(TAG, "Agent started at ${startTime.get()}")
     }
 
     /**
      * Record agent stop
      */
     fun recordStop() {
+        val uptime = if (startTime.get() > 0) System.currentTimeMillis() - startTime.get() else 0
         startTime.set(0)
-        // TODO: Add logging
-    }
-
-    /**
-     * Record agent stop
-     */
-    fun recordStop() {
-        startTime.set(0)
-        // TODO: Add logging
+        Log.i(TAG, "Agent stopped (uptime: ${uptime}ms)")
     }
     
     /**
@@ -96,8 +95,7 @@ class AgentMonitor(private val context: Context) {
         lastError["type"] = type
         lastError["message"] = message
         lastError["time"] = System.currentTimeMillis().toString()
-
-        // TODO: Add logging
+        Log.e(TAG, "Agent error [$type]: $message")
     }
 
     /**
@@ -135,7 +133,7 @@ class AgentMonitor(private val context: Context) {
             requestsTotal = requests,
             errorsTotal = errors,
             errorRate = if (requests > 0) errors.toDouble() / requests else 0.0,
-            avgLatencyMs = 0.0 // TODO: Track actual latencies
+            avgLatencyMs = calculateAverageLatency()
         )
 
         val status = when {
@@ -175,9 +173,12 @@ class AgentMonitor(private val context: Context) {
 
             if (code == 200) {
                 System.currentTimeMillis() - start
-            } else null
+            } else {
+                Log.w(TAG, "Bridge health check returned: $code")
+                null
+            }
         } catch (e: Exception) {
-            // TODO: Add logging
+            Log.w(TAG, "Bridge latency measurement failed: ${e.message}")
             null
         }
     }
@@ -213,6 +214,28 @@ class AgentMonitor(private val context: Context) {
         requestCount.set(0)
         errorCount.set(0)
         lastError.clear()
+        synchronized(latencySamples) { latencySamples.clear() }
+        Log.d(TAG, "Metrics reset")
+    }
+    
+    /**
+     * Record latency sample
+     */
+    fun recordLatency(latencyMs: Long) {
+        synchronized(latencySamples) {
+            latencySamples.add(latencyMs)
+            // Keep last 100 samples
+            if (latencySamples.size > 100) {
+                latencySamples.removeAt(0)
+            }
+        }
+    }
+    
+    private fun calculateAverageLatency(): Double {
+        synchronized(latencySamples) {
+            return if (latencySamples.isEmpty()) 0.0
+            else latencySamples.average()
+        }
     }
 
     data class Diagnostics(
@@ -240,14 +263,14 @@ interface ProcessLifecycleListener {
 class DefaultLifecycleListener : ProcessLifecycleListener {
 
     override fun onProcessStarted(pid: Long) {
-        // TODO: Add logging
+        Log.i("ProcessLifecycle", "Process started with PID: $pid")
     }
     
     override fun onProcessStopped(exitCode: Int) {
-        // TODO: Add logging
+        Log.i("ProcessLifecycle", "Process stopped with exit code: $exitCode")
     }
     
     override fun onProcessError(error: Throwable) {
-        // TODO: Add logging
+        Log.e("ProcessLifecycle", "Process error", error)
     }
 }

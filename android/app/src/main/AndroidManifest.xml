@@ -46,6 +46,13 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
+        <!-- Model Download Service -->
+        <service
+            android:name=".service.ModelDownloadService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
         <!-- File Provider for sharing files -->
         <provider
             android:name="androidx.core.content.FileProvider"

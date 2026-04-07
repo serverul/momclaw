@@ -64,7 +64,6 @@ interface HuggingFaceApi {
 @Serializable
 data class HuggingFaceRepo(
     @SerialName("_id") val id: String,
-    val id: String? = null,
     val author: String,
     @SerialName("sha") val sha: String,
     val siblings: List<HuggingFaceSibling>? = null,
@@ -116,12 +115,12 @@ data class ModelMetadata(
         val AVAILABLE_MODELS = listOf(
             ModelMetadata(
                 namespace = "litert-community",
-                repoId = "gemma-3-E4B-it-litertlm",
-                filename = "gemma-3-E4B-it.litertlm",
+                repoId = "gemma-4-E4B-it-litertlm",
+                filename = "gemma-4-E4B-it.litertlm",
                 sizeBytes = 3_900_000_000L, // ~3.9 GB
                 sha256 = null,
-                downloadUrl = "https://huggingface.co/litert-community/gemma-3-E4B-it-litertlm/resolve/main/gemma-3-E4B-it.litertlm",
-                huggingFaceUrl = "https://huggingface.co/litert-community/gemma-3-E4B-it-litertlm"
+                downloadUrl = "https://huggingface.co/litert-community/gemma-4-E4B-it-litertlm/resolve/main/gemma-4-E4B-it.litertlm",
+                huggingFaceUrl = "https://huggingface.co/litert-community/gemma-4-E4B-it-litertlm"
             )
         )
         

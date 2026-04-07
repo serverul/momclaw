@@ -148,50 +148,7 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 }
 
-/**
- * Implementation of ModelRepository (placeholder).
- */
-@Singleton
-class ModelRepositoryImpl @Inject constructor(
-    // Will inject LiteRTBridge when available
-) : ModelRepository {
-
-    private var currentModel: String? = null
-    private val availableModels = listOf(
-        Model(
-            id = "gemma-4e4b",
-            name = "Gemma 4E4B",
-            description = "Gemma 4B Efficient model optimized for mobile",
-            size = "3.65 GB",
-            downloadUrl = "https://huggingface.co/litert-community/gemma-4-E4B-it-litert-lm"
-        )
-    )
-
-    override suspend fun getAvailableModels(): Result<List<Model>> {
-        return Result.success(availableModels)
-    }
-
-    override suspend fun downloadModel(modelId: String): Result<Unit> {
-        // TODO: Implement model download from HuggingFace
-        return Result.failure(NotImplementedError("Model download not implemented yet"))
-    }
-
-    override suspend fun loadModel(modelId: String): Result<Unit> {
-        currentModel = modelId
-        return Result.success(Unit)
-    }
-
-    override suspend fun deleteModel(modelId: String): Result<Unit> {
-        if (currentModel == modelId) {
-            currentModel = null
-        }
-        return Result.success(Unit)
-    }
-
-    override suspend fun getCurrentModel(): String? {
-        return currentModel
-    }
-}
+// The ModelRepositoryImpl is now in ModelRepositoryImpl.kt with full download support
 
 // Extension functions for mapping between domain and entity models
 

@@ -111,7 +111,7 @@ class LiteRTBridgeTest {
             messages = listOf(ChatMessage("user", "Hello"))
         )
         
-        assertEquals("gemma-4e4b", request.model)
+        assertEquals("gemma-3-e4b", request.model)
         assertEquals(0.7, request.temperature, 0.01)
         assertEquals(0.9, request.topP, 0.01)
         assertFalse(request.stream)

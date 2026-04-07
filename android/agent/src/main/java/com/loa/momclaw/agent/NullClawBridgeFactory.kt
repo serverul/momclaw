@@ -1,6 +1,7 @@
 package com.loa.momclaw.agent
 
 import android.content.Context
+import android.util.Log
 import com.loa.momclaw.agent.config.ConfigurationManager
 import com.loa.momclaw.agent.model.AgentConfig
 import com.loa.momclaw.agent.monitoring.AgentMonitor
@@ -13,7 +14,7 @@ import kotlin.concurrent.withLock
 
 /**
  * Singleton factory for managing NullClaw Bridge instances.
- * 
+ *
  * Features:
  * - Thread-safe singleton pattern
  * - Proper resource cleanup on reset
@@ -23,6 +24,8 @@ import kotlin.concurrent.withLock
  * - Health monitoring integration
  */
 object NullClawBridgeFactory {
+    
+    private const val TAG = "NullClawBridgeFactory"
     
     @Volatile
     private var instance: NullClawBridge? = null
@@ -50,7 +53,7 @@ object NullClawBridgeFactory {
                 isInitialized = true
                 configManager = ConfigurationManager(context.applicationContext)
                 monitor = AgentMonitor(context.applicationContext)
-                // TODO: Add logging
+                Log.i(TAG, "NullClaw Bridge instance created")
             }
         }
     }
@@ -67,14 +70,14 @@ object NullClawBridgeFactory {
     suspend fun reset() {
         mutex.withLock {
             instance?.let { bridge ->
-                // TODO: Add logging
-                bridge.cleanup()  // Use full cleanup instead of just stop()
+                Log.i(TAG, "Resetting NullClaw Bridge instance")
+                bridge.cleanup()
             }
             instance = null
             isInitialized = false
             configManager = null
             monitor = null
-            // TODO: Add logging
+            Log.i(TAG, "NullClaw Bridge factory reset complete")
         }
     }
     
@@ -120,7 +123,7 @@ object NullClawBridgeFactory {
         return try {
             bridge.getHealthStatus()
         } catch (e: Exception) {
-            // TODO: Add logging
+            Log.w(TAG, "Failed to get health status: ${e.message}")
             null
         }
     }
@@ -155,9 +158,10 @@ object NullClawBridgeFactory {
                 temperature = temperature,
                 maxTokens = maxTokens
             )
+            Log.i(TAG, "Configuration updated successfully")
             Result.success(config)
         } catch (e: Exception) {
-            // TODO: Add logging
+            Log.e(TAG, "Failed to update configuration", e)
             Result.failure(e)
         }
     }

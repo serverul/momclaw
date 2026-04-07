@@ -2,6 +2,7 @@ package com.loa.momclaw.bridge
 
 import android.app.ActivityManager
 import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -9,7 +10,7 @@ import java.io.File
 
 /**
  * Health Check System for LiteRT Bridge
- * 
+ *
  * Monitors:
  * - Server status
  * - Model status
@@ -24,6 +25,10 @@ class HealthMonitor(private val context: Context) {
     private var errorCount = 0L
     private var lastRequestTime: Long = 0
     private var startTime: Long = 0
+    
+    companion object {
+        private const val TAG = "HealthMonitor"
+    }
     
     /**
      * Complete health check result
@@ -79,15 +84,16 @@ class HealthMonitor(private val context: Context) {
      */
     fun recordStart(port: Int) {
         startTime = System.currentTimeMillis()
-        // TODO: Add logging
+        Log.i(TAG, "Server started on port: $port")
     }
     
     /**
      * Record server stop
      */
     fun recordStop() {
+        val uptime = if (startTime > 0) System.currentTimeMillis() - startTime else 0
         startTime = 0
-        // TODO: Add logging
+        Log.i(TAG, "Server stopped (uptime: ${uptime}ms)")
     }
     
     /**

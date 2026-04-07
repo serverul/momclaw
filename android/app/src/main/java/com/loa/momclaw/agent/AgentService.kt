@@ -177,7 +177,7 @@ class AgentService : LifecycleService() {
                     systemPrompt = systemPrompt ?: "You are MOMCLAW, a helpful AI assistant running offline on this device.",
                     temperature = temperature ?: 0.7f,
                     maxTokens = maxTokens ?: 2048,
-                    modelPrimary = "litert-bridge/gemma-4e4b",
+                    modelPrimary = "litert-bridge/gemma-3-e4b",
                     baseUrl = "http://localhost:8080",
                     memoryBackend = "sqlite",
                     memoryPath = "/data/data/com.loa.momclaw/databases/agent.db"

@@ -40,7 +40,7 @@ class LiteRTBridge @Inject constructor(
     companion object {
         private const val TAG = "LiteRTBridge"
         private const val DEFAULT_PORT = 8080
-        private const val DEFAULT_MODEL_NAME = "gemma-4e4b"
+        private const val DEFAULT_MODEL_NAME = "gemma-3-e4b"
     }
 
     /**

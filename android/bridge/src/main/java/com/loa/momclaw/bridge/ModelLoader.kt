@@ -1,6 +1,7 @@
 package com.loa.momclaw.bridge
 
 import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -24,6 +25,10 @@ import java.util.zip.ZipInputStream
  */
 class ModelLoader(private val context: Context) {
     
+    companion object {
+        private const val TAG = "ModelLoader"
+    }
+    
     data class ModelInfo(
         val name: String,
         val path: String,
@@ -45,13 +50,13 @@ class ModelLoader(private val context: Context) {
      */
     suspend fun verifyModel(modelPath: String): LoadResult = withContext(Dispatchers.IO) {
         try {
-            // TODO: Add logging
+            Log.d(TAG, "Verifying model at: $modelPath")
             
             val modelFile = File(modelPath)
             
             // Check if path exists
             if (!modelFile.exists()) {
-                // TODO: Add logging
+                Log.w(TAG, "Model file not found: $modelPath")
                 return@withContext LoadResult.Error(
                     "Model file not found: $modelPath",
                     ModelNotFoundException(modelPath)
@@ -73,10 +78,10 @@ class ModelLoader(private val context: Context) {
                 modelFile
             }
             
-            // Validate model size (should be at least 100MB for Gemma 4E4B)
+            // Validate model size (should be at least 100MB for Gemma 3 E4B)
             val sizeBytes = actualModelFile.length()
             if (sizeBytes < MIN_MODEL_SIZE_BYTES) {
-                // TODO: Add logging
+                Log.w(TAG, "Model file too small: ${sizeBytes / (1024 * 1024)}MB (expected >${MIN_MODEL_SIZE_BYTES / (1024 * 1024)}MB)")
                 return@withContext LoadResult.Error(
                     "Model file too small (expected >${MIN_MODEL_SIZE_BYTES / (1024 * 1024)}MB, got ${sizeBytes / (1024 * 1024)}MB)",
                     ModelTooSmallException(sizeBytes)
@@ -85,7 +90,7 @@ class ModelLoader(private val context: Context) {
             
             // Calculate checksum (optional, for verification)
             val checksum = calculateChecksum(actualModelFile)
-            // TODO: Add logging
+            Log.d(TAG, "Model verified: ${actualModelFile.name}, size=${sizeBytes / (1024 * 1024)}MB, checksum=${checksum?.take(16)}...")
             
             LoadResult.Success(
                 ModelInfo(
@@ -97,7 +102,7 @@ class ModelLoader(private val context: Context) {
                 )
             )
         } catch (e: Exception) {
-            // TODO: Add logging
+            Log.e(TAG, "Model verification failed", e)
             LoadResult.Error("Model verification failed: ${e.message}", e)
         }
     }
@@ -121,7 +126,8 @@ class ModelLoader(private val context: Context) {
         
         val actualTargetPath = targetPath ?: getDefaultModelPath()
         
-        // TODO: Add logging for download attempt
+        Log.i(TAG, "HuggingFace download requested for: $modelId -> $actualTargetPath")
+        Log.i(TAG, "Use: huggingface-cli download $modelId or manual download")
         // HuggingFace download not implemented - see documentation
         
         LoadResult.Error(
@@ -131,7 +137,7 @@ class ModelLoader(private val context: Context) {
     }
     
     /**
-     * Get default model path for Gemma 4E4B
+     * Get default model path for Gemma 3 E4B
      */
     fun getDefaultModelPath(): String {
         return File(context.filesDir, "models/gemma-3-E4B-it.litertlm").absolutePath
@@ -144,7 +150,7 @@ class ModelLoader(private val context: Context) {
         val modelDir = File(context.filesDir, "models")
         if (!modelDir.exists()) {
             modelDir.mkdirs()
-            // TODO: Add logging
+            Log.d(TAG, "Created models directory: ${modelDir.absolutePath}")
         }
         return modelDir
     }
@@ -197,7 +203,7 @@ class ModelLoader(private val context: Context) {
                         zis.copyTo(fos)
                     }
                     extractedFile = outFile
-                    // TODO: Add logging
+                    Log.i(TAG, "Extracted model: ${outFile.name}")
                     break
                 }
                 entry = zis.nextEntry
@@ -231,6 +237,8 @@ class ModelLoader(private val context: Context) {
         const val MIN_MODEL_SIZE_BYTES = 100L * 1024 * 1024 // 100MB minimum
     }
 }
+
+// Custom exceptions
 
 // Custom exceptions
 class ModelNotFoundException(path: String) : Exception("Model not found: $path")

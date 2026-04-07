@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ChatCompletionRequest(
-    val model: String = "gemma-4e4b",
+    val model: String = "gemma-3-e4b",
     val messages: List<ChatMessage>,
     val temperature: Double = 0.7,
     @SerialName("top_p")

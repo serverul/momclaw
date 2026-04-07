@@ -25,9 +25,9 @@ import com.loa.momclaw.startup.StartupManager
 import com.loa.momclaw.ui.chat.ChatEvent
 import com.loa.momclaw.ui.chat.ChatScreen
 import com.loa.momclaw.ui.chat.ChatViewModel
-import com.loa.momclaw.ui.models.ModelsEvent
-import com.loa.momclaw.ui.models.ModelsScreen
-import com.loa.momclaw.ui.models.ModelsViewModel
+import com.loa.momclaw.ui.models.EnhancedModelsEvent
+import com.loa.momclaw.ui.models.EnhancedModelsScreen
+import com.loa.momclaw.ui.models.EnhancedModelsViewModel
 import com.loa.momclaw.ui.settings.SettingsEvent
 import com.loa.momclaw.ui.settings.SettingsScreen
 import com.loa.momclaw.ui.settings.SettingsViewModel
@@ -117,8 +117,8 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(BottomNavItem.Models.route) {
-                            val viewModel: ModelsViewModel = hiltViewModel()
-                            ModelsScreen(
+                            val viewModel: EnhancedModelsViewModel = hiltViewModel()
+                            EnhancedModelsScreen(
                                 state = viewModel.state.collectAsState().value,
                                 onEvent = viewModel::onEvent,
                                 onNavigateBack = { navController.popBackStack() }

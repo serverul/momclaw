@@ -19,7 +19,7 @@ fun SettingsRoute(
         systemPrompt = "You are a helpful AI assistant running on-device.",
         temperature = 0.7f,
         maxTokens = 2048,
-        modelPrimary = "litert-bridge/gemma-4e4b",
+        modelPrimary = "litert-bridge/gemma-3-e4b",
         baseUrl = "http://localhost:8080",
         darkTheme = true,
         streamingEnabled = true,

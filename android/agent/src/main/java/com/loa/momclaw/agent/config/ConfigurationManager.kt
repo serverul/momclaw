@@ -1,6 +1,7 @@
 package com.loa.momclaw.agent.config
 
 import android.content.Context
+import android.util.Log
 import com.loa.momclaw.agent.model.AgentConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -11,7 +12,7 @@ import java.io.File
 
 /**
  * Configuration Manager for NullClaw Agent
- * 
+ *
  * Handles:
  * - Loading/saving configuration from files
  * - Default configuration generation
@@ -19,6 +20,10 @@ import java.io.File
  * - Environment-specific settings
  */
 class ConfigurationManager(private val context: Context) {
+    
+    companion object {
+        private const val TAG = "ConfigManager"
+    }
     
     private val json = Json {
         ignoreUnknownKeys = true
@@ -39,17 +44,17 @@ class ConfigurationManager(private val context: Context) {
         try {
             val file = configFile
             if (file.exists()) {
-                // TODO: Add logging
+                Log.d(TAG, "Loading config from: ${file.absolutePath}")
                 val content = file.readText()
                 json.decodeFromString<AgentConfig>(content)
             } else {
-                // TODO: Add logging
+                Log.i(TAG, "Config file not found, creating default config")
                 val default = AgentConfig.DEFAULT
                 saveConfig(default)
                 default
             }
         } catch (e: Exception) {
-            // TODO: Add logging
+            Log.e(TAG, "Failed to load config, using defaults", e)
             AgentConfig.DEFAULT
         }
     }
@@ -61,9 +66,9 @@ class ConfigurationManager(private val context: Context) {
         try {
             configFile.parentFile?.mkdirs()
             configFile.writeText(json.encodeToString(config))
-            // TODO: Add logging
+            Log.d(TAG, "Config saved to: ${configFile.absolutePath}")
         } catch (e: Exception) {
-            // TODO: Add logging
+            Log.e(TAG, "Failed to save config", e)
             throw ConfigException("Failed to save configuration", e)
         }
     }
@@ -177,7 +182,7 @@ class ConfigurationManager(private val context: Context) {
                 modelName.contains("llama", ignoreCase = true) -> ModelType.LLAMA
                 else -> ModelType.UNKNOWN
             },
-            contextLength = 8192, // Default for Gemma 4E4B
+            contextLength = 8192, // Default for Gemma 3 E4B
             quantization = if (modelPath.contains("int8")) Quantization.INT8 else Quantization.FP16
         )
     }
