@@ -14,11 +14,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.loa.momclaw.domain.model.AgentConfig
+import com.loa.momclaw.startup.StartupManager
 import com.loa.momclaw.ui.chat.ChatEvent
 import com.loa.momclaw.ui.chat.ChatScreen
 import com.loa.momclaw.ui.chat.ChatViewModel
@@ -30,6 +33,7 @@ import com.loa.momclaw.ui.settings.SettingsScreen
 import com.loa.momclaw.ui.settings.SettingsViewModel
 import com.loa.momclaw.ui.theme.MomClawTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * Navigation item definition.
@@ -60,12 +64,30 @@ sealed class BottomNavItem(
 
 /**
  * Main Activity for the MomClaw application.
+ * 
+ * Manages:
+ * - Automatic service startup via StartupManager
+ * - Navigation between Chat, Models, and Settings screens
+ * - Lifecycle-aware service management
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    @Inject
+    lateinit var startupManager: StartupManager
+    
+    @Inject
+    lateinit var agentConfig: AgentConfig
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Add lifecycle observer for automatic service management
+        lifecycle.addObserver(startupManager)
+        
+        // Start services when activity is created
+        startupManager.startServices(agentConfig)
+        
         enableEdgeToEdge()
         
         setContent {
