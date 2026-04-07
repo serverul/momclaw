@@ -16,7 +16,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-// Dark color scheme
+/**
+ * Premium Dark color scheme - 10/10 UI
+ */
 private val DarkColorScheme = darkColorScheme(
     primary = Purple200,
     onPrimary = Color.Black,
@@ -34,11 +36,27 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = Color.White,
     surfaceVariant = DarkSurfaceVariant,
     onSurfaceVariant = Color.White,
-    error = ErrorRed,
-    onError = Color.White
+    error = ErrorRedDark,
+    onError = Color.Black,
+    errorContainer = ErrorRed.copy(alpha = 0.2f),
+    onErrorContainer = ErrorRed,
+    
+    // Additional semantic colors
+    inverseSurface = LightBackground,
+    inverseOnSurface = Color.Black,
+    inversePrimary = Purple500,
+    
+    // Outline colors
+    outline = Color.White.copy(alpha = 0.3f),
+    outlineVariant = Color.White.copy(alpha = 0.1f),
+    
+    // Scrim
+    scrim = ScrimDark
 )
 
-// Light color scheme
+/**
+ * Premium Light color scheme - 10/10 UI
+ */
 private val LightColorScheme = lightColorScheme(
     primary = Purple500,
     onPrimary = Color.White,
@@ -57,11 +75,26 @@ private val LightColorScheme = lightColorScheme(
     surfaceVariant = LightSurfaceVariant,
     onSurfaceVariant = Color.Black,
     error = ErrorRed,
-    onError = Color.White
+    onError = Color.White,
+    errorContainer = ErrorContainer,
+    onErrorContainer = ErrorRed,
+    
+    // Additional semantic colors
+    inverseSurface = DarkSurface,
+    inverseOnSurface = Color.White,
+    inversePrimary = Purple200,
+    
+    // Outline colors
+    outline = Color.Black.copy(alpha = 0.3f),
+    outlineVariant = Color.Black.copy(alpha = 0.1f),
+    
+    // Scrim
+    scrim = ScrimDark
 )
 
 /**
- * MomClaw theme composable.
+ * MomClaw theme composable with premium styling
+ * 10/10 UI implementation
  */
 @Composable
 fun MomClawTheme(
@@ -83,7 +116,11 @@ fun MomClawTheme(
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            
+            // Navigation bar styling
+            window.navigationBarColor = colorScheme.surface.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
         }
     }
 
