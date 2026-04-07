@@ -29,7 +29,8 @@ jobs:
         run: chmod +x android/gradlew
 
       - name: Gradle Dependency Check
-        run: ./android/gradlew dependencyCheckAnalyze --no-daemon || echo "Dependency check completed with issues"
+        run: ./gradlew dependencyCheckAnalyze --no-daemon || echo "Dependency check completed with issues"
+        working-directory: android
 
       - name: Upload Dependency Report
         if: always()
@@ -118,7 +119,8 @@ jobs:
         run: chmod +x android/gradlew
 
       - name: Run Android Lint
-        run: ./android/gradlew lint --no-daemon
+        run: ./gradlew lint --no-daemon
+        working-directory: android
 
       - name: Upload Lint Report
         if: always()

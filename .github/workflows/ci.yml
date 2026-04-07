@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation@v2
+        uses: gradle/actions/wrapper-validation@v3
 
       - name: Check Gradle files
         run: |
@@ -59,10 +59,12 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Run Lint
-        run: ./android/gradlew lintDebug --no-daemon
+        run: ./gradlew lintDebug --no-daemon
+        working-directory: android
 
       - name: Run Detekt
-        run: ./android/gradlew detekt --no-daemon
+        run: ./gradlew detekt --no-daemon
+        working-directory: android
 
       - name: Upload Lint Results
         if: failure()
@@ -109,7 +111,8 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Run Unit Tests
-        run: ./android/gradlew testDebugUnitTest --no-daemon
+        run: ./gradlew testDebugUnitTest --no-daemon
+        working-directory: android
 
       - name: Upload Test Results
         if: always()
@@ -165,7 +168,8 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Build Debug APK
-        run: ./android/gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --no-daemon
+        working-directory: android
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
