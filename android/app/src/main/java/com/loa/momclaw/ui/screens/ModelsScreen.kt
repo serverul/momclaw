@@ -24,6 +24,10 @@ import com.loa.momclaw.model.LiteRModel
 import com.loa.momclaw.model.ModelDownloader
 import com.loa.momclaw.model.ModelManager
 import com.loa.momclaw.model.StorageInfo
+import com.loa.momclaw.ui.common.HapticUtils
+import com.loa.momclaw.ui.util.ResponsiveUtils
+import com.loa.momclaw.ui.util.rememberContentPadding
+import com.loa.momclaw.ui.util.rememberHorizontalPadding
 import kotlinx.coroutines.flow.collectLatest
 
 /**
@@ -44,6 +48,10 @@ fun ModelsScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val hapticManager = HapticUtils.rememberHapticManager()
+    val contentPadding = rememberContentPadding()
+    val horizontalPadding = rememberHorizontalPadding()
+    val screenSize = ResponsiveUtils.rememberScreenSize()
     
     LaunchedEffect(Unit) {
         viewModel.initialize(ModelManager.getInstance(context))
@@ -59,7 +67,12 @@ fun ModelsScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(
+                        onClick = {
+                            hapticManager.lightTap()
+                            onNavigateBack()
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -67,7 +80,12 @@ fun ModelsScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.refresh() }) {
+                    IconButton(
+                        onClick = {
+                            hapticManager.lightTap()
+                            viewModel.refresh()
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Refresh"
@@ -90,7 +108,7 @@ fun ModelsScreen(
             state.storageInfo?.let { storageInfo ->
                 StorageInfoBanner(
                     storageInfo = storageInfo,
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 8.dp)
                 )
             }
             
@@ -104,7 +122,7 @@ fun ModelsScreen(
                     ErrorBanner(
                         error = error,
                         onDismiss = { viewModel.clearError() },
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier.padding(horizontal = horizontalPadding)
                     )
                 }
             }
@@ -114,14 +132,14 @@ fun ModelsScreen(
                 LinearProgressIndicator(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(horizontal = horizontalPadding, vertical = 8.dp)
                 )
             }
             
-            // Models list
+            // Models list with responsive padding
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = contentPadding,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(
@@ -419,6 +437,8 @@ fun ModelActionButtons(
     onCancelDownload: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val hapticManager = HapticUtils.rememberHapticManager()
+    
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -427,7 +447,10 @@ fun ModelActionButtons(
             downloadProgress?.isDownloading == true -> {
                 // Cancel download button
                 OutlinedButton(
-                    onClick = onCancelDownload,
+                    onClick = {
+                        hapticManager.mediumTap()
+                        onCancelDownload()
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
@@ -459,7 +482,10 @@ fun ModelActionButtons(
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 OutlinedButton(
-                    onClick = onDelete,
+                    onClick = {
+                        hapticManager.heavyTap()
+                        onDelete()
+                    },
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     )
@@ -476,7 +502,12 @@ fun ModelActionButtons(
             
             model.isDownloaded -> {
                 // Model is downloaded, can be activated
-                Button(onClick = onActivate) {
+                Button(
+                    onClick = {
+                        hapticManager.success()
+                        onActivate()
+                    }
+                ) {
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = null,
@@ -486,7 +517,12 @@ fun ModelActionButtons(
                     Text("Activate")
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                OutlinedButton(onClick = onDelete) {
+                OutlinedButton(
+                    onClick = {
+                        hapticManager.heavyTap()
+                        onDelete()
+                    }
+                ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = null,
@@ -500,7 +536,10 @@ fun ModelActionButtons(
             else -> {
                 // Model needs to be downloaded
                 Button(
-                    onClick = onDownload,
+                    onClick = {
+                        hapticManager.lightTap()
+                        onDownload()
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(
@@ -523,6 +562,8 @@ fun ModelActionButtons(
 fun EmptyModelState(
     onRefresh: () -> Unit
 ) {
+    val hapticManager = HapticUtils.rememberHapticManager()
+    
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -546,7 +587,12 @@ fun EmptyModelState(
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
         )
         Spacer(modifier = Modifier.height(16.dp))
-        OutlinedButton(onClick = onRefresh) {
+        OutlinedButton(
+            onClick = {
+                hapticManager.lightTap()
+                onRefresh()
+            }
+        ) {
             Icon(
                 imageVector = Icons.Default.Refresh,
                 contentDescription = null,

@@ -16,6 +16,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.loa.momclaw.domain.model.AgentSettings
 import com.loa.momclaw.ui.common.HapticUtils
+import com.loa.momclaw.ui.util.ResponsiveUtils
+import com.loa.momclaw.ui.util.rememberHorizontalPadding
 
 /**
  * Settings screen composable for configuring agent behavior.
@@ -28,6 +30,17 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit
 ) {
     val hapticManager = HapticUtils.rememberHapticManager()
+    val horizontalPadding = rememberHorizontalPadding()
+    val screenSize = ResponsiveUtils.rememberScreenSize()
+    
+    // Responsive max width for tablets
+    val contentModifier = if (screenSize == com.loa.momclaw.ui.util.ScreenSize.Expanded) {
+        Modifier
+            .fillMaxWidth()
+            .widthIn(max = 600.dp)
+    } else {
+        Modifier.fillMaxWidth()
+    }
     
     var systemPrompt by remember(state.settings.systemPrompt) {
         mutableStateOf(state.settings.systemPrompt)
@@ -101,14 +114,18 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(padding),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Column(
+                modifier = contentModifier
+            ) {
             // Success message
             if (state.saveSuccess) {
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp),
+                        .padding(horizontalPadding, vertical = 8.dp),
                     color = MaterialTheme.colorScheme.primaryContainer,
                     shape = MaterialTheme.shapes.small
                 ) {
@@ -460,6 +477,7 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
+            } // End of responsive content column
         }
     }
 }

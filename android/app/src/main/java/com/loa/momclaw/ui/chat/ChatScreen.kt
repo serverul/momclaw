@@ -24,9 +24,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.loa.momclaw.domain.model.Message
 import com.loa.momclaw.ui.common.HapticUtils
-import com.loa.momclaw.ui.common.rememberHapticManager
 import com.loa.momclaw.ui.components.PremiumMessageBubble
 import com.loa.momclaw.ui.components.ShimmerMessageItem
 import com.loa.momclaw.ui.components.TypingIndicator
@@ -369,8 +369,7 @@ fun PremiumEmptyChatState(
     ) {
         Text(
             text = "💬",
-            style = MaterialTheme.typography.displayLarge,
-            fontSize = 80.sp
+            style = MaterialTheme.typography.displayLarge.copy(fontSize = 80.sp)
         )
         
         Spacer(modifier = Modifier.height(Spacing.dp24))
