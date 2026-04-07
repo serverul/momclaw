@@ -1,7 +1,2 @@
+json_key_file("play-store-service-account.json")
 package_name("com.loa.momclaw")
-
-# Google Play Service Account
-json_key_file("google-play-service-account.json")
-
-# Versiune implicită
-default_version_code(1)

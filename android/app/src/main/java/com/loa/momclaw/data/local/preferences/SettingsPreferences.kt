@@ -2,169 +2,124 @@ package com.loa.momclaw.data.local.preferences
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.floatPreferencesKey
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
-import com.loa.momclaw.domain.model.AgentConfig
+import com.loa.momclaw.domain.model.AgentSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "momclaw_settings")
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 /**
- * DataStore-based preferences manager for app settings
+ * Manages application settings using DataStore.
  */
-class SettingsPreferences(private val context: Context) {
+@Singleton
+class SettingsPreferences @Inject constructor(
+    private val context: Context
+) {
+    companion object {
+        private val KEY_SYSTEM_PROMPT = stringPreferencesKey("system_prompt")
+        private val KEY_TEMPERATURE = floatPreferencesKey("temperature")
+        private val KEY_MAX_TOKENS = intPreferencesKey("max_tokens")
+        private val KEY_DARK_MODE = booleanPreferencesKey("dark_mode")
+        private val KEY_AUTO_SAVE = booleanPreferencesKey("auto_save")
+        private val KEY_CURRENT_CONVERSATION_ID = longPreferencesKey("current_conversation_id")
 
-    // Keys
-    private object Keys {
-        val SYSTEM_PROMPT = stringPreferencesKey("system_prompt")
-        val TEMPERATURE = floatPreferencesKey("temperature")
-        val MAX_TOKENS = intPreferencesKey("max_tokens")
-        val MODEL_PRIMARY = stringPreferencesKey("model_primary")
-        val BASE_URL = stringPreferencesKey("base_url")
-        val DARK_THEME = booleanPreferencesKey("dark_theme")
-        val STREAMING_ENABLED = booleanPreferencesKey("streaming_enabled")
-        val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
-        val BACKGROUND_AGENT_ENABLED = booleanPreferencesKey("background_agent_enabled")
-        val LAST_CONVERSATION_ID = stringPreferencesKey("last_conversation_id")
+        private const val DEFAULT_SYSTEM_PROMPT = "You are MOMCLAW, a helpful AI assistant running offline on this device."
+        private const val DEFAULT_TEMPERATURE = 0.7f
+        private const val DEFAULT_MAX_TOKENS = 2048
+        private const val DEFAULT_DARK_MODE = false
+        private const val DEFAULT_AUTO_SAVE = true
     }
 
-    // Default values
-    private val defaults = AgentConfig()
-
-    // Getters as Flows
-
-    val systemPrompt: Flow<String> = context.dataStore.data.map { prefs ->
-        prefs[Keys.SYSTEM_PROMPT] ?: defaults.systemPrompt
+    /**
+     * Gets agent settings as a Flow.
+     */
+    fun getSettings(): Flow<AgentSettings> {
+        return context.dataStore.data.map { preferences ->
+            AgentSettings(
+                systemPrompt = preferences[KEY_SYSTEM_PROMPT] ?: DEFAULT_SYSTEM_PROMPT,
+                temperature = preferences[KEY_TEMPERATURE] ?: DEFAULT_TEMPERATURE,
+                maxTokens = preferences[KEY_MAX_TOKENS] ?: DEFAULT_MAX_TOKENS,
+                darkMode = preferences[KEY_DARK_MODE] ?: DEFAULT_DARK_MODE,
+                autoSave = preferences[KEY_AUTO_SAVE] ?: DEFAULT_AUTO_SAVE
+            )
+        }
     }
 
-    val temperature: Flow<Float> = context.dataStore.data.map { prefs ->
-        prefs[Keys.TEMPERATURE] ?: defaults.temperature
+    /**
+     * Updates agent settings.
+     */
+    suspend fun updateSettings(settings: AgentSettings): Result<Unit> {
+        return try {
+            context.dataStore.edit { preferences ->
+                preferences[KEY_SYSTEM_PROMPT] = settings.systemPrompt
+                preferences[KEY_TEMPERATURE] = settings.temperature
+                preferences[KEY_MAX_TOKENS] = settings.maxTokens
+                preferences[KEY_DARK_MODE] = settings.darkMode
+                preferences[KEY_AUTO_SAVE] = settings.autoSave
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
-    val maxTokens: Flow<Int> = context.dataStore.data.map { prefs ->
-        prefs[Keys.MAX_TOKENS] ?: defaults.maxTokens
-    }
-
-    val modelPrimary: Flow<String> = context.dataStore.data.map { prefs ->
-        prefs[Keys.MODEL_PRIMARY] ?: defaults.modelPrimary
-    }
-
-    val baseUrl: Flow<String> = context.dataStore.data.map { prefs ->
-        prefs[Keys.BASE_URL] ?: defaults.baseUrl
-    }
-
-    val darkTheme: Flow<Boolean> = context.dataStore.data.map { prefs ->
-        prefs[Keys.DARK_THEME] ?: true  // Dark theme by default
-    }
-
-    val streamingEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
-        prefs[Keys.STREAMING_ENABLED] ?: true
-    }
-
-    val notificationsEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
-        prefs[Keys.NOTIFICATIONS_ENABLED] ?: true
-    }
-
-    val backgroundAgentEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
-        prefs[Keys.BACKGROUND_AGENT_ENABLED] ?: false
-    }
-
-    val lastConversationId: Flow<String?> = context.dataStore.data.map { prefs ->
-        prefs[Keys.LAST_CONVERSATION_ID]
-    }
-
-    // Combined config flow
-    val agentConfig: Flow<AgentConfig> = context.dataStore.data.map { prefs ->
-        AgentConfig(
-            systemPrompt = prefs[Keys.SYSTEM_PROMPT] ?: defaults.systemPrompt,
-            temperature = prefs[Keys.TEMPERATURE] ?: defaults.temperature,
-            maxTokens = prefs[Keys.MAX_TOKENS] ?: defaults.maxTokens,
-            modelPrimary = prefs[Keys.MODEL_PRIMARY] ?: defaults.modelPrimary,
-            baseUrl = prefs[Keys.BASE_URL] ?: defaults.baseUrl
+    /**
+     * Resets settings to defaults.
+     */
+    suspend fun resetSettings(): Result<Unit> {
+        return updateSettings(
+            AgentSettings(
+                systemPrompt = DEFAULT_SYSTEM_PROMPT,
+                temperature = DEFAULT_TEMPERATURE,
+                maxTokens = DEFAULT_MAX_TOKENS,
+                darkMode = DEFAULT_DARK_MODE,
+                autoSave = DEFAULT_AUTO_SAVE
+            )
         )
     }
 
-    // Setters
+    /**
+     * Gets the current conversation ID.
+     */
+    suspend fun getCurrentConversationId(): Long {
+        // Note: This is a simplified version. In production, you'd want to use
+        // a more robust method to get the value from DataStore
+        return context.dataStore.data.map { preferences ->
+            preferences[KEY_CURRENT_CONVERSATION_ID] ?: 0L
+        }.first()
+    }
 
-    suspend fun setSystemPrompt(prompt: String) {
-        context.dataStore.edit { prefs ->
-            prefs[Keys.SYSTEM_PROMPT] = prompt
+    /**
+     * Sets the current conversation ID.
+     */
+    suspend fun setCurrentConversationId(conversationId: Long) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_CURRENT_CONVERSATION_ID] = conversationId
         }
     }
 
-    suspend fun setTemperature(temp: Float) {
-        context.dataStore.edit { prefs ->
-            prefs[Keys.TEMPERATURE] = temp.coerceIn(0f, 2f)
+    /**
+     * Gets dark mode setting as Flow.
+     */
+    fun getDarkMode(): Flow<Boolean> {
+        return context.dataStore.data.map { preferences ->
+            preferences[KEY_DARK_MODE] ?: DEFAULT_DARK_MODE
         }
     }
+}
 
-    suspend fun setMaxTokens(tokens: Int) {
-        context.dataStore.edit { prefs ->
-            prefs[Keys.MAX_TOKENS] = tokens.coerceIn(256, 8192)
-        }
+/**
+ * Extension function to get first value from Flow.
+ */
+private suspend fun <T> Flow<T>.first(): T {
+    var result: T? = null
+    collect { value ->
+        result = value
+        return@collect
     }
-
-    suspend fun setModelPrimary(model: String) {
-        context.dataStore.edit { prefs ->
-            prefs[Keys.MODEL_PRIMARY] = model
-        }
-    }
-
-    suspend fun setBaseUrl(url: String) {
-        context.dataStore.edit { prefs ->
-            prefs[Keys.BASE_URL] = url
-        }
-    }
-
-    suspend fun setDarkTheme(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[Keys.DARK_THEME] = enabled
-        }
-    }
-
-    suspend fun setStreamingEnabled(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[Keys.STREAMING_ENABLED] = enabled
-        }
-    }
-
-    suspend fun setNotificationsEnabled(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[Keys.NOTIFICATIONS_ENABLED] = enabled
-        }
-    }
-
-    suspend fun setBackgroundAgentEnabled(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[Keys.BACKGROUND_AGENT_ENABLED] = enabled
-        }
-    }
-
-    suspend fun setLastConversationId(id: String?) {
-        context.dataStore.edit { prefs ->
-            if (id != null) {
-                prefs[Keys.LAST_CONVERSATION_ID] = id
-            } else {
-                prefs.remove(Keys.LAST_CONVERSATION_ID)
-            }
-        }
-    }
-
-    // Reset to defaults
-    suspend fun resetToDefaults() {
-        context.dataStore.edit { prefs ->
-            prefs[Keys.SYSTEM_PROMPT] = defaults.systemPrompt
-            prefs[Keys.TEMPERATURE] = defaults.temperature
-            prefs[Keys.MAX_TOKENS] = defaults.maxTokens
-            prefs[Keys.MODEL_PRIMARY] = defaults.modelPrimary
-            prefs[Keys.BASE_URL] = defaults.baseUrl
-            // Keep UI preferences (dark theme, etc.) as they are
-        }
-    }
+    return result ?: throw NoSuchElementException("Flow is empty")
 }

@@ -2,15 +2,15 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21"
+    id("dagger.hilt.android.plugin")
 }
 
 android {
     namespace = "com.loa.momclaw.bridge"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
-        minSdk = 28
+        minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -23,9 +23,6 @@ android {
                 "proguard-rules.pro"
             )
         }
-        debug {
-            isMinifyEnabled = false
-        }
     }
 
     compileOptions {
@@ -35,76 +32,44 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
-        freeCompilerArgs += listOf(
-            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-            "-opt-in=kotlinx.serialization.ExperimentalSerializationApi"
-        )
-    }
-    
-    buildFeatures {
-        buildConfig = true
-    }
-    
-    // Lint configuration
-    lint {
-        abortOnError = false
-        checkReleaseBuilds = true
     }
 }
 
 dependencies {
-    // LiteRT-LM (Google AI Edge) — not yet in public Maven repos
-    // TODO: Replace with actual dependency once published (expected: com.google.ai.edge:litert-lm)
-    // compileOnly("com.google.ai.edge:litert-lm:1.0.0")
-    
-    // Ktor Server (Netty)
-    val ktorVersion = "2.3.12"
-    implementation("io.ktor:ktor-server-core:$ktorVersion")
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-    implementation("io.ktor:ktor-server-cors:$ktorVersion")
-    // NOTE: ktor-server-sse only exists starting Ktor 3.0.0
-    // For Ktor 2.x, use call.response.respondOutputStream with EventStream content type
-    // TODO: Either upgrade to Ktor 3.x or remove this dep
-    // implementation("io.ktor:ktor-server-sse:3.4.2")
-    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
+    // LiteRT-LM (Google AI Edge) - Note: This is a placeholder dependency
+    // Actual implementation may require Google Play Services or manual integration
+    // implementation("com.google.ai.edge:litert-lm:1.0.0")
 
-    // Ktor Client
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("io.ktor:ktor-client-android:$ktorVersion")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-    implementation("io.ktor:ktor-client-logging:$ktorVersion")
+    // Ktor server
+    implementation("io.ktor:ktor-server-netty:2.3.7")
+    implementation("io.ktor:ktor-server-content-negotiation:2.3.7")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
+    implementation("io.ktor:ktor-server-cors:2.3.7")
 
-    // Kotlinx
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    // Kotlinx Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
 
-    // AndroidX Core
-    implementation("androidx.core:core-ktx:1.13.1")
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 
-    // Logback (for Ktor logging) - Android compatible
-    implementation("com.github.tony19:logback-android:3.0.0")
-    
-    // Kotlin Logging
-    
-    // Rate Limiting
-    implementation("io.ktor:ktor-server-rate-limit:$ktorVersion")
-    
-    // Resilience4j
-    implementation("io.github.resilience4j:resilience4j-circuitbreaker:2.2.0")
-    implementation("io.github.resilience4j:resilience4j-retry:2.2.0")
+    // Android Core
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
 
-    // Testing - Unit Tests
+    // Hilt
+    implementation("com.google.dagger:hilt-android:2.50")
+    kapt("com.google.dagger:hilt-compiler:2.50")
+
+    // Logging
+    implementation("io.ktor:ktor-server-call-logging:2.3.7")
+
+    // Testing
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
-    testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("io.mockk:mockk:1.13.12")
-    testImplementation("app.cash.turbine:turbine:1.1.0") // Flow testing
-    
-    // Testing - Android Instrumented Tests
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+}
+
+kapt {
+    correctErrorTypes = true
 }

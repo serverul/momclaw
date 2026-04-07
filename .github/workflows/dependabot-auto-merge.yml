@@ -1,8 +1,10 @@
-name: Dependabot Auto-Merge
+name: Dependabot Auto Merge
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches: [ main, develop ]
+    types:
+      - opened
 
 permissions:
   contents: write
@@ -10,31 +12,52 @@ permissions:
 
 jobs:
   auto-merge:
-    name: Auto-merge Dependabot PRs
+    name: Auto-merge approved dependencies
     runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' }}
-
     steps:
-      - name: Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@v2
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Enable auto-merge for Dependabot PRs
-        if: |
-          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
-          steps.metadata.outputs.update-type == 'version-update:semver-minor'
+      - name: Check dependency updates
         run: |
-          gh pr merge --auto --merge "${{ github.event.pull_request.html_url }}"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Get PR labels
+          LABELS=$(gh pr view ${{ github.event.pull_request.number }} --json labels)
+          echo "Labels: $LABELS"
+          
+          # Check for security label
+          if echo "$LABELS" | grep -q '"security"'; then
+            echo "✅ Security update detected, auto-merging"
+            gh pr merge --auto --delete-branch
+          else
+            echo "Not a security update, manual review required"
+          fi
 
-      - name: Auto-approve patch and minor updates
-        if: |
-          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
-          steps.metadata.outputs.update-type == 'version-update:semver-minor'
+      - name: Enable auto-merge for specific dependencies
         run: |
-          gh pr review --approve "${{ github.event.pull_request.html_url }}"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Auto-merge patch updates for trusted dependencies
+          DEPENDENCIES="kotlin,androidx,compose,ktor,okhttp,room,hilt,dagger"
+          
+          for dep in $DEPENDENCIES; do
+            if echo "${{ github.event.pull_request.title }}" | grep -q "$dep"; then
+              echo "✅ Trusted dependency update ($dep), auto-merging"
+              gh pr merge --auto --delete-branch
+              exit 0
+            fi
+          done
+          
+          echo "Dependency update requires manual review"
+
+  summary:
+    name: Summary
+    runs-on: ubuntu-latest
+    needs: auto-merge
+    if: always()
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "# 🤖 Dependabot Auto-Merge Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Auto-merge | ${{ needs.auto-merge.result }} |" >> $GITHUB_STEP_SUMMARY

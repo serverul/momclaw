@@ -1,8 +1,20 @@
-# Signing configuration for release builds
-# Copy this file to key.properties and fill in your values
-# IMPORTANT: Never commit key.properties to git!
+# Signing configuration for MOMCLAW
+# Copy this file to android/key.properties for release builds
 
-storePassword=YOUR_KEYSTORE_PASSWORD
+# Keystore Configuration
+# Generate a keystore with:
+#   keytool -genkeypair -v -keystore MOMCLAW-release-key.jks \
+#     -alias MOMCLAW -keyalg RSA -keysize 2048 -validity 10000 \
+#     -storePassword YOUR_PASSWORD -keypass YOUR_PASSWORD
+
+storePassword=YOUR_STORE_PASSWORD
 keyPassword=YOUR_KEY_PASSWORD
-keyAlias=momclaw
-storeFile=../momclaw-release-key.jks
+
+keyAlias=MOMCLAW
+storeFile=../MOMCLAW-release-key.jks
+
+# Alternative: Use environment variables (for CI/CD)
+# storePassword=${RELEASE_STORE_PASSWORD}
+# keyPassword=${RELEASE_KEY_PASSWORD}
+# keyAlias=${RELEASE_KEY_ALIAS}
+# storeFile=${RELEASE_STORE_FILE}

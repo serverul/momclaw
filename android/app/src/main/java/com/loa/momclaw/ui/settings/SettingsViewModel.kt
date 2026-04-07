@@ -8,10 +8,25 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+/**
+ * UI State for Settings screen
+ */
+data class SettingsUiState(
+    val systemPrompt: String = "",
+    val temperature: Float = 0.7f,
+    val maxTokens: Int = 2048,
+    val modelPrimary: String = "gemma-4e4b",
+    val baseUrl: String = "http://localhost:8080",
+    val darkTheme: Boolean = false,
+    val streamingEnabled: Boolean = true,
+    val notificationsEnabled: Boolean = true,
+    val backgroundAgentEnabled: Boolean = false,
+    val hasChanges: Boolean = false
+)
 
 /**
  * ViewModel for Settings screen

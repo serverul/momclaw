@@ -1,242 +1,177 @@
 package com.loa.momclaw.ui.chat
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.loa.momclaw.domain.model.AgentConfig
-import com.loa.momclaw.domain.model.ChatMessage
+import com.loa.momclaw.data.remote.AgentClient
+import com.loa.momclaw.data.remote.MessageDto
+import com.loa.momclaw.domain.model.*
 import com.loa.momclaw.domain.repository.ChatRepository
-import com.loa.momclaw.domain.repository.StreamState
-import com.loa.momclaw.util.StreamBuffer
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
- * UI State for Chat screen
- */
-data class ChatUiState(
-    val messages: List<ChatMessage> = emptyList(),
-    val inputText: String = "",
-    val isLoading: Boolean = false,
-    val isStreaming: Boolean = false,
-    val currentStreamingMessage: ChatMessage? = null,
-    val error: String? = null,
-    val isAgentAvailable: Boolean = false,
-    val config: AgentConfig? = null,
-    // Performance tracking
-    val tokenCount: Int = 0,
-    val lastUpdateTime: Long = 0L
-)
-
-/**
- * ViewModel for Chat screen with optimized streaming
+ * ViewModel for managing chat screen state and business logic.
  */
 @HiltViewModel
 class ChatViewModel @Inject constructor(
-    private val chatRepository: ChatRepository
+    private val chatRepository: ChatRepository,
+    private val agentClient: AgentClient
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ChatUiState())
-    val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
+    private val _state = MutableStateFlow(ChatState())
+    val state: StateFlow<ChatState> = _state.asStateFlow()
 
-    private var streamingJob: Job? = null
-    private var streamBuffer: StreamBuffer? = null
-    private var currentStreamingId: String? = null
+    companion object {
+        private const val TAG = "ChatViewModel"
+    }
 
     init {
-        observeMessages()
-        checkAgentAvailability()
-        observeConfig()
+        loadConversation()
     }
 
     /**
-     * Observe messages from repository
+     * Handles chat events.
      */
-    private fun observeMessages() {
+    fun onEvent(event: ChatEvent) {
+        when (event) {
+            is ChatEvent.SendMessage -> sendMessage(event.text)
+            is ChatEvent.InputChanged -> updateInput(event.text)
+            is ChatEvent.ClearConversation -> clearConversation()
+            is ChatEvent.LoadConversation -> loadConversation()
+        }
+    }
+
+    /**
+     * Sends a message to the agent and streams the response.
+     */
+    private fun sendMessage(text: String) {
+        if (text.isBlank()) return
+
         viewModelScope.launch {
-            chatRepository.getMessages().collect { messages ->
-                _uiState.update { it.copy(messages = messages) }
+            try {
+                // Add user message
+                val conversationId = _state.value.conversationId
+                val userMessage = Message(
+                    conversationId = conversationId,
+                    role = Message.ROLE_USER,
+                    content = text,
+                    timestamp = System.currentTimeMillis()
+                )
+                
+                chatRepository.saveMessage(userMessage)
+                
+                _state.update { it.copy(
+                    inputText = "",
+                    isStreaming = true,
+                    messages = _state.value.messages + userMessage,
+                    error = null
+                )}
+
+                // Prepare messages for agent
+                val agentMessages = _state.value.messages.map { msg ->
+                    MessageDto(msg.role, msg.content)
+                } + MessageDto(Message.ROLE_USER, text)
+
+                // Stream response from agent
+                val responseBuilder = StringBuilder()
+                
+                agentClient.chat(agentMessages)
+                    .catch { e ->
+                        Log.e(TAG, "Error streaming response", e)
+                        _state.update { it.copy(
+                            error = "Error: ${e.message}",
+                            isStreaming = false
+                        )}
+                    }
+                    .collect { token ->
+                        responseBuilder.append(token)
+                        _state.update { it.copy(
+                            currentResponse = responseBuilder.toString()
+                        )}
+                    }
+
+                // Save assistant message
+                val assistantMessage = Message(
+                    conversationId = conversationId,
+                    role = Message.ROLE_ASSISTANT,
+                    content = responseBuilder.toString(),
+                    timestamp = System.currentTimeMillis()
+                )
+                
+                chatRepository.saveMessage(assistantMessage)
+                
+                _state.update { it.copy(
+                    messages = _state.value.messages + assistantMessage,
+                    currentResponse = "",
+                    isStreaming = false
+                )}
+                
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to send message", e)
+                _state.update { it.copy(
+                    error = "Failed to send message: ${e.message}",
+                    isStreaming = false
+                )}
             }
         }
     }
 
     /**
-     * Observe configuration changes
+     * Updates the input text.
      */
-    private fun observeConfig() {
+    private fun updateInput(text: String) {
+        _state.update { it.copy(inputText = text) }
+    }
+
+    /**
+     * Clears the current conversation.
+     */
+    private fun clearConversation() {
         viewModelScope.launch {
-            chatRepository.getConfig().collect { config ->
-                _uiState.update { it.copy(config = config) }
+            try {
+                chatRepository.clearCurrentConversation()
+                _state.update { ChatState(conversationId = _state.value.conversationId) }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to clear conversation", e)
+                _state.update { it.copy(error = "Failed to clear conversation") }
             }
         }
     }
 
     /**
-     * Check if agent is available
+     * Loads the current conversation from database.
      */
-    private fun checkAgentAvailability() {
+    private fun loadConversation() {
         viewModelScope.launch {
-            val isAvailable = chatRepository.isAgentAvailable()
-            _uiState.update { it.copy(isAgentAvailable = isAvailable) }
-        }
-    }
-
-    /**
-     * Update input text
-     */
-    fun updateInputText(text: String) {
-        _uiState.update { it.copy(inputText = text) }
-    }
-
-    /**
-     * Send a message with optimized streaming
-     */
-    fun sendMessage() {
-        val text = _uiState.value.inputText.trim()
-        if (text.isEmpty() || _uiState.value.isLoading) return
-
-        // Clear input
-        _uiState.update { it.copy(
-            inputText = "",
-            isLoading = true,
-            error = null,
-            tokenCount = 0,
-            lastUpdateTime = System.currentTimeMillis()
-        )}
-
-        // Cancel any existing streaming job
-        streamingJob?.cancel()
-        streamBuffer?.clear()
-
-        // Create new stream buffer for this conversation
-        streamBuffer = StreamBuffer(viewModelScope, batchIntervalMs = 50, minBatchSize = 5)
-
-        // Start streaming
-        streamingJob = viewModelScope.launch {
-            var tokenCount = 0
-            var streamingContent = StringBuilder()
-            var lastUpdateTime = System.currentTimeMillis()
-
-            chatRepository.sendMessageStream(text).collect { state ->
-                when (state) {
-                    is StreamState.UserMessageSaved -> {
-                        _uiState.update { it.copy(
-                            isLoading = false,
-                            isStreaming = true,
-                            currentStreamingMessage = null
-                        )}
-                        currentStreamingId = state.message.id
+            try {
+                // Get or create conversation ID
+                val conversationId = chatRepository.getCurrentConversationId()
+                
+                _state.update { it.copy(conversationId = conversationId) }
+                
+                // Load messages
+                chatRepository.getCurrentConversation()
+                    .catch { e ->
+                        Log.e(TAG, "Error loading conversation", e)
+                        _state.update { it.copy(error = "Failed to load conversation") }
                     }
-
-                    is StreamState.StreamingStarted -> {
-                        streamingContent = StringBuilder()
-                        _uiState.update { it.copy(
-                            currentStreamingMessage = state.message
-                        )}
+                    .collect { messages ->
+                        _state.update { it.copy(messages = messages) }
                     }
-
-                    is StreamState.TokenReceived -> {
-                        // Use buffer for UI updates
-                        tokenCount++
-                        streamingContent.append(state.token)
-
-                        // Throttled UI update - only update every 50ms or every 5 tokens
-                        val now = System.currentTimeMillis()
-                        val shouldUpdate = (now - lastUpdateTime) >= 50 || tokenCount % 5 == 0
-
-                        if (shouldUpdate) {
-                            _uiState.update { it.copy(
-                                currentStreamingMessage = state.message,
-                                tokenCount = tokenCount,
-                                lastUpdateTime = now
-                            )}
-                            lastUpdateTime = now
-                        }
-                    }
-
-                    is StreamState.StreamingComplete -> {
-                        // Final update with complete message
-                        _uiState.update { it.copy(
-                            isStreaming = false,
-                            isLoading = false,
-                            currentStreamingMessage = null,
-                            tokenCount = tokenCount,
-                            lastUpdateTime = System.currentTimeMillis()
-                        )}
-                        streamingContent.clear()
-                    }
-
-                    is StreamState.Error -> {
-                        _uiState.update { it.copy(
-                            error = state.exception.message ?: "Unknown error occurred",
-                            isStreaming = false,
-                            isLoading = false,
-                            currentStreamingMessage = null
-                        )}
-                        streamingContent.clear()
-                    }
-                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load conversation", e)
+                _state.update { it.copy(error = "Failed to load conversation") }
             }
         }
     }
 
     /**
-     * Clear current conversation
+     * Clears any error message.
      */
-    fun clearConversation() {
-        viewModelScope.launch {
-            chatRepository.clearConversation()
-            _uiState.update { it.copy(error = null) }
-        }
-    }
-
-    /**
-     * Start a new conversation
-     */
-    fun startNewConversation() {
-        viewModelScope.launch {
-            chatRepository.startNewConversation()
-            _uiState.update { it.copy(error = null) }
-        }
-    }
-
-    /**
-     * Retry last failed operation
-     */
-    fun retry() {
-        _uiState.update { it.copy(error = null) }
-        checkAgentAvailability()
-    }
-
-    /**
-     * Cancel current streaming
-     */
-    fun cancelStreaming() {
-        streamingJob?.cancel()
-        streamingJob = null
-        streamBuffer?.clear()
-        streamBuffer = null
-        currentStreamingId = null
-        _uiState.update { it.copy(
-            isStreaming = false,
-            isLoading = false,
-            currentStreamingMessage = null
-        )}
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        streamingJob?.cancel()
-        streamBuffer?.clear()
+    fun clearError() {
+        _state.update { it.copy(error = null) }
     }
 }

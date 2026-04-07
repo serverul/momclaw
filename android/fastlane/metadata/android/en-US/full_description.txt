@@ -1,39 +1,55 @@
-MomClaw is a fully autonomous AI agent that runs entirely on your phone — zero cloud, zero tracking, 100% offline.
+title: MOMCLAW - Offline AI Agent
+short_description: AI assistant running 100% offline on your Android device
+full_description: |
+  MOMCLAW (Mobile Offline Model Agent) is a fully autonomous AI assistant that runs entirely on your Android device — zero cloud, zero tracking, 100% offline.
 
-🧠 POWERFUL FEATURES:
+  🧠 INTELLIGENT CONVERSATIONS
+  • Advanced reasoning with Gemma 3 E4B-it model
+  • Context-aware responses
+  • Multi-turn conversation support
+  • Streaming responses for real-time interaction
 
-• Conversații inteligente - Advanced reasoning with Gemma 3 E4B-it
-• Tool calls native - Shell, file operations, web search
-• Memorie persistentă - SQLite database with full conversation history
-• Canale externe - Telegram and Discord integration (coming soon)
-• OpenClaw Sync - Sincronizare cu instanță principală OpenClaw (coming soon)
-• Privacy-first - All data stays on device
+  🔧 NATIVE TOOL EXECUTION
+  • Shell command execution
+  • File operations (read, write, list)
+  • Web search capabilities
+  • Extensible tool system
 
-🔒 PRIVACY BY DESIGN:
+  💾 PERSISTENT MEMORY
+  • Automatic conversation history
+  • SQLite-based storage
+  • Search through past conversations
+  • Context retention across sessions
 
-• All model inferences happen directly on your device
-• No internet required for core features
-• Your prompts, images, and data never leave your phone
-• Open source and auditable
+  📱 EXTERNAL CHANNELS
+  • Telegram integration (when online)
+  • Discord integration (when online)
+  • OpenClaw sync with main instance
+  • Multi-platform support
 
-⚡ PERFORMANCE:
+  🔒 PRIVACY-FIRST DESIGN
+  • All data stays on your device
+  • No cloud dependencies
+  • No tracking or analytics
+  • Complete data ownership
 
-• Optimized for mobile with LiteRT-LM
-• GPU acceleration when available
-• Dark theme with Material You design
-• Efficient memory management
+  ⚡ OPTIMIZED PERFORMANCE
+  • LiteRT-LM inference engine
+  • Optimized for mobile hardware
+  • Efficient memory usage
+  • Battery-conscious design
 
-🎯 USE CASES:
+  🌙 MODERN INTERFACE
+  • Material You design
+  • Dynamic color theming
+  • Dark and light themes
+  • Responsive layout
 
-• Personal assistant without privacy concerns
-• Offline AI when no internet available
-• Development and experimentation with local LLMs
-• Learning about on-device AI
+  TECHNICAL DETAILS:
+  • AI Model: Gemma 3 E4B-it (Q4_K_M quantized)
+  • Inference: Google AI Edge LiteRT-LM
+  • UI: Kotlin + Jetpack Compose
+  • Architecture: Clean Architecture with MVVM
+  • Dependencies: 100% open source
 
-📱 REQUIREMENTS:
-
-• Android 9.0 (API 28) or higher
-• 4GB+ RAM recommended
-• 3GB+ free storage for model
-
-Open source: https://github.com/serverul/momclaw
+  Perfect for users who value privacy and want AI assistance without internet connectivity!

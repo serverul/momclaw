@@ -1,0 +1,136 @@
+# Gitleaks configuration for MOMCLAW
+# https://github.com/gitleaks/gitleaks#configuration
+
+title = "MOMCLAW Secrets Detection"
+
+[extend]
+# Use default gitleaks rules as base
+useDefault = true
+
+[[rules]]
+id = "android-keystore-password"
+description = "Android Keystore Password"
+regex = '''storePassword\s*=\s*['"][^'"]+['"]'''
+tags = ["android", "keystore", "password"]
+
+[[rules]]
+id = "android-key-password"
+description = "Android Key Password"
+regex = '''keyPassword\s*=\s*['"][^'"]+['"]'''
+tags = ["android", "keystore", "password"]
+
+[[rules]]
+id = "google-play-service-account"
+description = "Google Play Service Account JSON"
+regex = '''"private_key"\s*:\s*"-----BEGIN PRIVATE KEY-----'''
+tags = ["google", "service-account", "api"]
+
+[[rules]]
+id = "api-key-generic"
+description = "Generic API Key"
+regex = '''(?i)(api[_-]?key|apikey)\s*[=:]\s*['"]?[a-zA-Z0-9_\-]{20,}['"]?'''
+tags = ["api", "key"]
+
+[[rules]]
+id = "discord-webhook-token"
+description = "Discord Webhook Token"
+regex = '''discord(?:app)?\.com/api/webhooks/\d+/[a-zA-Z0-9_\-]+'''
+tags = ["discord", "webhook", "token"]
+
+[[rules]]
+id = "telegram-bot-token"
+description = "Telegram Bot Token"
+regex = '''\d{9,10}:[a-zA-Z0-9_-]{35}'''
+tags = ["telegram", "bot", "token"]
+
+[[rules]]
+id = "jwt-secret"
+description = "JWT Secret"
+regex = '''(?i)jwt[_-]?secret\s*[=:]\s*['"]?[a-zA-Z0-9_\-]{16,}['"]?'''
+tags = ["jwt", "secret"]
+
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key"
+regex = '''AKIA[0-9A-Z]{16}'''
+tags = ["aws", "access-key"]
+
+[[rules]]
+id = "aws-secret-key"
+description = "AWS Secret Key"
+regex = '''(?i)aws[_-]?secret[_-]?key\s*[=:]\s*['"]?[a-zA-Z0-9/+=]{40}['"]?'''
+tags = ["aws", "secret-key"]
+
+[[rules]]
+id = "github-token"
+description = "GitHub Personal Access Token"
+regex = '''ghp_[a-zA-Z0-9]{36}'''
+tags = ["github", "token"]
+
+[[rules]]
+id = "github-oauth"
+description = "GitHub OAuth Access Token"
+regex = '''gho_[a-zA-Z0-9]{36}'''
+tags = ["github", "oauth"]
+
+[[rules]]
+id = "github-app-token"
+description = "GitHub App Token"
+regex = '''(ghu|ghs)_[a-zA-Z0-9]{36}'''
+tags = ["github", "app-token"]
+
+# Allowlist - files and paths to skip
+[allowlist]
+description = "Global allowlist"
+paths = [
+    '''^\.git/''',
+    '''^android/gradle/wrapper/''',
+    '''^android/\.gradle/''',
+    '''\.gradle/''',
+    '''build/''',
+    '''\.idea/''',
+    '''node_modules/''',
+    '''vendor/''',
+    # Example/template files
+    '''example/''',
+    '''samples/''',
+    # Test files with mock data
+    '''test/''',
+    '''tests/''',
+    '''__tests__/''',
+    '''.*_test\.go$''',
+    '''.*_test\.kt$''',
+    '''.*Test\.java$''',
+    # Documentation
+    '''docs/''',
+    '''README\.md''',
+    '''CHANGELOG\.md''',
+    # Config templates
+    '''\.example$''',
+    '''\.sample$''',
+    '''.*\.example\..*$''',
+]
+
+# Allowlist for specific regex matches
+[[allowlist]]
+description = "Allow example passwords in docs"
+regexes = [
+    '''YOUR_PASSWORD''',
+    '''your_password''',
+    '''STORE_PASSWORD''',
+    '''KEY_PASSWORD''',
+    '''password123''',
+    '''changeme''',
+]
+
+[[allowlist]]
+description = "Allow placeholder service account paths"
+paths = [
+    '''google-play-service-account\.json\.example''',
+]
+
+[[allowlist]]
+description = "Allow key.properties template"
+paths = [
+    '''key\.properties\.example''',
+]

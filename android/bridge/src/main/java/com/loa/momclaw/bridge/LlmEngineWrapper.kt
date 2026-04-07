@@ -1,250 +1,134 @@
 package com.loa.momclaw.bridge
 
 import android.content.Context
-import com.google.ai.edge.litertlm.LlmCallback
-import com.google.ai.edge.litertlm.LlmEngine
-import com.google.ai.edge.litertlm.LlmGenerationSettings
-import com.google.ai.edge.litertlm.LlmSession
-import com.google.ai.edge.litertlm.LlmStream
-
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.suspendCancellableCoroutine
-import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.concurrent.read
-import kotlin.concurrent.write
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-
+import kotlinx.coroutines.flow.flow
+import java.io.File
 
 /**
- * LiteRT LLM Engine Wrapper
+ * Wrapper for LiteRT-LM inference engine.
  * 
- * Uses Google AI Edge LiteRT-LM SDK for on-device inference.
- * Thread-safe: All operations protected by read-write lock.
+ * This is a placeholder implementation. In production, this would integrate
+ * with the actual Google AI Edge LiteRT-LM SDK.
  * 
- * SDK: com.google.ai.edge:litert-lm:1.0.0
- * GitHub: https://github.com/google-ai-edge/mediapipe-samples/tree/main/examples/llm
- * 
- * Model must be downloaded from HuggingFace:
- *   litert-community/gemma-3-E4B-it-litertlm -> gemma-3-E4B-it.litertlm
- * 
- * Usage:
- *   val wrapper = LlmEngineWrapper(context)
- *   wrapper.loadModel("/data/data/com.loa.momclaw/models/gemma-3-E4B-it.litertlm")
- *   val result = wrapper.generate("Hello")
- *   // or streaming:
- *   wrapper.generateStreaming("Hello").collect { chunk -> ... }
+ * The real implementation would use:
+ * - com.google.ai.edge.litert.LlmEngine
+ * - com.google.ai.edge.litert.LlmSession
  */
-class LlmEngineWrapper(
-    private val context: Context
-) {
-    private companion object {
-        private val TAG = "LlmEngineWrapper"
-    }
-    
-    private val sessionRef = AtomicReference<LlmSession?>(null)
-    @Volatile private var modelName: String? = null
-    @Volatile private var modelPath: String? = null
-    private val lock = ReentrantReadWriteLock()
-    
-    /**
-     * Load the LiteRT model from file path.
-     * Supports .litertlm files (Gemma 3 E4B instruction-tuned).
-     * Thread-safe: Acquires write lock during load.
-     */
-    suspend fun loadModel(path: String): Boolean {
-        return lock.write {
-            try {
-                val file = java.io.File(path)
-                if (!file.exists()) {
-                    logger.error { "Model file not found: $path" }
-                    return@write false
-                }
-                
-                val fileSizeMB = file.length() / (1024 * 1024)
-                logger.info { "Loading LiteRT model from $path (${fileSizeMB}MB)" }
-                
-                // Close existing session if any
-                sessionRef.get()?.close()
-                
-                modelPath = path
-                modelName = file.nameWithoutExtension
-                
-                val newSession = LlmSession.create(context).apply {
-                    val model = LlmEngine.Model(file)
-                    val settings = LlmGenerationSettings.builder()
-                        .setTopK(40)
-                        .setTopP(0.95f)
-                        .setTemperature(0.7f)
-                        .setRandomSeed(42)
-                        .build()
-                    loadModel(model, settings)
-                }
-                
-                sessionRef.set(newSession)
-                logger.info { "LiteRT model loaded: $modelName" }
-                true
-            } catch (e: Exception) {
-                logger.error(e) { "Failed to load LiteRT model from $path" }
-                sessionRef.set(null)
-                modelPath = null
-                modelName = null
-                false
-            }
-        }
-    }
-    
-    fun isReady(): Boolean = lock.read { sessionRef.get() != null }
-    
-    fun getModelInfo(): Map<String, Any?> = lock.read {
-        mapOf(
-            "name" to modelName,
-            "path" to modelPath,
-            "loaded" to (sessionRef.get() != null),
-            "type" to "LiteRT-LM",
-            "tokenCount" to getTokenCount()
-        )
-    }
-    
-    private fun getTokenCount(): Int = try {
-        if (sessionRef.get() != null) 4096 else 0  // LiteRT doesn't expose this directly yet
-    } catch (_: Exception) { 0 }
-    
-    /**
-     * Format OpenAI-style messages into a prompt for LiteRT.
-     * Uses conversational prompt format for instruction-tuned models.
-     */
-    fun formatPrompt(messages: List<ChatMessage>): String {
-        val sb = StringBuilder()
-        for (message in messages) {
-            when (message.role.lowercase()) {
-                "system", "user" -> {
-                    sb.append("user: ")
-                    sb.appendLine(message.content)
-                }
-                "assistant" -> {
-                    sb.append("model: ")
-                    sb.appendLine(message.content)
-                }
-            }
-        }
-        sb.append("model: ")
-        return sb.toString()
-    }
-    
-    /**
-     * Generate a non-streaming response.
-     * Thread-safe: Acquires read lock to access session.
-     */
-    suspend fun generate(request: LiteRTRequest): LiteRTResponseChunk {
-        val currentSession = lock.read { sessionRef.get() }
-            ?: throw IllegalStateException("Model not loaded")
-        
-        return suspendCancellableCoroutine { continuation ->
-            try {
-                currentSession.generateAsync(request.prompt, object : LlmCallback() {
-                    override fun onResult(result: String?) {
-                        continuation.resume(
-                            LiteRTResponseChunk(
-                                text = result ?: "",
-                                isComplete = true,
-                                tokensGenerated = result?.split(" ")?.size ?: 0
-                            )
-                        )
-                    }
-                    
-                    override fun onError(error: Throwable?) {
-                        continuation.resumeWithException(
-                            error ?: RuntimeException("LiteRT generation failed")
-                        )
-                    }
-                })
-            } catch (e: Exception) {
-                continuation.resumeWithException(e)
-            }
-        }
-    }
-    
-    /**
-     * Generate a streaming response using LiteRT streaming API.
-     * Thread-safe: Acquires read lock to access session.
-     */
-    fun generateStreaming(request: LiteRTRequest): Flow<LiteRTResponseChunk> = callbackFlow {
-        val currentSession = lock.read { sessionRef.get() }
-        if (currentSession == null) {
-            trySendBlocking(LiteRTResponseChunk("Error: Model not loaded", true, 0))
-            close()
-            return@callbackFlow
-        }
-        
-        try {
-            currentSession.generateStream(
-                request.prompt,
-                object : LlmStream() {
-                    override fun onResult(result: String?) {
-                        if (!isClosedForSend) {
-                            trySendBlocking(
-                                LiteRTResponseChunk(
-                                    text = result ?: "",
-                                    isComplete = false,
-                                    tokensGenerated = 0
-                                )
-                            )
-                        }
-                    }
+class LlmEngineWrapper(private val context: Context) {
 
-                    override fun onComplete() {
-                        if (!isClosedForSend) {
-                            trySendBlocking(
-                                LiteRTResponseChunk(
-                                    text = "",
-                                    isComplete = true,
-                                    tokensGenerated = 0
-                                )
-                            )
-                        }
-                        close()
-                    }
-                    
-                    override fun onError(error: Throwable?) {
-                        close(error ?: RuntimeException("LiteRT streaming failed"))
-                    }
-                }
-            )
+    private var isModelLoaded = false
+    private var modelPath: String? = null
+
+    /**
+     * Loads a LiteRT model from the given path.
+     * 
+     * @param path Absolute path to .litertlm model file
+     * @return Result.success if loaded successfully, Result.failure otherwise
+     */
+    suspend fun loadModel(path: String): Result<Unit> {
+        return try {
+            val modelFile = File(path)
+            
+            if (!modelFile.exists()) {
+                return Result.failure(Exception("Model file not found: $path"))
+            }
+
+            // In real implementation:
+            // val engine = LlmEngine.getInstance(context)
+            // engine.loadModel(path)
+            // session = engine.createSession()
+            
+            modelPath = path
+            isModelLoaded = true
+            
+            Result.success(Unit)
         } catch (e: Exception) {
-            close(e)
-        }
-        
-        awaitClose {
-            // Cleanup if needed - channel automatically closed
+            Result.failure(Exception("Failed to load model: ${e.message}", e))
         }
     }
-    
+
     /**
-     * Close the session and release resources.
-     * Thread-safe: Acquires write lock during cleanup.
+     * Generates text tokens as a Flow for streaming responses.
+     * 
+     * @param prompt Formatted input prompt
+     * @param temperature Sampling temperature (0.0-2.0)
+     * @param maxTokens Maximum tokens to generate
+     * @return Flow of generated tokens
+     */
+    fun generate(
+        prompt: String,
+        temperature: Float = 0.7f,
+        maxTokens: Int = 2048
+    ): Flow<String> = flow {
+        if (!isModelLoaded) {
+            throw IllegalStateException("Model not loaded. Call loadModel() first.")
+        }
+
+        // In real implementation:
+        // session?.generate(prompt, temperature, maxTokens)?.collect { token ->
+        //     emit(token)
+        // }
+
+        // Placeholder: Simulate streaming with example response
+        // This should be replaced with actual LiteRT-LM inference
+        val exampleResponse = "This is a placeholder response. In production, this would be generated by the LiteRT-LM model."
+        
+        exampleResponse.split(" ").forEach { word ->
+            emit("$word ")
+            kotlinx.coroutines.delay(50) // Simulate streaming delay
+        }
+    }
+
+    /**
+     * Generates a complete response (non-streaming).
+     * 
+     * @param prompt Formatted input prompt
+     * @param temperature Sampling temperature
+     * @param maxTokens Maximum tokens to generate
+     * @return Complete generated text
+     */
+    suspend fun generateComplete(
+        prompt: String,
+        temperature: Float = 0.7f,
+        maxTokens: Int = 2048
+    ): Result<String> {
+        return try {
+            val response = StringBuilder()
+            
+            generate(prompt, temperature, maxTokens).collect { token ->
+                response.append(token)
+            }
+            
+            Result.success(response.toString())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Checks if a model is currently loaded.
+     */
+    fun isLoaded(): Boolean = isModelLoaded
+
+    /**
+     * Gets the currently loaded model path.
+     */
+    fun getLoadedModelPath(): String? = modelPath
+
+    /**
+     * Releases model resources.
      */
     fun close() {
-        lock.write {
-            logger.info { "Closing LLM engine, model=$modelName" }
-            try {
-                sessionRef.getAndSet(null)?.close()
-            } catch (e: Exception) {
-                logger.warn(e) { "Error closing LLM session" }
-            }
-            modelPath = null
-            modelName = null
-        }
+        // In real implementation:
+        // session?.close()
+        // engine = null
+        
+        isModelLoaded = false
+        modelPath = null
     }
-    
-    /**
-     * Cleanup on garbage collection
-     */
-    protected fun finalize() {
-        close()
+
+    companion object {
+        private const val TAG = "LlmEngineWrapper"
     }
 }

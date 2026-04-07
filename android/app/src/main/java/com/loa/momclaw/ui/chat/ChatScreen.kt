@@ -1,505 +1,325 @@
 package com.loa.momclaw.ui.chat
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import com.loa.momclaw.ui.common.AnimationUtils
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.loa.momclaw.domain.model.ChatMessage
-import kotlinx.coroutines.launch
+import com.loa.momclaw.domain.model.Message
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
- * Chat screen with messages list and input
- * Optimized for Material3 with proper backpressure handling
+ * Chat screen composable with message list and input.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
-    uiState: ChatUiState,
-    onNavigateBack: () -> Unit = {},
-    onNavigateToSettings: () -> Unit = {},
-    onSendMessage: () -> Unit,
-    onUpdateInput: (String) -> Unit,
-    onClearConversation: () -> Unit,
-    onNewConversation: () -> Unit,
-    onRetry: () -> Unit,
-    onCancelStreaming: () -> Unit,
-    useNavigationRail: Boolean = false
+    state: ChatState,
+    onEvent: (ChatEvent) -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
-
-    // Auto-scroll to bottom when new messages arrive - with debounce
-    val messageCount = uiState.messages.size
-    val hasStreamingMessage = uiState.currentStreamingMessage != null
     
-    LaunchedEffect(messageCount, hasStreamingMessage) {
-        if (messageCount > 0 || hasStreamingMessage) {
-            coroutineScope.launch {
-                // Scroll to the last item (streaming message or last message)
-                val targetIndex = if (hasStreamingMessage) messageCount else messageCount - 1
-                if (targetIndex >= 0) {
-                    listState.animateScrollToItem(targetIndex)
-                }
-            }
+    // Auto-scroll to bottom when new messages arrive
+    LaunchedEffect(state.messages.size) {
+        if (state.messages.isNotEmpty()) {
+            listState.animateScrollToItem(state.messages.size - 1)
         }
-    }
-
-    // Calculate max width for content based on screen size
-    val contentMaxWidth = if (useNavigationRail) 800.dp else 600.dp
-    val bubbleMaxWidth = if (useNavigationRail) 600.dp else 280.dp
-
-    // Derive states to minimize recomposition
-    val isInputEnabled = remember(uiState.isAgentAvailable, uiState.isLoading) {
-        uiState.isAgentAvailable && !uiState.isLoading
-    }
-    
-    val showLoadingIndicator = remember(uiState.isLoading, uiState.currentStreamingMessage) {
-        uiState.isLoading && uiState.currentStreamingMessage == null
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = "MOMCLAW",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        if (uiState.isAgentAvailable) {
-                            Text(
-                                text = "Agent online",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
+                title = { 
+                    Text(
+                        "Chat",
+                        style = MaterialTheme.typography.titleLarge
+                    )
                 },
                 navigationIcon = {
-                    // Only show back button if using navigation rail (tablet)
-                    if (useNavigationRail) {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back"
-                            )
-                        }
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
                 },
                 actions = {
-                    // Clear conversation
-                    IconButton(onClick = onClearConversation) {
+                    IconButton(
+                        onClick = { onEvent(ChatEvent.ClearConversation) },
+                        enabled = state.messages.isNotEmpty()
+                    ) {
                         Icon(
-                            imageVector = Icons.Default.DeleteSweep,
+                            imageVector = Icons.Default.Delete,
                             contentDescription = "Clear conversation"
-                        )
-                    }
-                    // New conversation
-                    IconButton(onClick = onNewConversation) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "New conversation"
-                        )
-                    }
-                    // Settings
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings"
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
         }
-    ) { paddingValues ->
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(padding)
         ) {
-            // Error banner
-            AnimatedVisibility(
-                visible = uiState.error != null,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.errorContainer
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Error,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = uiState.error ?: "Unknown error",
-                            modifier = Modifier.weight(1f),
-                            color = MaterialTheme.colorScheme.onErrorContainer
-                        )
-                        TextButton(onClick = onRetry) {
-                            Text("Retry")
-                        }
-                    }
-                }
-            }
-
-            // Messages list - centered on larger screens
-            Box(
+            // Messages list
+            LazyColumn(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.TopCenter
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                state = listState,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = 8.dp)
             ) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .widthIn(max = contentMaxWidth)
-                        .fillMaxWidth(),
-                    contentPadding = PaddingValues(
-                        start = 16.dp,
-                        end = 16.dp,
-                        top = 16.dp,
-                        bottom = 8.dp
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Existing messages - use key for efficient updates
-                    items(
-                        items = uiState.messages,
-                        key = { it.id }
-                    ) { message ->
+                items(
+                    items = state.messages,
+                    key = { it.id }
+                ) { message ->
+                    MessageBubble(
+                        message = message,
+                        isUser = message.role == Message.ROLE_USER
+                    )
+                }
+
+                // Show streaming response
+                if (state.isStreaming && state.currentResponse.isNotEmpty()) {
+                    item {
                         MessageBubble(
-                            message = message,
-                            maxWidth = bubbleMaxWidth
+                            message = Message(
+                                role = Message.ROLE_ASSISTANT,
+                                content = state.currentResponse,
+                                timestamp = System.currentTimeMillis()
+                            ),
+                            isUser = false,
+                            isStreaming = true
                         )
-                    }
-
-                    // Currently streaming message
-                    if (uiState.currentStreamingMessage != null) {
-                        item {
-                            MessageBubble(
-                                message = uiState.currentStreamingMessage!!,
-                                isStreaming = true,
-                                maxWidth = bubbleMaxWidth
-                            )
-                        }
-                    }
-
-                    // Loading indicator for initial load
-                    if (showLoadingIndicator) {
-                        item {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Start
-                            ) {
-                                AssistantMessageBubble(
-                                    content = "",
-                                    isStreaming = true,
-                                    maxWidth = bubbleMaxWidth
-                                )
-                            }
-                        }
                     }
                 }
             }
 
-            // Input area - centered on larger screens
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.BottomCenter
-            ) {
-                MessageInput(
-                    text = uiState.inputText,
-                    isStreaming = uiState.isStreaming,
-                    onTextChange = onUpdateInput,
-                    onSend = onSendMessage,
-                    onCancel = onCancelStreaming,
-                    enabled = isInputEnabled,
-                    maxWidth = contentMaxWidth
+            // Error message
+            state.error?.let { error ->
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = error,
+                        modifier = Modifier.padding(12.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
+            // Loading indicator
+            if (state.isStreaming && state.currentResponse.isEmpty()) {
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
+
+            // Input area
+            ChatInput(
+                text = state.inputText,
+                enabled = !state.isStreaming,
+                onTextChange = { onEvent(ChatEvent.InputChanged(it)) },
+                onSend = { onEvent(ChatEvent.SendMessage(state.inputText)) }
+            )
         }
     }
 }
 
 /**
- * Message bubble that adapts to user/assistant
- * Marked as stable to prevent unnecessary recomposition
+ * Individual message bubble component.
  */
 @Composable
 fun MessageBubble(
-    message: ChatMessage,
-    isStreaming: Boolean = false,
-    maxWidth: androidx.compose.ui.unit.Dp = 280.dp
+    message: Message,
+    isUser: Boolean,
+    isStreaming: Boolean = false
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (message.isUser) {
-            Arrangement.End
-        } else {
-            Arrangement.Start
-        }
-    ) {
-        if (message.isUser) {
-            UserMessageBubble(content = message.content, maxWidth = maxWidth)
-        } else {
-            AssistantMessageBubble(
-                content = message.content,
-                isStreaming = isStreaming,
-                maxWidth = maxWidth
-            )
-        }
+    val alignment = if (isUser) Alignment.End else Alignment.Start
+    val color = if (isUser) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant
     }
-}
 
-/**
- * User message bubble (right-aligned, primary color)
- */
-@Composable
-fun UserMessageBubble(
-    content: String,
-    maxWidth: androidx.compose.ui.unit.Dp = 280.dp
-) {
-    Surface(
-        shape = RoundedCornerShape(
-            topStart = 16.dp,
-            topEnd = 4.dp,
-            bottomStart = 16.dp,
-            bottomEnd = 16.dp
-        ),
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.widthIn(max = maxWidth)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
+        horizontalAlignment = alignment
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+        Surface(
+            shape = RoundedCornerShape(
+                topStart = 16.dp,
+                topEnd = 16.dp,
+                bottomStart = if (isUser) 16.dp else 4.dp,
+                bottomEnd = if (isUser) 4.dp else 16.dp
+            ),
+            color = color,
+            tonalElevation = if (isUser) 2.dp else 1.dp,
+            modifier = Modifier.fillMaxWidth(0.85f)
         ) {
-            Text(
-                text = content,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onPrimary,
-                fontSize = 16.sp
-            )
-        }
-    }
-}
+            Column(
+                modifier = Modifier.padding(12.dp)
+            ) {
+                Text(
+                    text = message.content,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (isUser) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                )
 
-/**
- * Assistant message bubble (left-aligned, surface variant)
- */
-@Composable
-fun AssistantMessageBubble(
-    content: String,
-    isStreaming: Boolean = false,
-    maxWidth: androidx.compose.ui.unit.Dp = 280.dp
-) {
-    Surface(
-        shape = RoundedCornerShape(
-            topStart = 4.dp,
-            topEnd = 16.dp,
-            bottomStart = 16.dp,
-            bottomEnd = 16.dp
-        ),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = Modifier.widthIn(max = maxWidth)
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-        ) {
-            if (content.isEmpty() && isStreaming) {
-                // Streaming indicator
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    repeat(3) { index ->
-                        PulsingDot(
-                            delayMs = index * 150L
+                    Text(
+                        text = formatTime(message.timestamp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+
+                    if (isStreaming) {
+                        Text(
+                            text = "•••",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
-            } else {
-                Text(
-                    text = content,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 16.sp
-                )
-                if (isStreaming) {
-                    // Blinking streaming cursor
-                    Spacer(modifier = Modifier.height(4.dp))
-                    BlinkingCursor()
-                }
             }
         }
     }
 }
 
 /**
- * Pulsing dot for loading indicator with optimized animation
+ * Chat input component with send button.
  */
 @Composable
-fun PulsingDot(delayMs: Long) {
-    val scale by AnimationUtils.rememberPulsingState(
-        initialValue = 0.3f,
-        targetValue = 1f,
-        durationMs = 600,
-        delayMs = delayMs.toInt()
-    )
-    
-    val alpha by AnimationUtils.rememberPulsingState(
-        initialValue = 0.3f,
-        targetValue = 1f,
-        durationMs = 600,
-        delayMs = delayMs.toInt()
-    )
-
-    Box(
-        modifier = Modifier
-            .size(8.dp)
-            .graphicsLayer {
-                this.scaleX = scale
-                this.scaleY = scale
-                this.alpha = alpha
-            }
-            .background(
-                MaterialTheme.colorScheme.primary,
-                CircleShape
-            )
-    )
-}
-
-/**
- * Blinking cursor for streaming indicator with optimized animation
- */
-@Composable
-fun BlinkingCursor() {
-    val alpha by AnimationUtils.rememberBlinkingState(
-        initialValue = 1f,
-        targetValue = 0.2f,
-        durationMs = 530
-    )
-
-    Box(
-        modifier = Modifier
-            .width(8.dp)
-            .height(16.dp)
-            .graphicsLayer { this.alpha = alpha }
-            .background(
-                MaterialTheme.colorScheme.primary,
-                RoundedCornerShape(2.dp)
-            )
-    )
-}
-
-/**
- * Message input with send button
- */
-@Composable
-fun MessageInput(
+fun ChatInput(
     text: String,
-    isStreaming: Boolean,
-    onTextChange: (String) -> Unit,
-    onSend: () -> Unit,
-    onCancel: () -> Unit,
     enabled: Boolean,
-    maxWidth: androidx.compose.ui.unit.Dp = 600.dp,
-    modifier: Modifier = Modifier
+    onTextChange: (String) -> Unit,
+    onSend: () -> Unit
 ) {
     Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.fillMaxWidth(),
         tonalElevation = 8.dp
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
-                .widthIn(max = maxWidth)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            OutlinedTextField(
+            TextField(
                 value = text,
                 onValueChange = onTextChange,
+                enabled = enabled,
                 modifier = Modifier.weight(1f),
-                placeholder = {
+                placeholder = { 
                     Text(
-                        text = if (enabled) "Type a message..." else "Agent offline",
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        "Type a message...",
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 },
-                enabled = enabled && !isStreaming,
-                maxLines = 4,
+                maxLines = 5,
                 shape = RoundedCornerShape(24.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                 )
             )
 
-            // Send/Cancel button
-            if (isStreaming) {
-                FilledIconButton(
-                    onClick = onCancel,
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Stop,
-                        contentDescription = "Stop"
-                    )
-                }
-            } else {
-                FilledIconButton(
-                    onClick = onSend,
-                    enabled = text.isNotBlank() && enabled
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Send,
-                        contentDescription = "Send"
-                    )
-                }
+            FilledIconButton(
+                onClick = onSend,
+                enabled = enabled && text.isNotBlank(),
+                modifier = Modifier.size(48.dp),
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Send,
+                    contentDescription = "Send",
+                    modifier = Modifier.size(24.dp)
+                )
             }
         }
     }
+}
+
+/**
+ * Empty state component when no messages.
+ */
+@Composable
+fun EmptyChatState(
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "👋",
+            style = MaterialTheme.typography.displayLarge
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Start a conversation",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Type a message below to begin",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+/**
+ * Formats timestamp to readable time.
+ */
+private fun formatTime(timestamp: Long): String {
+    val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+    return sdf.format(Date(timestamp))
 }
