@@ -1,35 +1,20 @@
 # Android
 *.iml
-.gradle
-/local.properties
-/.idea/
+.gradle/
+.idea/
 .DS_Store
-/build
 /captures
 .externalNativeBuild
 .cxx
 *.apk
 *.aab
-*.ap_
-*.dex
-
-# Android Studio
-*.iws
-/out/
-/navigation/
-
-# NDK
-obj/
-libs/
+*.ap_*.dex
 
 # Kotlin
 *.class
-*.jar
 *.kt.swp
-*.log
 
 # Gradle
-.gradle/
 build/
 gradle-app.setting
 !gradle-wrapper.jar
@@ -38,35 +23,34 @@ gradle-app.setting
 # Local config
 local.properties
 keystore.properties
+key.properties
+
+# Secrets & Signing
 *.keystore
 *.jks
-
-# Secrets
-secrets.properties
-api_keys.properties
 *.pem
 *.p12
-
-# Signing
-key.properties
+secrets.properties
+api_keys.properties
 momclaw-release-key.jks
-*.jks
-*.keystore
 
 # Service accounts
+google-services.json
 google-play-service-account.json
 *-service-account.json
 
+# Environment files
+.env
+.env.*
+*.env
+
 # OS files
-.DS_Store
 Thumbs.db
 *.swp
 *.swo
 *~
 
 # IDE
-.idea/
-*.iml
 *.ipr
 *.iws
 .project
@@ -78,12 +62,10 @@ Thumbs.db
 android/app/build/
 android/bridge/build/
 android/agent/build/
-*.class
 
 # Test results
 test-results/
 test-reports/
-*.test
 
 # Logs
 *.log
@@ -112,9 +94,6 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 
-# Native libs (built from source)
-*.so
-
 # Models directory (large files)
 models/
 *.gguf
@@ -138,8 +117,3 @@ coverage/
 
 # Virtual environment
 venv/
-.env
-.env.local
-
-# Development memory
-memory/

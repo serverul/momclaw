@@ -4,7 +4,7 @@ import com.loa.momclaw.bridge.LiteRTBridge
 import com.loa.momclaw.bridge.ChatRequest
 import com.loa.momclaw.bridge.Message
 import com.loa.momclaw.agent.AgentLifecycleManager
-import com.loa.momclaw.agent.AgentConfig
+import com.loa.momclaw.agent.model.AgentConfig
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.junit.*

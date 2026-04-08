@@ -2,7 +2,7 @@ package com.loa.momclaw
 
 import android.app.Application
 import android.util.Log
-import com.loa.momclaw.agent.AgentConfig
+import com.loa.momclaw.agent.model.AgentConfig
 import com.loa.momclaw.agent.AgentLifecycleManager
 import com.loa.momclaw.bridge.LiteRTBridge
 import dagger.hilt.android.HiltAndroidApp

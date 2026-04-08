@@ -14,7 +14,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.loa.momclaw.MainActivity
 import com.loa.momclaw.R
-import com.loa.momclaw.agent.AgentConfig
+import com.loa.momclaw.agent.model.AgentConfig
 import com.loa.momclaw.agent.AgentLifecycleManager
 import com.loa.momclaw.bridge.LiteRTBridge
 import dagger.hilt.android.AndroidEntryPoint
