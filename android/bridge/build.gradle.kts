@@ -2,16 +2,16 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
+    id("org.jetbrains.kotlin.plugin.serialization") version Versions.kotlin
     id("dagger.hilt.android.plugin")
 }
 
 android {
     namespace = "com.loa.momclaw.bridge"
-    compileSdk = 34
+    compileSdk = Versions.compileSdk
 
     defaultConfig {
-        minSdk = 26
+        minSdk = Versions.minSdk
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -37,57 +37,38 @@ android {
 }
 
 dependencies {
-    // ============================================================
-    // LiteRT-LM SDK (TensorFlow Lite Implementation)
-    // ============================================================
-    // Google AI Edge LiteRT-LM SDK is not publicly available yet.
-    // Using TensorFlow Lite as the runtime backend.
-    //
-    // Supports:
-    // - .tflite model files (TensorFlow Lite format)
-    // - .litertlm model files (future format, fallback to TFLite)
-    //
-    // GPU acceleration available via tensorflow-lite-gpu
-    // ============================================================
-    
-    // TensorFlow Lite core (2.14.0 is latest stable with all artifacts)
-    implementation("org.tensorflow:tensorflow-lite:2.14.0")
-    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
-    
-    // GPU acceleration (optional, provides better performance)
-    implementation("org.tensorflow:tensorflow-lite-gpu:2.14.0")
-    
-    // Select TF ops (for models with advanced operations)
-    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.14.0")
+    // TensorFlow Lite
+    implementation(Dependencies.TFLite.core)
+    implementation(Dependencies.TFLite.support)
+    implementation(Dependencies.TFLite.gpu)
+    implementation(Dependencies.TFLite.selectOps)
 
     // Ktor server
-    implementation("io.ktor:ktor-server-netty:2.3.7")
-    implementation("io.ktor:ktor-server-content-negotiation:2.3.7")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
-    implementation("io.ktor:ktor-server-cors:2.3.7")
+    implementation(Dependencies.Ktor.serverNetty)
+    implementation(Dependencies.Ktor.serverContentNegotiation)
+    implementation(Dependencies.Ktor.serializationKotlinxJson)
+    implementation(Dependencies.Ktor.serverCors)
+    implementation(Dependencies.Ktor.serverCallLogging)
 
     // Kotlinx Serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+    implementation(Dependencies.Kotlinx.serializationJson)
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation(Dependencies.Coroutines.android)
+    implementation(Dependencies.Coroutines.core)
 
     // Android Core
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation(Dependencies.AndroidX.coreKtx)
+    implementation(Dependencies.AndroidX.appcompat)
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.50")
-    kapt("com.google.dagger:hilt-compiler:2.50")
-
-    // Logging
-    implementation("io.ktor:ktor-server-call-logging:2.3.7")
+    implementation(Dependencies.Hilt.android)
+    kapt(Dependencies.Hilt.compiler)
 
     // Testing
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    testImplementation(Dependencies.Test.junit)
+    androidTestImplementation(Dependencies.Test.junitExt)
+    androidTestImplementation(Dependencies.Test.espressoCore)
 }
 
 kapt {

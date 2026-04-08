@@ -65,6 +65,13 @@ object Dependencies {
         const val serializationJson = "org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.kotlinSerialization}"
     }
 
+    object TFLite {
+        const val core = "org.tensorflow:tensorflow-lite:${Versions.tflite}"
+        const val support = "org.tensorflow:tensorflow-lite-support:${Versions.tfliteSupport}"
+        const val gpu = "org.tensorflow:tensorflow-lite-gpu:${Versions.tflite}"
+        const val selectOps = "org.tensorflow:tensorflow-lite-select-tf-ops:${Versions.tflite}"
+    }
+
     object Ktor {
         const val serverNetty = "io.ktor:ktor-server-netty:${Versions.ktor}"
         const val serverContentNegotiation = "io.ktor:ktor-server-content-negotiation:${Versions.ktor}"

@@ -7,10 +7,10 @@ plugins {
 
 android {
     namespace = "com.loa.momclaw.agent"
-    compileSdk = 34
+    compileSdk = Versions.compileSdk
 
     defaultConfig {
-        minSdk = 26
+        minSdk = Versions.minSdk
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -37,30 +37,30 @@ android {
 
 dependencies {
     // Android Core
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation(Dependencies.AndroidX.coreKtx)
+    implementation(Dependencies.AndroidX.appcompat)
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation(Dependencies.Coroutines.android)
+    implementation(Dependencies.Coroutines.core)
 
     // Kotlinx Serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+    implementation(Dependencies.Kotlinx.serializationJson)
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.50")
-    kapt("com.google.dagger:hilt-compiler:2.50")
+    implementation(Dependencies.Hilt.android)
+    kapt(Dependencies.Hilt.compiler)
 
-    // Kotlin Logging (updated to latest stable)
+    // Kotlin Logging
     implementation("io.github.oshai:kotlin-logging-jvm:6.0.3")
 
     // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    implementation(Dependencies.Lifecycle.runtimeKtx)
 
     // Testing
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    testImplementation(Dependencies.Test.junit)
+    androidTestImplementation(Dependencies.Test.junitExt)
+    androidTestImplementation(Dependencies.Test.espressoCore)
 }
 
 kapt {

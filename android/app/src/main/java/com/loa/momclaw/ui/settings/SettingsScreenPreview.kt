@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.loa.momclaw.config.NetworkConfig
 import com.loa.momclaw.ui.theme.MOMCLAWTheme
 
 @Preview(name = "Settings - Default", showBackground = true)
@@ -20,7 +21,7 @@ fun SettingsScreenDefaultPreview() {
             uiState = SettingsUiState(
                 systemPrompt = "You are a helpful AI assistant.",
                 temperature = 0.7f, maxTokens = 2048,
-                modelPrimary = "gemma-2b-it", baseUrl = "http://localhost:8080",
+                modelPrimary = "gemma-2b-it", baseUrl = NetworkConfig.DEFAULT_BASE_URL,
                 darkTheme = true, streamingEnabled = true,
                 notificationsEnabled = true, backgroundAgentEnabled = false,
                 hasChanges = false
@@ -42,7 +43,7 @@ fun SettingsScreenModifiedPreview() {
             uiState = SettingsUiState(
                 systemPrompt = "You are an expert in Android development.",
                 temperature = 0.5f, maxTokens = 4096,
-                modelPrimary = "llama-3-8b", baseUrl = "http://10.0.2.2:8080",
+                modelPrimary = "llama-3-8b", baseUrl = NetworkConfig.EMULATOR_BASE_URL,
                 darkTheme = false, streamingEnabled = true,
                 notificationsEnabled = false, backgroundAgentEnabled = true,
                 hasChanges = true
@@ -64,7 +65,7 @@ fun SettingsScreenTabletPreview() {
             uiState = SettingsUiState(
                 systemPrompt = "You are a helpful AI assistant.",
                 temperature = 0.8f, maxTokens = 2048,
-                modelPrimary = "gemma-2b-it", baseUrl = "http://localhost:8080",
+                modelPrimary = "gemma-2b-it", baseUrl = NetworkConfig.DEFAULT_BASE_URL,
                 darkTheme = true, streamingEnabled = true,
                 notificationsEnabled = true, backgroundAgentEnabled = false,
                 hasChanges = true
@@ -87,7 +88,7 @@ fun SettingsScreenLightPreview() {
             uiState = SettingsUiState(
                 systemPrompt = "You are a helpful AI assistant.",
                 temperature = 0.7f, maxTokens = 2048,
-                modelPrimary = "gemma-2b-it", baseUrl = "http://localhost:8080",
+                modelPrimary = "gemma-2b-it", baseUrl = NetworkConfig.DEFAULT_BASE_URL,
                 darkTheme = false, streamingEnabled = true,
                 notificationsEnabled = true, backgroundAgentEnabled = false,
                 hasChanges = false

@@ -39,6 +39,10 @@ object Versions {
     // Networking
     const val okHttp = "4.12.0"
 
+    // TensorFlow Lite
+    const val tflite = "2.14.0"
+    const val tfliteSupport = "0.4.4"
+
     // Ktor (Bridge module)
     const val ktor = "2.3.7"
 

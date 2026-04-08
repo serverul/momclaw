@@ -5,7 +5,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("dagger.hilt.android.plugin")
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
+    id("org.jetbrains.kotlin.plugin.serialization") version Versions.kotlin
 }
 
 // Load signing config from key.properties if exists
@@ -17,12 +17,12 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.loa.momclaw"
-    compileSdk = 34
+    compileSdk = Versions.compileSdk
 
     defaultConfig {
         applicationId = "com.loa.momclaw"
-        minSdk = 26
-        targetSdk = 34
+        minSdk = Versions.minSdk
+        targetSdk = Versions.targetSdk
         versionCode = 1000000  // Format: MAJOR * 100000 + MINOR * 1000 + PATCH
         versionName = "1.0.0"
 
@@ -86,15 +86,12 @@ android {
     // Bundle configuration for Play Store
     bundle {
         language {
-            // Enable language split for smaller APKs
             enableSplit = true
         }
         density {
-            // Enable density split for smaller APKs
             enableSplit = true
         }
         abi {
-            // Enable ABI split for smaller APKs
             enableSplit = true
         }
     }
@@ -114,7 +111,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.8"
+        kotlinCompilerExtensionVersion = Versions.composeCompiler
     }
 
     packaging {
@@ -130,65 +127,65 @@ dependencies {
     implementation(project(":agent"))
 
     // Compose BOM
-    implementation(platform("androidx.compose:compose-bom:2024.02.00"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material-icons-extended")
+    implementation(platform(Dependencies.Compose.bom))
+    implementation(Dependencies.Compose.ui)
+    implementation(Dependencies.Compose.uiGraphics)
+    implementation(Dependencies.Compose.uiToolingPreview)
+    implementation(Dependencies.Compose.material3)
+    implementation(Dependencies.Compose.materialIconsExtended)
 
     // Activity Compose
-    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation(Dependencies.Activity.compose)
 
     // Navigation Compose
-    implementation("androidx.navigation:navigation-compose:2.7.6")
+    implementation(Dependencies.Navigation.compose)
 
     // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    implementation(Dependencies.Lifecycle.viewModelCompose)
+    implementation(Dependencies.Lifecycle.runtimeCompose)
+    implementation(Dependencies.Lifecycle.runtimeKtx)
 
     // Room
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
+    implementation(Dependencies.Room.runtime)
+    implementation(Dependencies.Room.ktx)
+    kapt(Dependencies.Room.compiler)
 
     // DataStore
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation(Dependencies.Datastore.preferences)
 
     // OkHttp
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.okhttp3:okhttp-sse:4.12.0")
+    implementation(Dependencies.OkHttp.okHttp)
+    implementation(Dependencies.OkHttp.sse)
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.50")
-    kapt("com.google.dagger:hilt-compiler:2.50")
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation(Dependencies.Hilt.android)
+    kapt(Dependencies.Hilt.compiler)
+    implementation(Dependencies.Hilt.navigationCompose)
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation(Dependencies.Coroutines.android)
+    implementation(Dependencies.Coroutines.core)
 
     // Kotlinx Serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+    implementation(Dependencies.Kotlinx.serializationJson)
 
     // Android Core
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation(Dependencies.AndroidX.coreKtx)
+    implementation(Dependencies.AndroidX.appcompat)
 
     // Debug
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    debugImplementation(Dependencies.Compose.uiTooling)
+    debugImplementation(Dependencies.Compose.uiTestManifest)
 
     // Testing
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-    testImplementation("androidx.room:room-testing:2.6.1")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.02.00"))
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    testImplementation(Dependencies.Test.junit)
+    testImplementation(Dependencies.Test.mockitoKotlin)
+    testImplementation(Dependencies.Coroutines.test)
+    testImplementation(Dependencies.Room.testing)
+    androidTestImplementation(Dependencies.Test.junitExt)
+    androidTestImplementation(Dependencies.Test.espressoCore)
+    androidTestImplementation(platform(Dependencies.Compose.bom))
+    androidTestImplementation(Dependencies.Compose.uiTestJunit4)
 }
 
 kapt {

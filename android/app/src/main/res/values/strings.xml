@@ -1,15 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MomClaw</string>
+
+    <!-- Navigation -->
     <string name="chat_title">Chat</string>
     <string name="models_title">Models</string>
     <string name="settings_title">Settings</string>
-    <string name="send_message">Send Message</string>
-    <string name="type_a_message">Type a message...</string>
-    <string name="clear_conversation">Clear Conversation</string>
+    <string name="navigate_back">Navigate back</string>
+
+    <!-- Chat Screen -->
+    <string name="send_message">Send message</string>
+    <string name="type_a_message">Type a message below to begin</string>
+    <string name="clear_conversation">Clear conversation</string>
+    <string name="start_a_conversation">Start a Conversation</string>
+    <string name="empty_conversation">Empty conversation. Start chatting by typing a message below.</string>
+    <string name="error_format">Error: %1$s</string>
+    <string name="offline_mode">Offline mode: %1$s</string>
+
+    <!-- Models Screen -->
     <string name="download_model">Download Model</string>
     <string name="load_model">Load Model</string>
     <string name="delete_model">Delete Model</string>
+    <string name="activate">Activate</string>
+    <string name="active">Active</string>
+    <string name="ready">Ready</string>
+    <string name="refresh">Refresh</string>
+    <string name="no_models_available">No models available</string>
+    <string name="low_storage">Low storage</string>
+    <string name="pull_to_refresh">Pull to refresh or check your connection</string>
+    <string name="size_format">Size: %1$s</string>
+    <string name="download_progress_format">%1$d%% complete</string>
+
+    <!-- Settings Screen -->
     <string name="save_settings">Save Settings</string>
-    <string name="reset_settings">Reset to Defaults</string>
+    <string name="reset_to_defaults">Reset to Defaults</string>
+    <string name="system_prompt">System Prompt</string>
+    <string name="temperature">Temperature</string>
+    <string name="max_tokens">Max Tokens</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="enable_dark_theme">Enable dark theme</string>
+    <string name="auto_save">Auto Save</string>
+    <string name="auto_save_description">Automatically save conversations</string>
+    <string name="temperature_description">Controls randomness: 0 = focused, 2 = creative</string>
+    <string name="settings_saved">Settings saved successfully</string>
+
+    <!-- Home Screen -->
+    <string name="welcome_title">Welcome to MomClaw</string>
+    <string name="welcome_subtitle">Your AI assistant powered by LiteRT-LM</string>
+    <string name="start_chat">Start Chat</string>
+    <string name="start_chat_desc">Chat with your AI assistant</string>
+    <string name="manage_models">Manage Models</string>
+    <string name="manage_models_desc">Download and activate AI models</string>
+    <string name="configure_assistant">Configure your assistant</string>
+
+    <!-- Errors & Status -->
+    <string name="error">Error</string>
+    <string name="offline">Offline</string>
+    <string name="limited_mode">Limited Mode</string>
+    <string name="setup_required">Setup Required</string>
+    <string name="how_to_fix">How to fix:</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="back">Back</string>
+    <string name="loading">Loading</string>
+
+    <!-- Agent Service Notifications -->
+    <string name="agent_service">Agent Service</string>
+    <string name="agent_service_running">Agent service is running</string>
+
+    <!-- Accessibility -->
+    <string name="send_button_desc">Send message</string>
+    <string name="user_avatar_desc">Your avatar</string>
+    <string name="model_card_desc">Model: %1$s</string>
 </resources>

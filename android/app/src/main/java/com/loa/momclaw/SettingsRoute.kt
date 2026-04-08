@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.loa.momclaw.ui.settings.SettingsScreen
 import com.loa.momclaw.ui.settings.SettingsUiState
+import com.loa.momclaw.config.NetworkConfig
 
 /**
  * Route composable that connects ViewModel to SettingsScreen
@@ -20,7 +21,7 @@ fun SettingsRoute(
         temperature = 0.7f,
         maxTokens = 2048,
         modelPrimary = "litert-bridge/gemma-4-e4b",
-        baseUrl = "http://localhost:8080",
+        baseUrl = NetworkConfig.DEFAULT_BASE_URL,
         darkTheme = true,
         streamingEnabled = true,
         notificationsEnabled = true,

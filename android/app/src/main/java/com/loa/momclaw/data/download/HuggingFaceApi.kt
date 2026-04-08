@@ -36,8 +36,8 @@ interface HuggingFaceApi {
     ): Response<Unit>
     
     companion object {
-        const val BASE_URL = "https://huggingface.co/api/"
-        const val FILE_BASE_URL = "https://huggingface.co/"
+        const val BASE_URL = com.loa.momclaw.config.NetworkConfig.HUGGINGFACE_API_URL
+        const val FILE_BASE_URL = com.loa.momclaw.config.NetworkConfig.HUGGINGFACE_FILES_URL
         
         fun create(): HuggingFaceApi {
             val client = OkHttpClient.Builder()

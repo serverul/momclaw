@@ -1,4 +1,6 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
+// NOTE: Plugin versions must be hardcoded here — buildSrc classes aren't available in the root plugins {} block.
+// See Versions.kt for the single source of truth on dependency versions.
 plugins {
     id("com.android.application") version "8.3.0" apply false
     id("com.android.library") version "8.3.0" apply false

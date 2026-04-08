@@ -13,6 +13,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.loa.momclaw.config.NetworkConfig
 
 /**
  * Hilt module for providing application-level dependencies.
@@ -71,6 +72,6 @@ object AppModule {
     @Provides
     @Singleton
     fun provideAgentClient(): AgentClient {
-        return AgentClient(baseUrl = "http://localhost:9090")
+        return AgentClient(baseUrl = NetworkConfig.AGENT_URL)
     }
 }

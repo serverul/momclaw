@@ -12,6 +12,7 @@ import okhttp3.sse.EventSourceListener
 import okhttp3.sse.EventSources
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import com.loa.momclaw.config.NetworkConfig
 
 /**
  * Data class for chat request to NullClaw.
@@ -41,7 +42,7 @@ data class ChatResponseDto(
  * - Configuration updates
  */
 class AgentClient(
-    private val baseUrl: String = "http://localhost:9090"
+    private val baseUrl: String = NetworkConfig.AGENT_URL
 ) {
     private val json = Json {
         ignoreUnknownKeys = true

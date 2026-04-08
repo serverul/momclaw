@@ -12,6 +12,7 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.loa.momclaw.MainActivity
 import com.loa.momclaw.R
+import com.loa.momclaw.config.NetworkConfig
 import com.loa.momclaw.domain.model.AgentConfig
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -179,7 +180,7 @@ class AgentService : LifecycleService() {
                     temperature = temperature ?: 0.7f,
                     maxTokens = maxTokens ?: 2048,
                     modelPrimary = "litert-bridge/gemma-4-e4b",
-                    baseUrl = "http://localhost:8080",
+                    baseUrl = NetworkConfig.DEFAULT_BASE_URL,
                     memoryBackend = "sqlite",
                     memoryPath = "/data/data/com.loa.momclaw/databases/agent.db"
                 )

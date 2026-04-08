@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import com.loa.momclaw.config.NetworkConfig
 
 
 /**
@@ -176,8 +177,8 @@ class StartupManager(private val context: Context) : LifecycleObserver {
                 }
                 
                 transitionState(StartupState.Running(
-                    inferenceEndpoint = "http://localhost:8080",
-                    agentEndpoint = "http://localhost:9090"
+                    inferenceEndpoint = NetworkConfig.DEFAULT_BASE_URL,
+                    agentEndpoint = NetworkConfig.AGENT_URL
                 ))
                 Log.i(TAG, "All services started successfully")
                 
@@ -389,7 +390,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
      */
     fun getInferenceEndpoint(): String? {
         return if (_state.value is StartupState.Running) {
-            "http://localhost:8080"
+            NetworkConfig.DEFAULT_BASE_URL
         } else null
     }
     
@@ -398,7 +399,7 @@ class StartupManager(private val context: Context) : LifecycleObserver {
      */
     fun getAgentEndpoint(): String? {
         return if (_state.value is StartupState.Running) {
-            "http://localhost:9090"
+            NetworkConfig.AGENT_URL
         } else null
     }
     
